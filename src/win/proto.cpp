@@ -100,6 +100,11 @@ public:
         ProtoIME::SetBtnIcon(3, (std::wstring(dllDir) + L"\\res\\sign.png").c_str());
         ProtoIME::SetBtnIcon(4, (std::wstring(dllDir) + L"\\res\\keyboard.png").c_str());
 
+        // Mode icons for button 1 (40x20)
+        ProtoIME::SetModeIcon(0, (std::wstring(dllDir) + L"\\res\\capital.png").c_str());
+        ProtoIME::SetModeIcon(1, (std::wstring(dllDir) + L"\\res\\english.png").c_str());
+        ProtoIME::SetModeIcon(2, (std::wstring(dllDir) + L"\\res\\pinyin.png").c_str());
+
         ITfSource* src = nullptr;
         if (SUCCEEDED(tm->QueryInterface(IID_ITfSource, (void**)&src))) {
             src->AdviseSink(IID_ITfThreadMgrEventSink, (ITfThreadMgrEventSink*)this, &m_cookie); src->Release();
@@ -160,8 +165,15 @@ public:
         ProtoIME::SetFocused(true);  // receiving key = must have focus
         *e = ProtoIME::OnKeyDown((UINT)w) ? TRUE : FALSE; return S_OK;
     }
-    STDMETHODIMP OnKeyUp(ITfContext*, WPARAM, LPARAM, BOOL* e) override { *e = FALSE; return S_OK; }
-    STDMETHODIMP OnTestKeyUp(ITfContext*, WPARAM, LPARAM, BOOL* e) override { *e = FALSE; return S_OK; }
+    STDMETHODIMP OnKeyUp(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
+        *e = ProtoIME::OnKeyUp((UINT)w) ? TRUE : FALSE; return S_OK;
+    }
+    STDMETHODIMP OnTestKeyUp(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
+        UINT vk = (UINT)w;
+        if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT)
+            { *e = TRUE; return S_OK; }  // claim Shift release for tap detection
+        *e = FALSE; return S_OK;
+    }
     STDMETHODIMP OnSetFocus(BOOL fForeground) override {
         ProtoIME::SetFocused(fForeground != FALSE);
         return S_OK;

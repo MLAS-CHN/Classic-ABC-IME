@@ -15,6 +15,8 @@ bool IsActive();
 
 bool TestKey(UINT vk);
 bool ProcessKey(UINT vk);
+bool ProcessShiftTap();
+void ToggleChineseMode();
 
 const std::wstring& CompStr();
 bool HasText();
@@ -25,6 +27,7 @@ std::wstring GetCandidateText(size_t i);
 size_t GetCandidatePage();
 size_t GetTotalPages();
 bool IsChineseMode();
+bool IsDelMode();
 
 } // Engine
 } // ProtoIME

@@ -28,6 +28,7 @@ size_t GetCandidateCount();
 std::wstring GetCandidateText(size_t i);
 size_t GetCandidatePage();
 size_t GetTotalPages();
+bool IsDelMode();
 
 // Data dir
 void SetDataDir(const wchar_t* dir);
@@ -39,5 +40,7 @@ void SetSkin(const NinePatchSkin* skin);
 void SetSettingsSkin(const NinePatchSkin* skin);
 void SetBtnSkin(const NinePatchSkin* skin);
 bool SetBtnIcon(int idx, const wchar_t* path);
+bool SetModeIcon(int idx, const wchar_t* path);
+void ToggleMode();
 
 } // namespace ProtoIME

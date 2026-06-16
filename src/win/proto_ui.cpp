@@ -31,6 +31,7 @@ static const int kSettingsW = 127, kSettingsH = 26;
 static const ProtoIME::UI::NinePatchSkin* g_settingsSkin = nullptr;
 static const ProtoIME::UI::NinePatchSkin* g_btnSkin = nullptr;  // button.png
 static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
+static Gdiplus::Bitmap* g_modeIcons[3] = {}; // 0=capital 1=english 2=pinyin (for button 1)
 
 // --- test ---
 static const wchar_t kCandClass[] = L"ProtoCandListWnd";
@@ -143,6 +144,9 @@ void ProtoIME::UI::Shutdown() {
     for (int i = 0; i < 5; ++i) {
         if (g_btnIcons[i]) { delete g_btnIcons[i]; g_btnIcons[i] = nullptr; }
     }
+    for (int i = 0; i < 3; ++i) {
+        if (g_modeIcons[i]) { delete g_modeIcons[i]; g_modeIcons[i] = nullptr; }
+    }
 }
 
 void ProtoIME::UI::Show(bool visible) {
@@ -194,7 +198,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         }
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
-        SetTextColor(dc, RGB(128, 0, 128));
+        COLORREF candColor = ProtoIME::IsDelMode() ? RGB(128, 0, 0) : RGB(128, 0, 128);
         size_t count = ProtoIME::GetCandidateCount();
         for (size_t i = 0; i < count; ++i) {
             std::wstring text = ProtoIME::GetCandidateText(i);
@@ -202,9 +206,9 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             int n = (int)i + 1;
             if (n == 10) n = 0;
             wchar_t num[4]; wsprintfW(num, L"%d:", n);
-            SetTextColor(dc, RGB(128, 0, 128));
+            SetTextColor(dc, candColor);
             TextOutW(dc, 6, 6 + (int)i * g_fh, num, (int)wcslen(num));
-            SetTextColor(dc, RGB(128, 0, 128));
+            SetTextColor(dc, candColor);
             TextOutW(dc, 6 + g_fw * 2 + g_fw/2, 6 + (int)i * g_fh, text.c_str(), (int)text.size());
         }
         SelectObject(dc, old);
@@ -373,9 +377,19 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
         {
             Gdiplus::Graphics gfx(dc);
             for (int i = 0; i < 5; ++i) {
-                if (!g_btnIcons[i]) continue;
                 const RECT& br = g_btnRects[i];
-                gfx.DrawImage(g_btnIcons[i], br.left, br.top,
+                Gdiplus::Bitmap* icon = g_btnIcons[i];
+                // Button 1: dynamic mode icon (capital/english/pinyin)
+                if (i == 1) {
+                    int mode = 2; // default pinyin
+                    if (GetKeyState(VK_CAPITAL) & 0x0001)
+                        mode = 0; // capital
+                    else if (!ProtoIME::Engine::IsChineseMode())
+                        mode = 1; // english
+                    icon = g_modeIcons[mode];
+                }
+                if (!icon) continue;
+                gfx.DrawImage(icon, br.left, br.top,
                               br.right - br.left, br.bottom - br.top);
             }
         }
@@ -383,8 +397,14 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
     }
     if (msg == WM_LBUTTONDOWN) {
         POINT pt = { LOWORD(l), HIWORD(l) };
-        // Button click (no drag) -- placeholder, no action yet
-        if (HitTestBtn(pt) >= 0) return 0;
+        int btnIdx = HitTestBtn(pt);
+        if (btnIdx >= 0) {
+            if (btnIdx == 1) {
+                ProtoIME::ToggleMode();
+                InvalidateRect(hwnd, &g_btnRects[1], TRUE);
+            }
+            return 0;
+        }
         // Start drag
         g_dragging = true;
         GetCursorPos(&g_dragBase);
@@ -481,4 +501,16 @@ bool ProtoIME::UI::SetBtnIcon(int idx, const wchar_t* path) {
     if (g_btnIcons[idx]) { delete g_btnIcons[idx]; g_btnIcons[idx] = nullptr; }
     g_btnIcons[idx] = new Gdiplus::Bitmap(path);
     return g_btnIcons[idx]->GetLastStatus() == Gdiplus::Ok;
+}
+
+bool ProtoIME::UI::SetModeIcon(int idx, const wchar_t* path) {
+    if (idx < 0 || idx >= 3) return false;
+    if (g_modeIcons[idx]) { delete g_modeIcons[idx]; g_modeIcons[idx] = nullptr; }
+    g_modeIcons[idx] = new Gdiplus::Bitmap(path);
+    return g_modeIcons[idx]->GetLastStatus() == Gdiplus::Ok;
+}
+
+void ProtoIME::UI::RefreshSettings() {
+    if (g_settingsWnd)
+        InvalidateRect(g_settingsWnd, nullptr, TRUE);
 }

@@ -30,6 +30,8 @@ void UpdateCand();  // reposition below input window + repaint
 
 // Settings bar button icons (PNG with alpha, drawn over button 9-patch)
 bool SetBtnIcon(int idx, const wchar_t* path);  // idx 0~4
+bool SetModeIcon(int idx, const wchar_t* path); // idx 0(capital) 1(english) 2(pinyin)
+void RefreshSettings();
 
 // Skin helpers
 void SetSkin(const NinePatchSkin* skin);

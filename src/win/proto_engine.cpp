@@ -26,6 +26,7 @@ struct State {
 };
 static State g;
 static std::wstring g_comp;
+static bool g_shift_pending = false;  // true when Shift was pressed alone (potential tap)
 
 // ---- UTF helpers ----
 static std::wstring u8to16(const std::string& s) {
@@ -155,14 +156,36 @@ void ProtoIME::Engine::Init() {
 }
 void ProtoIME::Engine::SetActive(bool a) {
     g.active = a;
-    if (!a) { g = State{}; g_comp.clear(); }
+    if (!a) {
+        bool wasChinese = g.chinese;
+        g = State{};
+        g.chinese = wasChinese;
+        g_comp.clear();
+    }
 }
 bool ProtoIME::Engine::IsActive() { return g.active; }
 
 bool ProtoIME::Engine::TestKey(UINT vk) {
-    if (!g.active || !g.chinese) return false;
+    if (!g.active) return false;
+
+    // Always claim Shift/CapsLock keys for tap/mode detection
+    if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT || vk == VK_CAPITAL) return true;
+
+    // Any non-Shift key: clear pending tap
+    g_shift_pending = false;
+
+    // CapsLock on: English mode — pass through
+    if (GetKeyState(VK_CAPITAL) & 0x0001) return false;
+
+    // Shift or Ctrl held: don't intercept (allows uppercase / shortcuts)
+    if ((GetKeyState(VK_SHIFT) & 0x8000) || (GetKeyState(VK_CONTROL) & 0x8000))
+        return false;
+
+    // English mode: pass through all keys
+    if (!g.chinese) return false;
+
+    // Chinese mode: intercept pinyin keys
     if (vk >= 'A' && vk <= 'Z') return true;
-    if (vk == VK_SPACE && (GetKeyState(VK_CONTROL) & 0x8000)) return true;
     if (vk == VK_BACK && !g.buf.empty()) return true;
     if (!g.buf.empty()) {
         if (vk == VK_OEM_7) return true;
@@ -179,7 +202,34 @@ bool ProtoIME::Engine::TestKey(UINT vk) {
 }
 
 bool ProtoIME::Engine::ProcessKey(UINT vk) {
-    if (!g.active || !g.chinese) return false;
+    if (!g.active) return false;
+
+    // Shift press tracking for tap detection
+    if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT) {
+        g_shift_pending = true;
+        return false;  // not eaten, let system see Shift
+    }
+
+    // Any non-Shift key clears pending tap
+    g_shift_pending = false;
+
+    // CapsLock press: force English mode, reset pinyin state
+    if (vk == VK_CAPITAL) {
+        g.chinese = false;
+        g.buf.clear(); g.cur = 0; g.delmode = false;
+        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
+        g_comp.clear();
+        return false;  // not eaten, let system toggle CapsLock
+    }
+
+    // CapsLock on, Shift/Ctrl held, or English mode: pass through
+    if ((GetKeyState(VK_CAPITAL) & 0x0001) ||
+        (GetKeyState(VK_SHIFT) & 0x8000) ||
+        (GetKeyState(VK_CONTROL) & 0x8000))
+        return false;
+    if (!g.chinese) return false;
+
+    // Chinese mode: normal pinyin processing
     bool eaten = false;
 
     // candidate selection
@@ -240,12 +290,6 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
     else if (vk == VK_RIGHT && !g.buf.empty()) {
         move_virtual_cursor_right(g.cur, g.buf); rebuild(); eaten = true;
     }
-    // Ctrl+Space toggle
-    else if (vk == VK_SPACE && (GetKeyState(VK_CONTROL) & 0x8000)) {
-        g.chinese = !g.chinese;
-        if (!g.chinese) { g = State{}; g_comp.clear(); }
-        eaten = true;
-    }
     // full-width punctuation (when buffer empty)
     else if (g.buf.empty() && g.pages.empty()) {
         const char* fw = nullptr;
@@ -274,6 +318,25 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
     return eaten;
 }
 
+bool ProtoIME::Engine::ProcessShiftTap() {
+    if (g_shift_pending) {
+        g_shift_pending = false;
+        ProtoIME::Engine::ToggleChineseMode();
+        return true;  // eat the key-up to prevent system handling
+    }
+    g_shift_pending = false;
+    return false;
+}
+
+void ProtoIME::Engine::ToggleChineseMode() {
+    g.chinese = !g.chinese;
+    if (!g.chinese) {
+        g.buf.clear(); g.cur = 0; g.delmode = false;
+        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
+        g_comp.clear();
+    }
+}
+
 const std::wstring& ProtoIME::Engine::CompStr() { return g_comp; }
 bool ProtoIME::Engine::HasText() { return !g.buf.empty(); }
 
@@ -289,3 +352,4 @@ std::wstring ProtoIME::Engine::GetCandidateText(size_t i) {
 size_t ProtoIME::Engine::GetCandidatePage()  { return g.page; }
 size_t ProtoIME::Engine::GetTotalPages()     { return g.pages.size(); }
 bool   ProtoIME::Engine::IsChineseMode()     { return g.chinese; }
+bool   ProtoIME::Engine::IsDelMode()         { return g.delmode; }

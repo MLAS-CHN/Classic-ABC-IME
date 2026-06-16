@@ -40,15 +40,23 @@ void ProtoIME::SetFocused(bool f) {
 bool ProtoIME::TestKeyDown(UINT vk) { return ProtoIME::Engine::TestKey(vk); }
 
 bool ProtoIME::OnKeyDown(UINT vk) {
-    if (ProtoIME::Engine::ProcessKey(vk)) {
+    bool eaten = ProtoIME::Engine::ProcessKey(vk);
+    if (eaten) {
         ProtoIME::UI::Update();
         ProtoIME::UI::UpdateCand();
-        return true;
+    }
+    ProtoIME::UI::RefreshSettings();
+    return eaten;
+}
+
+bool ProtoIME::OnKeyUp(UINT vk) {
+    if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT) {
+        bool eaten = ProtoIME::Engine::ProcessShiftTap();
+        ProtoIME::UI::RefreshSettings();
+        return eaten;
     }
     return false;
 }
-
-bool ProtoIME::OnKeyUp(UINT vk) { (void)vk; return false; }
 
 const std::wstring& ProtoIME::GetCompositionString() { return ProtoIME::Engine::CompStr(); }
 
@@ -56,6 +64,7 @@ size_t      ProtoIME::GetCandidateCount()     { return ProtoIME::Engine::GetCand
 std::wstring ProtoIME::GetCandidateText(size_t i) { return ProtoIME::Engine::GetCandidateText(i); }
 size_t      ProtoIME::GetCandidatePage()      { return ProtoIME::Engine::GetCandidatePage(); }
 size_t      ProtoIME::GetTotalPages()         { return ProtoIME::Engine::GetTotalPages(); }
+bool        ProtoIME::IsDelMode()            { return ProtoIME::Engine::IsDelMode(); }
 
 void ProtoIME::SetDataDir(const wchar_t* dir) {
     int n = WideCharToMultiByte(CP_UTF8, 0, dir, -1, nullptr, 0, nullptr, nullptr);
@@ -95,3 +104,10 @@ WRAP_SKIN(SetSettingsSkin, SetSettingsSkin)
 WRAP_SKIN(SetBtnSkin, SetBtnSkin)
 
 bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetBtnIcon(idx, path); }
+
+bool ProtoIME::SetModeIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetModeIcon(idx, path); }
+
+void ProtoIME::ToggleMode() {
+    ProtoIME::Engine::ToggleChineseMode();
+    ProtoIME::UI::RefreshSettings();
+}
