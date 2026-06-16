@@ -1,0 +1,31 @@
+# Build outputs
+build/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.lib
+*.exp
+*.ilk
+*.pdb
+*.res
+
+# Compiled binaries
+lite-tty-ime
+tmux_shell
+
+# IDE
+.vs/
+*.vcxproj*
+*.user
+*.suo
+*.sln
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
