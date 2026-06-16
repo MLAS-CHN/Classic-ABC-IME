@@ -17,6 +17,8 @@ bool TestKey(UINT vk);
 bool ProcessKey(UINT vk);
 bool ProcessShiftTap();
 void ToggleChineseMode();
+bool IsLocked();
+void ToggleLock();
 
 const std::wstring& CompStr();
 bool HasText();

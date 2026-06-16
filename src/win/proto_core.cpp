@@ -3,6 +3,7 @@
 #include "proto_engine.h"
 #include "proto_ui.h"
 #include "../pinyin_file_io.h"
+#include "../util.h"
 
 bool ProtoIME::Initialize(HINSTANCE h) {
     ProtoIME::Engine::Init();
@@ -14,6 +15,7 @@ void ProtoIME::Shutdown() {
 }
 
 void ProtoIME::SetActive(bool a) {
+    write_log("ProtoCore: SetActive(" + std::string(a ? "true" : "false") + ")", DEBUG);
     ProtoIME::Engine::SetActive(a);
     if (!a) {
         ProtoIME::UI::Show(false);
@@ -25,6 +27,7 @@ void ProtoIME::SetActive(bool a) {
 bool ProtoIME::IsActive() { return ProtoIME::Engine::IsActive(); }
 
 void ProtoIME::SetFocused(bool f) {
+    write_log("ProtoCore: SetFocused(" + std::string(f ? "true" : "false") + ") active=" + std::to_string(ProtoIME::Engine::IsActive()), DEBUG);
     if (f) {
         if (!ProtoIME::Engine::IsActive())
             ProtoIME::Engine::SetActive(true);
@@ -107,7 +110,16 @@ bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::S
 
 bool ProtoIME::SetModeIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetModeIcon(idx, path); }
 
+bool ProtoIME::SetLockIcon(const wchar_t* path) { return ProtoIME::UI::SetLockIcon(path); }
+
 void ProtoIME::ToggleMode() {
     ProtoIME::Engine::ToggleChineseMode();
     ProtoIME::UI::RefreshSettings();
 }
+
+void ProtoIME::ToggleLock() {
+    ProtoIME::Engine::ToggleLock();
+    ProtoIME::UI::RefreshSettings();
+}
+
+bool ProtoIME::IsLocked() { return ProtoIME::Engine::IsLocked(); }

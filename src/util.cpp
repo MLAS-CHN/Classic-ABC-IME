@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <sstream>
 
+static std::string g_log_dir;
 static std::string g_log_file_path = "lite-tty-ime.log";
 static LogLevel g_min_log_level = INFO;
 
@@ -45,11 +46,22 @@ void init_logger() {
     std::tm tm_now = *std::localtime(&now_time);
 
     std::ostringstream oss;
+    if (!g_log_dir.empty())
+        oss << g_log_dir << "/";
     oss << "lite-tty-ime_" << std::put_time(&tm_now, "%Y%m%d_%H%M%S") << ".log";
     g_log_file_path = oss.str();
 
     std::ofstream ofs(g_log_file_path, std::ios::trunc);
     (void)ofs;
+}
+
+void init_logger_with_dir(const std::string& dir) {
+    g_log_dir = dir;
+    init_logger();
+}
+
+void set_log_level(LogLevel level) {
+    g_min_log_level = level;
 }
 
 /**

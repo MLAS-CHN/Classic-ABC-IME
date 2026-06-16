@@ -7,6 +7,7 @@
 #include <msctf.h>
 #include <ctfutb.h>
 #include "proto_core.h"
+#include "../util.h"
 
 // ========== GUIDs ==========
 // {F4E5D6C7-B8A9-40BC-ABCD-EF1234567890}
@@ -18,6 +19,37 @@ static HINSTANCE g_hinst;
 static ProtoIME::NinePatchSkin g_skin;        // candidate window (shadow)
 static ProtoIME::NinePatchSkin g_settingsSkin; // settings bar (common)
 static ProtoIME::NinePatchSkin g_btnSkin;      // settings bar buttons (button)
+
+static std::string vk_name(UINT vk) {
+    if (vk >= 'A' && vk <= 'Z') return std::string(1, (char)vk);
+    switch (vk) {
+        case VK_SHIFT:   return "Shift";
+        case VK_LSHIFT:  return "LShift";
+        case VK_RSHIFT:  return "RShift";
+        case VK_CONTROL: return "Ctrl";
+        case VK_CAPITAL: return "CapsLock";
+        case VK_SPACE:   return "Space";
+        case VK_BACK:    return "Back";
+        case VK_RETURN:  return "Enter";
+        case VK_ESCAPE:  return "Esc";
+        case VK_DELETE:  return "Del";
+        case VK_LEFT:    return "Left";
+        case VK_RIGHT:   return "Right";
+        case VK_OEM_7:   return "'";
+        case VK_OEM_PLUS:return "=";
+        case VK_OEM_MINUS:return "-";
+        case VK_OEM_5:   return "\\";
+        case VK_OEM_COMMA: return ",";
+        case VK_OEM_PERIOD:return ".";
+        case VK_OEM_1:   return ";";
+        case VK_OEM_2:   return "/";
+        default: {
+            char buf[16];
+            wsprintfA(buf, "0x%02X", vk);
+            return buf;
+        }
+    }
+}
 
 // ========== LangBar Button ==========
 class ProtoButton : public ITfLangBarItemButton {
@@ -76,10 +108,30 @@ public:
         wchar_t dllDir[MAX_PATH];
         GetModuleFileNameW(g_hinst, dllDir, MAX_PATH);
         *wcsrchr(dllDir, L'\\') = L'\0';
+
+        // Init logger in DLL directory
+        {
+            int n = WideCharToMultiByte(CP_UTF8, 0, dllDir, -1, nullptr, 0, nullptr, nullptr);
+            if (n > 0) {
+                std::string dir((size_t)(n - 1), '\0');
+                WideCharToMultiByte(CP_UTF8, 0, dllDir, -1, &dir[0], n, nullptr, nullptr);
+                init_logger_with_dir(dir);
+            }
+        }
+        // Check debug flag: create proto_debug_enable.flag in DLL dir to enable DEBUG logs
+        {
+            std::wstring flag = std::wstring(dllDir) + L"\\proto_debug_enable.flag";
+            if (GetFileAttributesW(flag.c_str()) != INVALID_FILE_ATTRIBUTES)
+                set_log_level(DEBUG);
+        }
+        write_log("Proto: Activate() called, TfClientId=" + std::to_string(id), INFO);
+
         ProtoIME::SetDataDir((std::wstring(dllDir) + L"\\data").c_str());
 
         ProtoIME::Initialize(g_hinst);
         ProtoIME::SetActive(true);
+
+        write_log("Proto: Engine+UI initialized, active=true", DEBUG);
 
         // Load 9-patch skin (shadow.png) relative to DLL
         std::wstring skinPath = std::wstring(dllDir) + L"\\res\\shadow.png";
@@ -105,6 +157,9 @@ public:
         ProtoIME::SetModeIcon(1, (std::wstring(dllDir) + L"\\res\\english.png").c_str());
         ProtoIME::SetModeIcon(2, (std::wstring(dllDir) + L"\\res\\pinyin.png").c_str());
 
+        // Lock mode icon for button 0 (shown when locked)
+        ProtoIME::SetLockIcon((std::wstring(dllDir) + L"\\res\\ABC_ICON_GRAY.png").c_str());
+
         ITfSource* src = nullptr;
         if (SUCCEEDED(tm->QueryInterface(IID_ITfSource, (void**)&src))) {
             src->AdviseSink(IID_ITfThreadMgrEventSink, (ITfThreadMgrEventSink*)this, &m_cookie); src->Release();
@@ -129,6 +184,7 @@ public:
         return S_OK;
     }
     STDMETHODIMP Deactivate() override {
+        write_log("Proto: Deactivate() called", INFO);
         // Unadvise sinks before releasing thread manager
         if (m_tm) {
             ITfKeystrokeMgr* km = nullptr;
@@ -158,15 +214,24 @@ public:
 
     // --- ITfKeyEventSink ---
     STDMETHODIMP OnTestKeyDown(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
-        ProtoIME::SetFocused(true);  // receiving key test = must have focus
-        *e = ProtoIME::TestKeyDown((UINT)w) ? TRUE : FALSE; return S_OK;
+        ProtoIME::SetFocused(true);
+        bool claimed = ProtoIME::TestKeyDown((UINT)w);
+        *e = claimed ? TRUE : FALSE;
+        write_log("Proto: OnTestKeyDown vk=" + vk_name((UINT)w) + " claimed=" + (claimed ? "YES" : "no"), DEBUG);
+        return S_OK;
     }
     STDMETHODIMP OnKeyDown(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
-        ProtoIME::SetFocused(true);  // receiving key = must have focus
-        *e = ProtoIME::OnKeyDown((UINT)w) ? TRUE : FALSE; return S_OK;
+        ProtoIME::SetFocused(true);
+        bool eaten = ProtoIME::OnKeyDown((UINT)w);
+        *e = eaten ? TRUE : FALSE;
+        write_log("Proto: OnKeyDown vk=" + vk_name((UINT)w) + " eaten=" + (eaten ? "YES" : "no"), DEBUG);
+        return S_OK;
     }
     STDMETHODIMP OnKeyUp(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
-        *e = ProtoIME::OnKeyUp((UINT)w) ? TRUE : FALSE; return S_OK;
+        bool eaten = ProtoIME::OnKeyUp((UINT)w);
+        *e = eaten ? TRUE : FALSE;
+        if (eaten) write_log("Proto: OnKeyUp vk=" + vk_name((UINT)w) + " eaten=YES (Shift tap)", DEBUG);
+        return S_OK;
     }
     STDMETHODIMP OnTestKeyUp(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
         UINT vk = (UINT)w;
@@ -175,6 +240,7 @@ public:
         *e = FALSE; return S_OK;
     }
     STDMETHODIMP OnSetFocus(BOOL fForeground) override {
+        write_log("Proto: ITfKeyEventSink::OnSetFocus fg=" + std::to_string(fForeground), DEBUG);
         ProtoIME::SetFocused(fForeground != FALSE);
         return S_OK;
     }
@@ -184,6 +250,7 @@ public:
     STDMETHODIMP OnInitDocumentMgr(ITfDocumentMgr*) override { return S_OK; }
     STDMETHODIMP OnUninitDocumentMgr(ITfDocumentMgr*) override { return S_OK; }
     STDMETHODIMP OnSetFocus(ITfDocumentMgr* pdimFocus, ITfDocumentMgr*) override {
+        write_log("Proto: ITfThreadMgrEventSink::OnSetFocus focused=" + std::to_string(pdimFocus != nullptr), DEBUG);
         ProtoIME::SetFocused(pdimFocus != nullptr);
         return S_OK;
     }

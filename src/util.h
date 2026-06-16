@@ -41,6 +41,8 @@ void get_terminal_size(int &rows, int &cols);
 void write_log(const std::string& message, LogLevel level = INFO);
 
 void init_logger();
+void init_logger_with_dir(const std::string& dir);
+void set_log_level(LogLevel level);
 
 /**
  * 将按键序列转换为可读名称

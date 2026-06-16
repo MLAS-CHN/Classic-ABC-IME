@@ -2,6 +2,7 @@
 #include "proto_ui.h"
 #include "proto_engine.h"
 #include "proto_core.h"
+#include "../util.h"
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
 
@@ -32,6 +33,7 @@ static const ProtoIME::UI::NinePatchSkin* g_settingsSkin = nullptr;
 static const ProtoIME::UI::NinePatchSkin* g_btnSkin = nullptr;  // button.png
 static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
 static Gdiplus::Bitmap* g_modeIcons[3] = {}; // 0=capital 1=english 2=pinyin (for button 1)
+static Gdiplus::Bitmap* g_lockIcon = nullptr; // button 0 locked state icon (ABC_ICON_GRAY)
 
 // --- test ---
 static const wchar_t kCandClass[] = L"ProtoCandListWnd";
@@ -132,6 +134,7 @@ bool ProtoIME::UI::Init(HINSTANCE hInst, int width, int height) {
         Gdiplus::GdiplusStartupInput si;
         Gdiplus::GdiplusStartup(&g_gdiToken, &si, nullptr);
     }
+    write_log("UI: Init() hInst=" + std::to_string((uintptr_t)hInst) + " size=" + std::to_string(width) + "x" + std::to_string(height), DEBUG);
     return true;
 }
 
@@ -147,6 +150,7 @@ void ProtoIME::UI::Shutdown() {
     for (int i = 0; i < 3; ++i) {
         if (g_modeIcons[i]) { delete g_modeIcons[i]; g_modeIcons[i] = nullptr; }
     }
+    if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
 }
 
 void ProtoIME::UI::Show(bool visible) {
@@ -159,6 +163,7 @@ void ProtoIME::UI::Update() {
     if (buf.empty()) { if (g_wnd) ShowWindow(g_wnd, SW_HIDE); return; }
 
     if (!g_wnd) {
+        write_log("UI: Update creating candidate input window", DEBUG);
         init_font();
         if (!g_wclass) {
             WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) }; wc.lpfnWndProc = wndproc; wc.hInstance = g_inst;
@@ -220,6 +225,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
 void ProtoIME::UI::ShowCand(bool visible) {
     if (visible) {
         if (!g_candWnd) {
+            write_log("UI: ShowCand creating candidate list window", DEBUG);
             if (!g_candClassRegistered) {
                 WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
                 wc.lpfnWndProc = candWndProc; wc.hInstance = g_inst;
@@ -379,6 +385,10 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
             for (int i = 0; i < 5; ++i) {
                 const RECT& br = g_btnRects[i];
                 Gdiplus::Bitmap* icon = g_btnIcons[i];
+                // Button 0: lock icon when locked
+                if (i == 0 && g_lockIcon && ProtoIME::IsLocked()) {
+                    icon = g_lockIcon;
+                }
                 // Button 1: dynamic mode icon (capital/english/pinyin)
                 if (i == 1) {
                     int mode = 2; // default pinyin
@@ -399,7 +409,11 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
         POINT pt = { LOWORD(l), HIWORD(l) };
         int btnIdx = HitTestBtn(pt);
         if (btnIdx >= 0) {
-            if (btnIdx == 1) {
+            if (btnIdx == 0) {
+                ProtoIME::ToggleLock();
+                InvalidateRect(hwnd, &g_btnRects[0], TRUE);
+            }
+            else if (btnIdx == 1) {
                 ProtoIME::ToggleMode();
                 InvalidateRect(hwnd, &g_btnRects[1], TRUE);
             }
@@ -435,6 +449,7 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
 void ProtoIME::UI::ShowSettings(bool visible) {
     if (visible) {
         if (!g_settingsWnd) {
+            write_log("UI: ShowSettings creating settings window", DEBUG);
         if (!g_settingsClass) {
             WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
                 wc.lpfnWndProc = settingsWndProc; wc.hInstance = g_inst;
@@ -508,6 +523,12 @@ bool ProtoIME::UI::SetModeIcon(int idx, const wchar_t* path) {
     if (g_modeIcons[idx]) { delete g_modeIcons[idx]; g_modeIcons[idx] = nullptr; }
     g_modeIcons[idx] = new Gdiplus::Bitmap(path);
     return g_modeIcons[idx]->GetLastStatus() == Gdiplus::Ok;
+}
+
+bool ProtoIME::UI::SetLockIcon(const wchar_t* path) {
+    if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
+    g_lockIcon = new Gdiplus::Bitmap(path);
+    return g_lockIcon->GetLastStatus() == Gdiplus::Ok;
 }
 
 void ProtoIME::UI::RefreshSettings() {

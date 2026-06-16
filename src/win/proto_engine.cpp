@@ -8,6 +8,7 @@
 #include "../pinyin_file_io.h"
 #include "../pinyin_split.h"
 #include "../pinyin_virtual_cursor.h"
+#include "../util.h"
 #include <vector>
 #include <algorithm>
 
@@ -16,6 +17,7 @@ static const size_t kPageSize = 10;
 struct State {
     bool   active = false;  // engine activation state
     bool   chinese = true;
+    bool   locked = false;  // gaming lock mode (Shift-proof English)
     bool   delmode = false;
     std::string buf;           // pinyin buffer (UTF-8)
     size_t cur = 0;
@@ -162,11 +164,15 @@ void ProtoIME::Engine::SetActive(bool a) {
         g.chinese = wasChinese;
         g_comp.clear();
     }
+    write_log("Engine: SetActive(" + std::string(a ? "true" : "false") + ") chinese=" + std::to_string(g.chinese) + " locked=" + std::to_string(g.locked), DEBUG);
 }
 bool ProtoIME::Engine::IsActive() { return g.active; }
 
 bool ProtoIME::Engine::TestKey(UINT vk) {
     if (!g.active) return false;
+
+    // Locked mode: pass through everything (gaming)
+    if (g.locked) return false;
 
     // Always claim Shift/CapsLock keys for tap/mode detection
     if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT || vk == VK_CAPITAL) return true;
@@ -203,6 +209,9 @@ bool ProtoIME::Engine::TestKey(UINT vk) {
 
 bool ProtoIME::Engine::ProcessKey(UINT vk) {
     if (!g.active) return false;
+
+    // Locked mode: pass through everything (gaming)
+    if (g.locked) return false;
 
     // Shift press tracking for tap detection
     if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT) {
@@ -330,7 +339,21 @@ bool ProtoIME::Engine::ProcessShiftTap() {
 
 void ProtoIME::Engine::ToggleChineseMode() {
     g.chinese = !g.chinese;
+    write_log("Engine: ToggleChineseMode -> chinese=" + std::to_string(g.chinese), DEBUG);
     if (!g.chinese) {
+        g.buf.clear(); g.cur = 0; g.delmode = false;
+        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
+        g_comp.clear();
+    }
+}
+
+bool ProtoIME::Engine::IsLocked() { return g.locked; }
+
+void ProtoIME::Engine::ToggleLock() {
+    g.locked = !g.locked;
+    write_log("Engine: ToggleLock -> locked=" + std::to_string(g.locked), INFO);
+    if (g.locked) {
+        g.chinese = false;
         g.buf.clear(); g.cur = 0; g.delmode = false;
         g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
         g_comp.clear();

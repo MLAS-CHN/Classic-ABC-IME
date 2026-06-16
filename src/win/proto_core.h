@@ -41,6 +41,9 @@ void SetSettingsSkin(const NinePatchSkin* skin);
 void SetBtnSkin(const NinePatchSkin* skin);
 bool SetBtnIcon(int idx, const wchar_t* path);
 bool SetModeIcon(int idx, const wchar_t* path);
+bool SetLockIcon(const wchar_t* path);
 void ToggleMode();
+void ToggleLock();
+bool IsLocked();
 
 } // namespace ProtoIME
