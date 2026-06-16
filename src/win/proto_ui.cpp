@@ -468,11 +468,13 @@ void ProtoIME::UI::ShowSettings(bool visible) {
                 kSettingsClass, L"", WS_POPUP,
                 g_settingsX, g_settingsY, kSettingsW, kSettingsH,
                 nullptr, nullptr, g_inst, nullptr);
+            write_log("UI: ShowSettings created hwnd=" + std::to_string((uintptr_t)g_settingsWnd) + " at " + std::to_string(g_settingsX) + "," + std::to_string(g_settingsY), LOG_DEBUG);
             InitBtnRects();
         }
+        write_log("UI: ShowSettings showing hwnd=" + std::to_string((uintptr_t)g_settingsWnd) + " IsVisible=" + std::to_string(IsWindowVisible(g_settingsWnd)), LOG_DEBUG);
         ShowWindow(g_settingsWnd, SW_SHOWNOACTIVATE);
     } else {
-        if (g_settingsWnd) ShowWindow(g_settingsWnd, SW_HIDE);
+        if (g_settingsWnd) { write_log("UI: ShowSettings hiding hwnd=" + std::to_string((uintptr_t)g_settingsWnd), LOG_DEBUG); ShowWindow(g_settingsWnd, SW_HIDE); }
     }
 }
 

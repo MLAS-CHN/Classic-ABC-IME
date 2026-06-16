@@ -51,6 +51,24 @@ static std::string vk_name(UINT vk) {
     }
 }
 
+static std::string fg_info() {
+    HWND fg = GetForegroundWindow();
+    if (!fg) return "fg=null";
+    wchar_t title[256] = {};
+    GetWindowTextW(fg, title, 256);
+    wchar_t cls[256] = {};
+    GetClassNameW(fg, cls, 256);
+    DWORD pid = 0;
+    GetWindowThreadProcessId(fg, &pid);
+    int n = WideCharToMultiByte(CP_UTF8, 0, title, -1, nullptr, 0, nullptr, nullptr);
+    std::string stitle(n ? (size_t)(n - 1) : 0, '\0');
+    if (n > 0) WideCharToMultiByte(CP_UTF8, 0, title, -1, &stitle[0], n, nullptr, nullptr);
+    int m = WideCharToMultiByte(CP_UTF8, 0, cls, -1, nullptr, 0, nullptr, nullptr);
+    std::string scls(m ? (size_t)(m - 1) : 0, '\0');
+    if (m > 0) WideCharToMultiByte(CP_UTF8, 0, cls, -1, &scls[0], m, nullptr, nullptr);
+    return "fg_pid=" + std::to_string(pid) + " cls='" + scls + "' title='" + stitle + "'";
+}
+
 // ========== LangBar Button ==========
 class ProtoButton : public ITfLangBarItemButton {
     LONG m_ref = 1;
@@ -124,7 +142,7 @@ public:
             if (GetFileAttributesW(flag.c_str()) != INVALID_FILE_ATTRIBUTES)
                 set_log_level(LOG_DEBUG);
         }
-        write_log("Proto: Activate() called, TfClientId=" + std::to_string(id), LOG_INFO);
+        write_log("Proto: Activate() called, TfClientId=" + std::to_string(id) + " " + fg_info(), LOG_INFO);
 
         ProtoIME::SetDataDir((std::wstring(dllDir) + L"\\data").c_str());
 
@@ -184,7 +202,7 @@ public:
         return S_OK;
     }
     STDMETHODIMP Deactivate() override {
-        write_log("Proto: Deactivate() called", LOG_INFO);
+        write_log("Proto: Deactivate() called " + fg_info(), LOG_INFO);
         // Unadvise sinks before releasing thread manager
         if (m_tm) {
             ITfKeystrokeMgr* km = nullptr;
@@ -240,7 +258,7 @@ public:
         *e = FALSE; return S_OK;
     }
     STDMETHODIMP OnSetFocus(BOOL fForeground) override {
-        write_log("Proto: ITfKeyEventSink::OnSetFocus fg=" + std::to_string(fForeground), LOG_DEBUG);
+        write_log("Proto: ITfKeyEventSink::OnSetFocus fg=" + std::to_string(fForeground) + " " + fg_info(), LOG_DEBUG);
         ProtoIME::SetFocused(fForeground != FALSE);
         return S_OK;
     }
@@ -250,7 +268,7 @@ public:
     STDMETHODIMP OnInitDocumentMgr(ITfDocumentMgr*) override { return S_OK; }
     STDMETHODIMP OnUninitDocumentMgr(ITfDocumentMgr*) override { return S_OK; }
     STDMETHODIMP OnSetFocus(ITfDocumentMgr* pdimFocus, ITfDocumentMgr*) override {
-        write_log("Proto: ITfThreadMgrEventSink::OnSetFocus focused=" + std::to_string(pdimFocus != nullptr), LOG_DEBUG);
+        write_log("Proto: ITfThreadMgrEventSink::OnSetFocus focused=" + std::to_string(pdimFocus != nullptr) + " " + fg_info(), LOG_DEBUG);
         ProtoIME::SetFocused(pdimFocus != nullptr);
         return S_OK;
     }
