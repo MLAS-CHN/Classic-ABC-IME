@@ -156,7 +156,7 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
 
     if (lines.empty()) {
         lines.push_back(new_line);
-        write_log("Insert line into " + file_path + " at line 1: " + new_line, INFO);
+        write_log("Insert line into " + file_path + " at line 1: " + new_line, LOG_INFO);
         persist_lines_to_file(file_path, lines);
         build_index_from_lines(lines, index);
         return;
@@ -189,7 +189,7 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
 
     lines.insert(lines.begin() + (std::ptrdiff_t)insert_pos, new_line);
     write_log("Insert line into " + file_path + " at line " + std::to_string(insert_pos + 1) + ": " + new_line,
-              INFO);
+              LOG_INFO);
     persist_lines_to_file(file_path, lines);
     build_index_from_lines(lines, index);
 }

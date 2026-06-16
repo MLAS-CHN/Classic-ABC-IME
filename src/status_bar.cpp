@@ -22,7 +22,7 @@ void set_status_bar_colors(int fg_ansi, int bg_ansi) {
  * 启动时设置默认颜色，并触发一次完整刷新。
  */
 void init_status_bar() {
-    write_log("Initializing Status Bar content...", INFO);
+    write_log("Initializing Status Bar content...", LOG_INFO);
     
     // 设置初始颜色：黑色背景，灰色文字
     vterm::set_status_bar_bg_ansi(g_status_bar_bg_ansi);

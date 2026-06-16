@@ -134,7 +134,7 @@ static void finalize_or_continue_continuous_input(ImeState& state, const Candida
             CandidateItem merged_candidate = CandidateItem::mergeCandidateItems(state.continuous_input_container);
             if (!merged_candidate.getText().empty() && !merged_candidate.getPinyinParts().empty()) {
                 write_and_update_index(get_user_dict_file_path(), merged_candidate, g_user_dict_lines, g_user_dict_index);
-                write_log("Persist merged candidate to user_dict: " + merged_candidate.toString(), INFO);
+                write_log("Persist merged candidate to user_dict: " + merged_candidate.toString(), LOG_INFO);
             }
             state.continuous_input_container.clear();
             state.is_continuous_input_mode = false;
@@ -241,7 +241,7 @@ static bool handle_candidate_selection_key(unsigned char c, ImeState& state, int
     }
 
     const std::string& selected_text = selected_candidate.getText();
-    write_log("Select candidate: " + selected_text, INFO);
+    write_log("Select candidate: " + selected_text, LOG_INFO);
     if (!selected_text.empty()) {
         write(master_fd, selected_text.c_str(), selected_text.size());
     }
@@ -536,7 +536,7 @@ bool ime_controller_handle_input_bytes(const char* buf, ssize_t n, int master_fd
             ime_state.candidate_page = 0;
             ime_state.pending_escape.clear();
             update_ime_status(ime_state.is_chinese_mode ? "中文" : "EN", "");
-            write_log("Switch to " + std::string(ime_state.is_chinese_mode ? "Chinese" : "English") + " mode", INFO);
+            write_log("Switch to " + std::string(ime_state.is_chinese_mode ? "Chinese" : "English") + " mode", LOG_INFO);
             intercepted = true;
             continue;
         }

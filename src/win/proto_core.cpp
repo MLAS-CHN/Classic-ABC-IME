@@ -15,7 +15,7 @@ void ProtoIME::Shutdown() {
 }
 
 void ProtoIME::SetActive(bool a) {
-    write_log("ProtoCore: SetActive(" + std::string(a ? "true" : "false") + ")", DEBUG);
+    write_log("ProtoCore: SetActive(" + std::string(a ? "true" : "false") + ")", LOG_DEBUG);
     ProtoIME::Engine::SetActive(a);
     if (!a) {
         ProtoIME::UI::Show(false);
@@ -27,7 +27,7 @@ void ProtoIME::SetActive(bool a) {
 bool ProtoIME::IsActive() { return ProtoIME::Engine::IsActive(); }
 
 void ProtoIME::SetFocused(bool f) {
-    write_log("ProtoCore: SetFocused(" + std::string(f ? "true" : "false") + ") active=" + std::to_string(ProtoIME::Engine::IsActive()), DEBUG);
+    write_log("ProtoCore: SetFocused(" + std::string(f ? "true" : "false") + ") active=" + std::to_string(ProtoIME::Engine::IsActive()), LOG_DEBUG);
     if (f) {
         if (!ProtoIME::Engine::IsActive())
             ProtoIME::Engine::SetActive(true);

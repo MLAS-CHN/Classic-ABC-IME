@@ -122,16 +122,16 @@ public:
         {
             std::wstring flag = std::wstring(dllDir) + L"\\proto_debug_enable.flag";
             if (GetFileAttributesW(flag.c_str()) != INVALID_FILE_ATTRIBUTES)
-                set_log_level(DEBUG);
+                set_log_level(LOG_DEBUG);
         }
-        write_log("Proto: Activate() called, TfClientId=" + std::to_string(id), INFO);
+        write_log("Proto: Activate() called, TfClientId=" + std::to_string(id), LOG_INFO);
 
         ProtoIME::SetDataDir((std::wstring(dllDir) + L"\\data").c_str());
 
         ProtoIME::Initialize(g_hinst);
         ProtoIME::SetActive(true);
 
-        write_log("Proto: Engine+UI initialized, active=true", DEBUG);
+        write_log("Proto: Engine+UI initialized, active=true", LOG_DEBUG);
 
         // Load 9-patch skin (shadow.png) relative to DLL
         std::wstring skinPath = std::wstring(dllDir) + L"\\res\\shadow.png";
@@ -184,7 +184,7 @@ public:
         return S_OK;
     }
     STDMETHODIMP Deactivate() override {
-        write_log("Proto: Deactivate() called", INFO);
+        write_log("Proto: Deactivate() called", LOG_INFO);
         // Unadvise sinks before releasing thread manager
         if (m_tm) {
             ITfKeystrokeMgr* km = nullptr;
@@ -217,20 +217,20 @@ public:
         ProtoIME::SetFocused(true);
         bool claimed = ProtoIME::TestKeyDown((UINT)w);
         *e = claimed ? TRUE : FALSE;
-        write_log("Proto: OnTestKeyDown vk=" + vk_name((UINT)w) + " claimed=" + (claimed ? "YES" : "no"), DEBUG);
+        write_log("Proto: OnTestKeyDown vk=" + vk_name((UINT)w) + " claimed=" + (claimed ? "YES" : "no"), LOG_DEBUG);
         return S_OK;
     }
     STDMETHODIMP OnKeyDown(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
         ProtoIME::SetFocused(true);
         bool eaten = ProtoIME::OnKeyDown((UINT)w);
         *e = eaten ? TRUE : FALSE;
-        write_log("Proto: OnKeyDown vk=" + vk_name((UINT)w) + " eaten=" + (eaten ? "YES" : "no"), DEBUG);
+        write_log("Proto: OnKeyDown vk=" + vk_name((UINT)w) + " eaten=" + (eaten ? "YES" : "no"), LOG_DEBUG);
         return S_OK;
     }
     STDMETHODIMP OnKeyUp(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
         bool eaten = ProtoIME::OnKeyUp((UINT)w);
         *e = eaten ? TRUE : FALSE;
-        if (eaten) write_log("Proto: OnKeyUp vk=" + vk_name((UINT)w) + " eaten=YES (Shift tap)", DEBUG);
+        if (eaten) write_log("Proto: OnKeyUp vk=" + vk_name((UINT)w) + " eaten=YES (Shift tap)", LOG_DEBUG);
         return S_OK;
     }
     STDMETHODIMP OnTestKeyUp(ITfContext*, WPARAM w, LPARAM, BOOL* e) override {
@@ -240,7 +240,7 @@ public:
         *e = FALSE; return S_OK;
     }
     STDMETHODIMP OnSetFocus(BOOL fForeground) override {
-        write_log("Proto: ITfKeyEventSink::OnSetFocus fg=" + std::to_string(fForeground), DEBUG);
+        write_log("Proto: ITfKeyEventSink::OnSetFocus fg=" + std::to_string(fForeground), LOG_DEBUG);
         ProtoIME::SetFocused(fForeground != FALSE);
         return S_OK;
     }
@@ -250,7 +250,7 @@ public:
     STDMETHODIMP OnInitDocumentMgr(ITfDocumentMgr*) override { return S_OK; }
     STDMETHODIMP OnUninitDocumentMgr(ITfDocumentMgr*) override { return S_OK; }
     STDMETHODIMP OnSetFocus(ITfDocumentMgr* pdimFocus, ITfDocumentMgr*) override {
-        write_log("Proto: ITfThreadMgrEventSink::OnSetFocus focused=" + std::to_string(pdimFocus != nullptr), DEBUG);
+        write_log("Proto: ITfThreadMgrEventSink::OnSetFocus focused=" + std::to_string(pdimFocus != nullptr), LOG_DEBUG);
         ProtoIME::SetFocused(pdimFocus != nullptr);
         return S_OK;
     }

@@ -130,7 +130,7 @@ static void update_child_fullscreen_state_from_output(const std::string& output,
  * 用于正常退出、异常退出和信号退出的统一收尾。
  */
 void reset_terminal() {
-    write_log("Resetting terminal and exiting Alternate Screen Buffer", INFO);
+    write_log("Resetting terminal and exiting Alternate Screen Buffer", LOG_INFO);
     int rows = 0, cols = 0;
     get_terminal_size(rows, cols);
     if (rows <= 0) rows = g_rows;
@@ -160,7 +160,7 @@ void reset_terminal() {
  * @param sig 信号编号。
  */
 void handle_exit_signal(int sig) {
-    write_log("Received exit signal: " + std::to_string(sig), WARN);
+    write_log("Received exit signal: " + std::to_string(sig), LOG_WARN);
     reset_terminal();
     exit(0);
 }
@@ -188,7 +188,7 @@ static void process_winch_if_needed() {
     int cols = ws.ws_col;
     g_rows = rows;
     g_cols = cols;
-    write_log("Terminal resized to: " + std::to_string(rows) + "x" + std::to_string(cols), INFO);
+    write_log("Terminal resized to: " + std::to_string(rows) + "x" + std::to_string(cols), LOG_INFO);
 
     bool fullscreen = effective_fullscreen_mode();
     sync_child_pty_size(fullscreen);
@@ -278,7 +278,7 @@ int main() {
     // 设置环境变量，标记当前已经运行了一个实例，禁止嵌套
     setenv("LITE_TTY_IME_ACTIVE", "1", 1);
     
-    write_log("Starting lite-tty-ime...", INFO);
+    write_log("Starting lite-tty-ime...", LOG_INFO);
     
     pid_t pid = forkpty(&master_fd, NULL, NULL, &sub_ws);
 
@@ -327,11 +327,11 @@ int main() {
              * 本循环以“逐字节”方式遍历，但遇到多字节序列时会通过 match_* 检测并一次性消费掉多个字节。
              */
             std::string key_name = get_key_name(buf, n);
-            write_log(key_name + " press", DEBUG);
+            write_log(key_name + " press", LOG_DEBUG);
 
             for (ssize_t i = 0; i < n; ++i) {
                 if ((unsigned char)buf[i] == 29) {
-                    write_log("Emergency Exit Triggered via Ctrl+]", WARN);
+                    write_log("Emergency Exit Triggered via Ctrl+]", LOG_WARN);
                     reset_terminal();
                     exit(0);
                 }
@@ -426,7 +426,7 @@ static int current_bg_color = 40;
 static int current_fg_color = 37;
 
 void set_status_bar_color(int ansi_color) {
-    write_log("Set status bar background color to: " + std::to_string(ansi_color), INFO);
+    write_log("Set status bar background color to: " + std::to_string(ansi_color), LOG_INFO);
     current_bg_color = ansi_color;
     int r, c;
     get_terminal_size(r, c);
@@ -434,7 +434,7 @@ void set_status_bar_color(int ansi_color) {
 }
 
 void set_status_bar_fg_color(int ansi_color) {
-    write_log("Set status bar foreground color to: " + std::to_string(ansi_color), INFO);
+    write_log("Set status bar foreground color to: " + std::to_string(ansi_color), LOG_INFO);
     current_fg_color = ansi_color;
     int r, c;
     get_terminal_size(r, c);
@@ -442,7 +442,7 @@ void set_status_bar_fg_color(int ansi_color) {
 }
 
 void write_status_bar(const std::string& text) {
-    write_log("Write to status bar: " + text, DEBUG);
+    write_log("Write to status bar: " + text, LOG_DEBUG);
     current_status_text = text;
     int r, c;
     get_terminal_size(r, c);
@@ -454,7 +454,7 @@ void write_status_bar(const char* text) {
 }
 
 std::string get_status_bar_text() {
-    write_log("Get status bar text (current: " + current_status_text + ")", DEBUG);
+    write_log("Get status bar text (current: " + current_status_text + ")", LOG_DEBUG);
     return current_status_text;
 }
 

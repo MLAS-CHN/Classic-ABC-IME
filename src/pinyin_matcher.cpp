@@ -60,7 +60,7 @@ static bool minimal_smart_match(const std::vector<std::string>& source_parts,
                                 const std::vector<int>& exact_flags,
                                 const std::vector<std::string>& target_parts) {
     if (source_parts.size() != exact_flags.size() || source_parts.size() != target_parts.size()) {
-        write_log("minimal_smart_match parameter length mismatch", ERROR);
+        write_log("minimal_smart_match parameter length mismatch", LOG_ERROR);
         return false;
     }
 

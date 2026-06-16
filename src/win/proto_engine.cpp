@@ -164,7 +164,7 @@ void ProtoIME::Engine::SetActive(bool a) {
         g.chinese = wasChinese;
         g_comp.clear();
     }
-    write_log("Engine: SetActive(" + std::string(a ? "true" : "false") + ") chinese=" + std::to_string(g.chinese) + " locked=" + std::to_string(g.locked), DEBUG);
+    write_log("Engine: SetActive(" + std::string(a ? "true" : "false") + ") chinese=" + std::to_string(g.chinese) + " locked=" + std::to_string(g.locked), LOG_DEBUG);
 }
 bool ProtoIME::Engine::IsActive() { return g.active; }
 
@@ -339,7 +339,7 @@ bool ProtoIME::Engine::ProcessShiftTap() {
 
 void ProtoIME::Engine::ToggleChineseMode() {
     g.chinese = !g.chinese;
-    write_log("Engine: ToggleChineseMode -> chinese=" + std::to_string(g.chinese), DEBUG);
+    write_log("Engine: ToggleChineseMode -> chinese=" + std::to_string(g.chinese), LOG_DEBUG);
     if (!g.chinese) {
         g.buf.clear(); g.cur = 0; g.delmode = false;
         g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
@@ -351,7 +351,7 @@ bool ProtoIME::Engine::IsLocked() { return g.locked; }
 
 void ProtoIME::Engine::ToggleLock() {
     g.locked = !g.locked;
-    write_log("Engine: ToggleLock -> locked=" + std::to_string(g.locked), INFO);
+    write_log("Engine: ToggleLock -> locked=" + std::to_string(g.locked), LOG_INFO);
     if (g.locked) {
         g.chinese = false;
         g.buf.clear(); g.cur = 0; g.delmode = false;

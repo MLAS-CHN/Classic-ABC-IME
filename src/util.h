@@ -21,10 +21,10 @@ typedef __int64 ssize_t;
  * 日志等级
  */
 enum LogLevel {
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR
 };
 
 /**
@@ -38,7 +38,7 @@ void get_terminal_size(int &rows, int &cols);
 
 // 写入日志
 // 参数：message - 日志内容，level - 日志等级
-void write_log(const std::string& message, LogLevel level = INFO);
+void write_log(const std::string& message, LogLevel level = LOG_INFO);
 
 void init_logger();
 void init_logger_with_dir(const std::string& dir);

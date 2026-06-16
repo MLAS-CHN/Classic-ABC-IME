@@ -134,7 +134,7 @@ bool ProtoIME::UI::Init(HINSTANCE hInst, int width, int height) {
         Gdiplus::GdiplusStartupInput si;
         Gdiplus::GdiplusStartup(&g_gdiToken, &si, nullptr);
     }
-    write_log("UI: Init() hInst=" + std::to_string((uintptr_t)hInst) + " size=" + std::to_string(width) + "x" + std::to_string(height), DEBUG);
+    write_log("UI: Init() hInst=" + std::to_string((uintptr_t)hInst) + " size=" + std::to_string(width) + "x" + std::to_string(height), LOG_DEBUG);
     return true;
 }
 
@@ -163,7 +163,7 @@ void ProtoIME::UI::Update() {
     if (buf.empty()) { if (g_wnd) ShowWindow(g_wnd, SW_HIDE); return; }
 
     if (!g_wnd) {
-        write_log("UI: Update creating candidate input window", DEBUG);
+        write_log("UI: Update creating candidate input window", LOG_DEBUG);
         init_font();
         if (!g_wclass) {
             WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) }; wc.lpfnWndProc = wndproc; wc.hInstance = g_inst;
@@ -225,7 +225,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
 void ProtoIME::UI::ShowCand(bool visible) {
     if (visible) {
         if (!g_candWnd) {
-            write_log("UI: ShowCand creating candidate list window", DEBUG);
+            write_log("UI: ShowCand creating candidate list window", LOG_DEBUG);
             if (!g_candClassRegistered) {
                 WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
                 wc.lpfnWndProc = candWndProc; wc.hInstance = g_inst;
@@ -449,7 +449,7 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
 void ProtoIME::UI::ShowSettings(bool visible) {
     if (visible) {
         if (!g_settingsWnd) {
-            write_log("UI: ShowSettings creating settings window", DEBUG);
+            write_log("UI: ShowSettings creating settings window", LOG_DEBUG);
         if (!g_settingsClass) {
             WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
                 wc.lpfnWndProc = settingsWndProc; wc.hInstance = g_inst;

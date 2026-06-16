@@ -343,10 +343,10 @@ std::vector<std::vector<std::string>> splitConservativePinyin(const std::string&
         if (i < aggrMerged.size() - 1) merged_str += ",";
     }
 
-    write_log("Pinyin Split Process for [" + input + "]:", DEBUG);
-    write_log("  - Aggressive Raw: [" + aggr_str + "]", DEBUG);
-    write_log("  - Conservative:   [" + cons_str + "]", DEBUG);
-    write_log("  - Merged (Aggr):  [" + merged_str + "]", DEBUG);
+    write_log("Pinyin Split Process for [" + input + "]:", LOG_DEBUG);
+    write_log("  - Aggressive Raw: [" + aggr_str + "]", LOG_DEBUG);
+    write_log("  - Conservative:   [" + cons_str + "]", LOG_DEBUG);
+    write_log("  - Merged (Aggr):  [" + merged_str + "]", LOG_DEBUG);
     
     // 4. 结果去重比较
     auto normalize_token = [](std::string s) {
@@ -402,7 +402,7 @@ std::vector<std::vector<std::string>> splitConservativePinyin(const std::string&
         }
     }
     for (size_t i = 0; i < unique_option_strings.size(); ++i) {
-        write_log("  - Final Option [" + std::to_string(i) + "]: [" + unique_option_strings[i] + "]", DEBUG);
+        write_log("  - Final Option [" + std::to_string(i) + "]: [" + unique_option_strings[i] + "]", LOG_DEBUG);
     }
     
     return finalResults;

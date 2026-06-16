@@ -12,7 +12,7 @@
 
 static std::string g_log_dir;
 static std::string g_log_file_path = "lite-tty-ime.log";
-static LogLevel g_min_log_level = INFO;
+static LogLevel g_min_log_level = LOG_INFO;
 
 /**
  * 辅助函数实现
@@ -86,10 +86,10 @@ void write_log(const std::string& message, LogLevel level) {
     // 格式化日志等级
     std::string level_str;
     switch (level) {
-        case DEBUG: level_str = "DEBUG"; break;
-        case INFO:  level_str = "INFO "; break;
-        case WARN:  level_str = "WARN "; break;
-        case ERROR: level_str = "ERROR"; break;
+        case LOG_DEBUG: level_str = "DEBUG"; break;
+        case LOG_INFO:  level_str = "INFO "; break;
+        case LOG_WARN:  level_str = "WARN "; break;
+        case LOG_ERROR: level_str = "ERROR"; break;
     }
 
     // 写入日志：[2023-04-25 10:00:00.123] [INFO ] Message
