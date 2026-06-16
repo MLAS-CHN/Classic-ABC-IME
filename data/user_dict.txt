@@ -1,707 +1,4080 @@
-a,bu 阿布 1
-an,quan 安全
-an,xia 按下
-an,zhuang 安装
-bai,du 百度
-bai,se 白色
-ban,ben 版本
-ban,fa 办法
-bang,wo 帮我
+ai,hao 爱好 1
+ai,yong 爱用 1
+an,an,zhao 安按照 1
+an,an,zhuang 按安装 1
+an,de 按的 1
+an,jian 按键 2
+an,ni 按你 1
+an,niu 按钮 12
+an,quan 安全 5
+an,xia 按下 9
+an,xia,qu 按下去 1
+an,zhao 按照 5
+an,zhuang 安装 53
+an,zhuang,bao 安装包 3
+an,zhuang,de 安装的 1
+an,zhuang,hao,le 安装好了 1
+an,zhuang,le 安装了 3
+ba,ba 吧把 1
+ba,ba,diao 八拔掉 1
+ba,bai,duo 八百多 1
+ba,ta,de 把它的 1
+ba,wo 把我 8
+ba,wo,men 把我们 4
+ba,zhe,ge 把这个 1
+ba,zhe,xie 把这些 1
+bai,du 百度 1
+bai,fen,bai 百分百 1
+bai,zao,sheng 白噪声 4
+bai,zao,yin 白噪音 1
+ban,ban,zi 版板子 1
+ban,ban,zi 版板子 1
+ban,ban,zi 版板子 1
+ban,ben 版本 28
+ban,ben,hao 版本号 1
+ban,fa 办法 32
+ban,ge 半个 1
+ban,shang 版上 1
+ban,tian 半天 1
+ban,zai 板载 3
+ban,zi 板子 6
+bang,ding 绑定 8
+bang,wo 帮我 25
 bao,chi 保持 2
-bao,cuo 报错
-bao,han 包含
-bao,zheng 保证
-bei,fen 备份
-bei,jing 背景
-ben,di 本地
-ben,shen 本身
-bi,fang 比方
-bi,jiao 比较
-bi,jing 毕竞
-bi,ru 比如
-bi,yao 必要
-bian,cheng 变成
-bian,cheng 编程
-bian,cheng,le 变成了
-bian,liang 变量
-bian,xing 变形
-bian,yi 编译
-biao,xian 表现
-bie,de 别的
-bie,fang 别放
-bie,nong 别弄
-bie,zai,yi 别在意
-bo,fang 播放
-bo,li 玻璃
-bu,chong 补充
-bu,cuo 不错 1
-bu,de,liao 不得了
-bu,dong 不懂
-bu,fen 部分
-bu,guan 不管
-bu,hui 不会
-bu,jian,rong 不兼容
-bu,jin 不仅
-bu,neng 不能
-bu,rong,yi 不容易
-bu,ru 不如
-bu,shi 不是
-bu,shi,a 不是啊
-bu,shi,yong 不使用
-bu,shu 部署
-bu,sun,huai 不损坏
-bu,tai 不太
-bu,tong 不同
-bu,xiao,xin 不小心
-bu,yao 不要
-bu,zai 不在
-cai,dan 菜单
-cai,ke,yi 才可以
-cai,se 彩色
-cai,xing 才行
-can,shu 参数
-cao,zuo 操作
-ce,shi 测试
-cha,jian 插件
-chang,shang 厂商
-chao,shi 超时
-cheng,gong 成功
-cheng,xu 程序
-chong,fu 重复
-chong,qi 重启
-chong,tu 冲突
-chu,fa 触发
-chu,lai 出来
-chu,le 除了
-chu,xian 出现
-chuang,jian 创建
-ci,ku 词库
-ci,pan 磁盘 1
-ci,yao 次要
-ci,yu 词语
-cong,na 从哪
-cun,wei 存为
-cuo,wu 错误
-da,chu,lai 打出来
-da,da,da 大大大
-da,dan,du 打单独 1
-da,dao 达到
-da,fu 大幅
-da,ge 打个
-da,huo 大伙
-da,kai 打开
-da,xiao 大小
-da,yin 打印
-da,zi 打字
-dai,ma 代码
-dai,shang 带上
-dai,ti 代替
-dan,chun 单纯
-dan,du 单独
-dan,fan 但凡
-dan,gan 单干
-dan,shi 但是
-dang,qian 当前
-dang,ran 当然
-dao,di 到底
-dao,ji,shi 倒计时
-dao,zhi 导致
-de,dao 得到
-de,hua 的话
-de,lai 得来
-de,le 得了
-di,qu 地区
-di,xia 底下
-di,yi 第一
-di,zhi 地址
-dian,shi 电视
-dian,zhen 点阵
-dian,zi 点子
-ding,yi 定义
-ding,zhi 定制
-dong,xi 东西
-dou,bu,yao 都不要
-dou,hui 都会
-dou,mei 都没
-dou,mei,you 都没有
-dou,qu 都去
-dou,shi 都是
-dou,wu,fa 都无法
-duan,kai 断开
-duan,kou 端口
-dui,hua 对话
-duo,shao 多少
-fa,chu 发出
-fa,song 发送
-fa,xian 发现
-fan,gan 翻干
-fan,wei 范围
-fan,ye 翻页
-fan,yue 翻阅
-fang,an 方案
-fang,kuai 方块
-fang,shi 方式
-fang,wen 访问
-fei,chang 非常
-fen,bian,lv 分辨率
-fen,bie 分别
-feng,ming 蜂鸣
-feng,ming,qi 蜂鸣器
-feng,shan 风扇
-fu,hao 符号
-fu,wu 服务
-fu,wu,qi 服务器
-fu,yu 赋予
-fu,zhi 复制
-gai,bian 改变
-gai,cheng 改成
-gang,gang 刚刚
-gao,dong 搞懂
-gao,su 告诉
-gao,su,wo 告诉我
-ge,ge 各个
-ge,shi 格式
-gei,ni 给你
-gei,wo 给我
-gen,ben 根本
-gen,gei 跟给 1
-gen,gei,ni 跟给你 1
-gen,ju 根据
-gen,ni 跟你
-geng,ei 梗欸 1
-geng,ei,ni 梗欸你 1
-geng,huan 更换
-geng,xiang 更像
-gong,ju 工具
-gong,neng 功能
-gong,ying 供应
-gong,zuo 工作
-gu,ge 谷歌
-gu,shi 古诗
-gua,zai 挂载
-guan,fang 官方
-guan,jian 关键
-guan,jian,zi 关键字
-guan,wang 官网
-guan,xi 关系
-guang,qu 光驱
-gui,fan 规范
-guo,du 国度
-guo,lai 过来
-hai,ke,yi 还可以
-hai,shi 还是
-hai,xing 还行
-hai,you 还有
-han,hua 汉化
-han,yi 含义
-hao,de 好的
-hao,jin 耗尽
-hao,qi 好奇
-hao,xiang 好像
-he,shi 合适
-he,xian 核显
-hei,se 黑色
-hen,hao 很好
-hen,liang 很亮
-hen,shao 很少
-hen,shen 很深
-hong,lv,lan 红绿蓝
-hou,xuan 候选
-hou,zhui 后缀
-hu,lian 互连
-hua,yu 话语
-huai,diao 坏掉
-huan,hang 换行
-huan,jing 环境
-hui,che 回车
-hui,chu,xian 会出现
-hui,da 回答
-hui,fu 回复
-hui,fu 恢复
-hui,fu,wo 回复我
-hui,se 灰色
-hui,tui 回退
-hui,you 会有
-huo,de 获得
-huo,qu 获取
-huo,zhe 或者
-ji,ben 基本
-ji,chu 基础
-ji,de 记得
-ji,ge 几个
-ji,ke 极客
-ji,tian 几天
-ji,xu 继续
-jia,ge 价格
-jia,mi 加密
-jia,ru 假如
-jia,shang 加上
-jian,ce 检测
-jian,cha 检查
-jian,dan 简单 5
-jian,dan,de 简单的 3
-jian,dan,dian 简单点 1
-jian,duan 简短
-jian,pan 键盘
-jian,rong 兼容
-jian,wei 键位
-jiang,di 降低
-jiao,cheng 教程
-jiao,sheng 叫声
-jiao,wo 叫我
-jiao,yue 皎月
-jie,dian 节点
-jie,gou 结构
-jie,jin 接近
-jie,jue 解决
-jie,kou 接口
-jie,lun 结论
-jie,mian 界面
-jie,shao 介绍
-jin,liang 尽量
-jin,ru 进入
+bao,cun 保存 57
+bao,cun,dao 保存到 2
+bao,cun,hao 保存好 1
+bao,cun,hou 保存后 1
+bao,cun,shi,ji 保存实际 1
+bao,cun,yi,xia 保存一下 1
+bao,cuo 报错 6
+bao,gao 报告 1
+bao,han 包含 4
+bao,hu,qi 保护器 3
+bao,kuo 包括 3
+bao,le 爆了 1
+bao,liu 保留 4
+bao,lu 暴露 3
+bao,shi 宝石 1
+bao,xian,cun 爆显存 2
+bao,zheng 保证 1
+bei,fen 备份 2
+bei,wo 被我 1
+ben,ci 本次 1
+ben,di 本地 24
+ben,di,di,zhi 本地地址 1
+ben,ji 本机 14
+ben,lai 本来 4
+ben,shen 本身 10
+ben,ti 本体 1
+ben,wen,jian,jia 本文件夹 2
+ben,zhi 本质 1
+beng,kui 崩溃 7
+beng,le 崩了 1
+bi,bi,jing 比毕竟 1
+bi,dui 比对 1
+bi,jiao 比较 5
+bi,jiao,hao 比较好 1
+bi,jing 毕竟 4
+bi,mian 避免 1
+bi,qi 比起 1
+bi,ru 比如 58
+bi,ru,shuo 比如说 1
+bi,xu 必须 19
+bi,xu,shi 必须是 1
+bi,xu,yao 必须要 2
+bi,xu,yong 必须用 1
+bi,yao 必要 8
+bi,zhang 避障 1
+bian,bian,ji 编编辑 1
+bian,bian,xue 变边学 1
+bian,bie 辨别 1
+bian,cheng 变成 13
+bian,cheng 编程 1
+bian,cheng,le 变成了 1
+bian,da 变大 1
+bian,de 变得 2
+bian,dong 变动 2
+bian,geng 变更 1
+bian,hao 编号 4
+bian,ji 编辑 1
+bian,le 变了 1
+bian,li 遍历 1
+bian,liang 变量 13
+bian,liang,ming 变量名 1
+bian,ma 编码 2
+bian,ma,qi 编码器 1
+bian,yi 编译 59
+bian,yi,hou 编译后 2
+bian,yi,xiang,mu 编译项目 1
+biao,bi 表笔 2
+biao,ji 标记 1
+biao,qian 标签 2
+biao,qian,zhi 标签纸 2
+biao,shi 标识 2
+biao,shi 表示 10
+biao,shi,fu 标识符 9
+biao,ti 标题 5
+biao,yong 标用 1
+biao,zhi 标志 1
+biao,zhun 标准 2
+biao,zhun,de 标准的 1
+bie,ba 别把 2
+bie,cao,zuo 别操作 1
+bie,cha 别查 1
+bie,de 别的 13
+bie,deng,dai 别等待 1
+bie,dong 别动 1
+bie,fang,wen 别访问 1
+bie,gan 别干 1
+bie,gei,wo 别给我 1
+bie,gen,wo 别跟我 1
+bie,gen,wo,shuo 别跟我说 1
+bie,pao 别跑 1
+bie,ren 别人 13
+bie,ren,de 别人的 2
+bie,sao,miao 别扫描 1
+bie,shu,chu 别输出 1
+bie,shuo 别说 2
+bie,si,kao 别思考 1
+bie,xiang,zhe 别想着 1
+bie,xie 别写 1
+bie,yong 别用 6
+bie,yun,xing 别运行 1
+bie,zheng 别整 1
+bing,ba 并把 1
+bing,bu,hui 并不会 1
+bing,bu,shi 并不是 1
+bing,bu,xiang 并不像 1
+bing,bu,xing 并不行 1
+bing,dui 并对 1
+bing,fa 并发 4
+bing,fei 并非 1
+bing,gan 饼干 2
+bing,mei,you 并没有 1
+bing,qie 并且 3
+bing,xi 丙烯 1
+bing,yi 并以 1
+bo,fang 播放 4
+bo,hao 拨号 2
+bo,jin 铂金 1
+bo,si 波斯 1
+bu,an,quan 不安全 1
+bu,bao,cun 不保存 1
+bu,bei 不被 1
+bu,bu,dui 不不对 1
+bu,cha 不查 1
+bu,chong 不重 1
+bu,chong 补充 5
+bu,chu 不除 1
+bu,chu,li 不处理 1
+bu,cun 不存 2
+bu,da 不打 1
+bu,dai 不带 1
+bu,dao 不到 20
+bu,de,yi 不得已 1
+bu,ding 补丁 2
+bu,dong 不动 4
+bu,dong 不懂 7
+bu,dong,de 不懂的 1
+bu,duan 不断 1
+bu,dui 不对 36
+bu,dui,a 不对啊 3
+bu,duo 不多 1
+bu,fan,yi 不翻译 1
+bu,fen 不分 2
+bu,fen 部分 9
+bu,fen,bao,cun 部分保存 1
+bu,fu,he 不符合 1
+bu,gai 不改 1
+bu,gao 不搞 1
+bu,gei 不给 1
+bu,gong,zuo 不工作 1
+bu,gou 不够 2
+bu,guan 不管 5
+bu,gui,lv 不规律 1
+bu,guo 不过 5
+bu,hai,shi 不还是 1
+bu,hao 不好 7
+bu,hao,yong 不好用 1
+bu,he,bing 不合并 1
+bu,he,li 不合理 1
+bu,he,shi 不合适 1
+bu,hui 不会 19
+bu,hui,ba,wo 不会把我 1
+bu,hui,bei 不会被 1
+bu,hui,fu 不回复 1
+bu,hui,shi 不会是 3
+bu,hui,shua 不会刷 1
+bu,huo 捕获 16
+bu,huo,dao 捕获到 2
+bu,huo,qu 不获取 1
+bu,ji,de 不记得 6
+bu,ji,de,le 不记得了 1
+bu,jiang 不讲 1
+bu,jie,zhu 不借助 1
+bu,jin 不仅 2
+bu,jin 步进 2
+bu,jin,you 不仅有 1
+bu,jiu 不就 3
+bu,jiu,shi 不就是 1
+bu,jiu,xing,le 不就行了 1
+bu,jue,de 不觉得 1
+bu,kai 不开 1
+bu,kai,fang 不开放 1
+bu,kan,jian 不看见 1
+bu,ke 不可 3
+bu,ke,neng 不可能 3
+bu,ke,yi 不可以 4
+bu,lian 不连 1
+bu,lian,xu 不连续 1
+bu,neng 不能 2
+bu,neng 不能 13
+bu,neng,cuo 不能错 1
+bu,neng,yong 不能用 1
+bu,nong 不弄 1
+bu,pa 不怕 1
+bu,pi,pei 不匹配 1
+bu,qi,zuo,yong 不起作用 1
+bu,qiu 不求 1
+bu,qu 不去 3
+bu,quan 不全 1
+bu,quan 补全 1
+bu,que,ding 不确定 1
+bu,ran 不然 4
+bu,rang 不让 1
+bu,ren,shi 不认识 4
+bu,ru 不如 4
+bu,ru,ba 不如把 1
+bu,ru,bu,ru 不如不如 1
+bu,shang 不上 4
+bu,shao 不少 2
+bu,she,zhi 不设置 3
+bu,sheng,xiao 不生效 3
+bu,shi 不是 91
+bu,shi,rang,wo 不是让我 1
+bu,shi,shuo 不是说 2
+bu,shi,yao 不是要 1
+bu,shi,ying,gai 不是应该 1
+bu,shi,ying,gai 不是应该 1
+bu,shi,yong 不使用 1
+bu,shu 部署 12
+bu,shu,bu 部署不 1
+bu,shu,chu 不输出 3
+bu,shuo 不说 4
+bu,shuo,hua 不说话 5
+bu,shuo,hua,le 不说话了 1
+bu,shuo,le 不说了 1
+bu,suan 不算 4
+bu,tai 不太 4
+bu,tai,dui 不太对 1
+bu,tai,hao 不太好 3
+bu,tai,yi,yang 不太一样 1
+bu,ting 不停 1
+bu,tong 不同 27
+bu,tong 不通 3
+bu,tong,de 不同的 1
+bu,tong,jie,duan 不同阶段 1
+bu,tong,mu,lu 不同目录 1
+bu,tong,tong,guo 不同通过 1
+bu,wei 不为 1
+bu,wen,ding 不稳定 1
+bu,xian,shi 不显示 5
+bu,xian,shi 不现实 4
+bu,xiang 不像 4
+bu,xiang 不想 12
+bu,xiang,nong 不想弄 1
+bu,xiao 不小 1
+bu,xiao,xin 不小心 2
+bu,xie 不写 1
+bu,xing 不行 17
+bu,xu,yao 不需要 6
+bu,yao 不要 21
+bu,yao,cai 不要猜 1
+bu,yao,le 不要了 1
+bu,yao,liu 不要留 1
+bu,yao,yong 不要用 2
+bu,yao,you 不要有 1
+bu,yi,ding 不一定 2
+bu,yi,yang 不一样 2
+bu,yi,zhi 不一致 3
+bu,ying,gai 不应该 4
+bu,yong 不用 15
+bu,yong,guan 不用管 2
+bu,yong,jiang 不用讲 1
+bu,yong,jie,shi 不用解释 1
+bu,yong,shuo 不用说 1
+bu,yuan,yi 不原意 1
+bu,yun,xu 不允许 3
+bu,zai 不在 2
+bu,zhan 不占 1
+bu,zhe,yang 不这样 1
+bu,zheng 补正 1
+bu,zheng,chang 不正常 3
+bu,zheng,que 不正确 1
+bu,zhi 不止 2
+bu,zhi,chi 不支持 11
+bu,zhi,dao 不知道 17
+bu,zhi,ding 不指定 1
+bu,zhi,yu 不至于 2
+bu,zhi,zhi,ding 不止指定 1
+bu,zhong,duan 不中断 1
+bu,zhong,yao 不重要 2
+bu,zhou 步骤 6
+bu,zhuang 不装 1
+bu,zhun 不准 4
+bu,zhun,yong 不准用 1
+bu,zu 不足 1
+bu,zuo 不做 2
+bu,zuo,le 不做了 1
+ca,bu,diao 擦不掉 2
+ca,chu 擦除 1
+cai,cai,ji 才采集 1
+cai,ce 猜测 2
+cai,dan 菜单 3
+cai,hao 才好 2
+cai,hui 才会 6
+cai,ji 采集 5
+cai,jian 裁剪 2
+cai,kan,jian 才看见 1
+cai,ke,yi 才可以 2
+cai,neng 才能 6
+cai,qu 采取 3
+cai,shi 才是 5
+cai,xin,cai,xing 才新才行 1
+cai,yang 采样 4
+cai,yong 采用 2
+cai,you 才有 4
+cai,zhi 材质 1
+cai,zhi,dao 才知道 1
+cai,zuo 才做 1
+can,kao 参考 4
+can,liu 残留 2
+can,shu 参数 32
+can,zhong 惨重 1
+cao,zong 操纵 1
+cao,zuo 操作 25
+cao,zuo,de 操作的 2
+ce,ce 测测 1
+ce,ce,shi 测测试 1
+ce,ce,suo 测厕所 1
+ce,shi 测试 4
+ce,shi 测试 21
+ce,shi,ce,shi 测试测试 1
+ce,yi,ce 测一测 1
+ceng,mian 层面 2
+ceng,shu 层数 1
+cha,bie 差别 1
+cha,bu,duo 差不多 5
+cha,cha 查插 1
+cha,cha 查查 1
+cha,cha,bu,duo 查差不多 1
+cha,cha,hao,le 查插好了 1
+cha,jian 插件 54
+cha,jian,ming 插件名 1
+cha,kan 查看 30
+cha,le 插了 4
+cha,lou,bu,que 查漏补缺 1
+cha,man,le 插满了 1
+cha,wen,dang 查文档 1
+cha,xun 查询 2
+cha,yue 查阅 1
+cha,zhao 查找 2
+cha,zhe 插着 1
+cha,zuo 插座 1
+chai,le 拆了 1
+chai,xia,lai 拆下来 1
+chan,sheng 产生 1
+chan,wu 产物 3
+chang,chuan 长串 1
+chang,du 长度 1
+chang,du 长度 6
+chang,liang 常量 3
+chang,liang 长亮 1
+chang,ming 长鸣 1
+chang,qi 长期 1
+chang,shi 常识 2
+chao,duo 超多 1
+chao,gang 超纲 1
+chao,guo 超过 2
+chao,liang 超量 1
+chao,pin 超频 2
+chao,xian 朝鲜 1
+chao,zhe 朝着 1
+che,dan 扯淡 1
+che,di 彻底 1
+che,hui 撤回 9
+che,yuan,le 扯远了 1
+cheng,ben 成本 2
+cheng,cheng,xu 成程序 1
+cheng,du 程度 5
+cheng,gong 成功 16
+cheng,gong,le 成功了 1
+cheng,le 成了 1
+cheng,wei 成为 1
+cheng,xu 程序 17
+cheng,yuan 成员 3
+chi,cun 尺寸 1
+chi,de 吃的 1
+chi,jiu 持久 2
+chi,jiu,hua 持久化 1
+chi,xu 持续 2
+chi,zi 池子 1
+chong,chi 充斥 1
+chong,dang 充当 1
+chong,fu 重复 4
+chong,lai 重来 1
+chong,lian 重连 1
+chong,qi 重启 20
+chong,suan 重算 5
+chong,tu 冲突 3
+chong,xie 重写 1
+chong,xin 重新 21
+chong,xin,bian,yi 重新编译 1
+chong,zhi 重置 1
+chou,mi 稠密 3
+chou,ti 抽屉 1
+chou,xiang 抽象 1
+chu,ban 初版 1
+chu,bei 储备 1
+chu,ci 初次 6
+chu,cuo 出错 1
+chu,fa 触发 15
+chu,fa,qi 触发器 1
+chu,fei 除非 2
+chu,ji 初级 1
+chu,ji 触及 1
+chu,kou 出口 8
+chu,lai 出来 33
+chu,lai,de 出来的 2
+chu,lai,hou 出来后 1
+chu,le 除了 2
+chu,li 处理 13
+chu,peng 触碰 2
+chu,qu 出去 7
+chu,sheng,dian 出生点 1
+chu,shi 初始 3
+chu,shi,hua 初始化 3
+chu,wen,ti 出问题 7
+chu,xian 出现 16
+chu,xian,zai 出现在 1
+chu,yu 处于 1
+chu,zai,na 出在哪 1
+chuan,can 传参 5
+chuan,chu 传出 1
+chuan,dao 传到 1
+chuan,guo,lai 传过来 1
+chuan,kou 串口 1
+chuan,lai 传来 1
+chuan,ru 传入 2
+chuan,shu 传输 16
+chuan,tou 穿透 1
+chuang,jian 创建 41
+chuang,jian,ai,cheng,gong 创建爱成功 1
+chuang,jian,de 创建的 1
+chuang,jian,guo 创建过 1
+chuang,jian,hao 创建好 2
+chuang,jian,le 创建了 4
+chuang,jian,re,dian 创建热点 1
+chuang,jian,yi,ge 创建一个 1
+chuang,jian,yi,ge 创建一个 1
+chuang,jian,yi,xia 创建一下 1
+chuang,kou 窗口 7
+chun,cui 纯粹 1
+chun,se 纯色 1
+chun,shu,zi 纯数字 1
+chun,ying,wen 纯英文 1
+ci,pan 磁盘 3
+ci,shi 此时 4
+ci,shu 次数 1
+cong,lai 从来 1
+cong,na 从哪 3
+cong,tou 从头 9
+cong,tou,dao,wei 从头到尾 1
+cou,jin 凑近 1
+cou,zen,me 凑怎么 1
+cu,kou 粗口 1
+cu,lve 粗略 2
+cu,xi 粗细 1
+cun,chu 存储 19
+cun,dang,dian 存档点 1
+cun,dao 存到 3
+cun,de 存的 2
+cun,fang 存放 3
+cun,le 存了 1
+cun,qu 存取 1
+cun,shu,ju 存数据 1
+cun,zai 存在 6
+cuo,de 错的 2
+cuo,le 错了 4
+cuo,luan 错乱 1
+cuo,shi 措施 1
+cuo,wu 错误 5
+cuo,wu,ma 错误码 1
+da,an 答案 3
+da,bu,chu,lai 打不出来 1
+da,bu,da 大不大 2
+da,bu,fen 大部分 9
+da,bu,kai 打不开 2
+da,bu,liao 打不了 1
+da,da 打打 1
+da,da,gai 大大概 1
+da,da,zi 大打字 1
+da,dao 达到 1
+da,dong 打洞 5
+da,fang,zi 大房子 2
+da,gai 大概 7
+da,gai,jiu,shi 大概就是 2
+da,gai,lv 大概率 1
+da,gai,shi 大概是 3
+da,jian 搭建 1
+da,kai 打开 15
+da,kuo,hao 大括号 1
+da,liang 大量 2
+da,mo 打磨 1
+da,pao 大炮 1
+da,shang 打上 1
+da,suan 打算 5
+da,xiao 大小 5
+da,xiao,xie 大小写 1
+da,xing 大型 1
+da,yi 答疑 1
+da,yin 打印 18
+da,yin,chu,lai 打印出来 1
+da,yu 大于 1
+da,yue 大约 3
+da,zai,le 搭载了 1
+da,zhu 打住 1
+da,zi 打字 4
+dai,dai,biao 带代表 1
+dai,de,dong 带得动 3
+dai,ji 待机 5
+dai,ji,gong,hao 待机功耗 1
+dai,li 代理 16
+dai,li,di,zhi 代理地址 1
+dai,li,fu,wu,qi 代理服务器 1
+dai,ma 代码 40
+dai,shang 带上 1
+dai,shou,ji 带手机 2
+dan,chun 单纯 1
+dan,dan,wei 但单位 1
+dan,dan,xin 但担心 1
+dan,du 单独 4
+dan,du,de,pei,zhi 单独的配置 1
+dan,fa 单发 1
+dan,ge 单个 2
+dan,ji,qi 单机器 1
+dan,jiu,shi 但就是 1
+dan,ka 单卡 1
+dan,pian 单片 1
+dan,pian,ji 单片机 4
+dan,ren 担任 1
+dan,se 单色 2
+dan,shi 但是 66
+dan,teng 蛋疼 1
+dan,wo 但我 8
+dan,wo,men 但我们 1
+dan,wo,you 但我又 1
+dan,xiang 单向 1
+dan,xin 担心 2
+dan,xuan,duo,xuan 单选多选 1
+dan,yin,hao 单引号 1
+dan,zhe,li,bu,tong 但这里不同 1
+dang,ci 当次 1
+dang,qian 当前 29
+dang,qian,de 当前的 2
+dang,qian,mu,lu 当前目录 3
+dang,ran 当然 1
+dao,chu 导出 1
+dao,dao,shi 到倒是 1
+dao,dao,shi 到倒是 1
+dao,de 到的 9
+dao,di 到底 7
+dao,huo 到货 1
+dao,le 到了 14
+dao,na 到哪 2
+dao,wei 到位 1
+dao,wei 到尾 1
+dao,wo 到我 1
+dao,xian,zai 到现在 1
+dao,zhi 导致 6
+de,ba 的吧 1
+de,chuang,jian 得创建 1
+de,dao 得到 1
+de,de,chu,lai 德得出来 1
+de,de,de 的得得 1
+de,hua 的话 10
+de,lai 得来 1
+de,le 得了 8
+de,shu,chu 的输出 1
+deng,bu,qi 等不起 1
+deng,dai 等待 3
+deng,dao 等到 1
+deng,hui 等会 6
+deng,lu 登录 3
+deng,tong,yu 等同于 1
+deng,wo 等我 2
+deng,yi,xia 等一下 1
+deng,yu 等于 1
+deng,zhu 灯珠 1
+di,ba,dian 第八点 1
+di,bu 地步 1
+di,ceng 底层 1
+di,da 滴答 1
+di,de,hen 低得很 1
+di,dian 地点 1
+di,er 第二 10
+di,er,ci 第二次 5
+di,er,ge 第二个 1
+di,er,ju 第二句 1
+di,er,tiao 第二条 2
+di,fang 地方 21
+di,gong,hao 低功耗 5
+di,le 低了 1
+di,liu 第六 1
+di,qu 地区 1
+di,san 第三 3
+di,san,ci 第三次 1
+di,san,fang 第三方 2
+di,san,ke 第三课 1
+di,san,zhe 第三者 3
+di,si 第四 3
+di,si,ke 第四课 1
+di,tu 地图 14
+di,wu 第五 2
+di,xian 地线 6
+di,xing,neng 低性能 1
+di,yan,chi 低延迟 1
+di,yi 第一 8
+di,yi,ci 第一次 8
+di,yi,dian 第一点 1
+di,yi,ge 第一个 3
+di,yi,ju 第一句 11
+di,yi,tiao 第一条 1
+di,zhen,zheng 地真正 1
+di,zhi 地址 34
+dian,chi 电池 1
+dian,dian,dian 点点点 1
+dian,dian,ya 点电压 1
+dian,ji 点击 2
+dian,jie 电解 3
+dian,liang 点亮 1
+dian,liu 电流 2
+dian,lu 电路 5
+dian,lu,ban 电路板 1
+dian,lu,tu 电路图 1
+dian,nao 电脑 16
+dian,ping 电平 1
+dian,rong 电容 16
+dian,rong,qi 电容器 1
+dian,shi 电视 1
+dian,ya 电压 5
+dian,yuan 电源 5
+dian,zi 电子 1
+dian,zu 电阻 8
+diao,han,pan 掉焊盘 1
+diao,le 掉了 2
+diao,luo 掉落 6
+diao,yong 调用 10
+ding,bu 顶部 2
+ding,wei 定位 1
+ding,yi 定义 3
+diu,bao 丢包 2
+diu,qi 丢弃 4
+diu,shi 丢失 2
+dong,guo 动过 1
+dong,jing 动静 3
+dong,xi 东西 76
+dong,zuo 动作 1
+dou,bian,cheng 都变成 1
+dou,bie,zuo 都别做 1
+dou,bu 都不 12
+dou,bu,hui 都不会 1
+dou,bu,ji,de 都不记得 2
+dou,bu,ren,shi 都不认识 1
+dou,bu,shuo 都不说 1
+dou,bu,tai,xing 都不太行 1
+dou,bu,tong 都不同 1
+dou,bu,xiang 都不像 1
+dou,bu,xu 都不许 1
+dou,bu,yao 都不要 1
+dou,bu,yong 都不用 1
+dou,cheng,gong 都成功 1
+dou,cong 都从 1
+dou,dou,yi,yang 都都一样 1
+dou,gen 都跟 2
+dou,gen,dong,xi 都跟东西 1
+dou,hai 都还 1
+dou,hen,di 都很低 1
+dou,huan,cheng 都换成 1
+dou,hui 都会 5
+dou,ji,bu,zhu 都记不住 1
+dou,ke,yi 都可以 7
+dou,mei 都没 8
+dou,mei,xie 都没写 1
+dou,mei,you 都没有 1
+dou,neng 都能 6
+dou,neng,yong 都能用 1
+dou,shan,diao 都删掉 1
+dou,shi 都是 50
+dou,wu,fa 都无法 2
+dou,xiang 都向 2
+dou,xiang,dou,xiang 都向都像 1
+dou,xie,le 都写了 1
+dou,xing 都行 5
+dou,xu,yao 都需要 1
+dou,yao 都要 10
+dou,yi,yang 都一样 1
+dou,yong 都用 2
+dou,you 都有 6
+dou,you 都有 1
+dou,zai 都在 3
+dou,zhe 都这 1
+dou,zhi 都只 2
+du,bu,dao 读不到 1
+du,dao 读到 1
+du,li 独立 7
+du,qu 读取 46
+du,qu,dao 读取到 1
+du,xiang 独享 1
+duan,dian 断电 2
+duan,jue 断绝 1
+duan,kai 断开 2
+duan,kou 端口 29
+duan,le 断了 2
+duan,lu 断路 1
+duan,lu 短路 1
+duan,shi 短时 2
+dui,ba 对吧 1
+dui,bi 对比 1
+dui,bu 对不 1
+dui,bu,dui 对不对 2
+dui,bu,shang 对不上 3
+dui,di 对地 2
+dui,duan 对端 1
+dui,fang 对方 2
+dui,hua 对话 126
+dui,hua,ji,lu 对话记录 1
+dui,hua,le 对话了 3
+dui,hua,nei,rong 对话内容 3
+dui,hua,qian 对话前 2
+dui,hua,wan 对话完 1
+dui,le 对了 4
+dui,nei 对内 1
+dui,shang 对上 1
+dui,wai 对外 3
+dui,wo 对我 2
+dui,wu 队伍 1
+dui,xiang 对象 5
+dui,ying 对应 15
+dui,yu 对于 5
+dui,zhe,zhong 对这种 1
+duo,bing,fa 多并发 2
+duo,chu,lai 多出来 1
+duo,ci 多次 1
+duo,da 多大 5
+duo,fu,za 多复杂 1
+duo,ge 多个 6
+duo,ge,shu 多个数 1
+duo,jiu 多久 3
+duo,ka 多卡 1
+duo,kan 多看 1
+duo,le 多了 1
+duo,mo,tai 多模态 1
+duo,qiang 多强 1
+duo,shao 多少 19
+duo,shao,duo,shao 多少多少 1
+duo,shao,ge 多少个 1
+duo,yang 多样 1
+duo,yu 多余 4
+duo,zhong 多种 1
+er,bu,hui 而不会 1
+er,bu,shi 而不是 8
+er,ji 二级 1
+er,ji,guan 二极管 1
+er,jin,zhi 二进制 3
+er,qie 而且 17
+er,shi 而是 8
+er,yi 而已 1
+fa,bu 发布 1
+fa,chu 发出 7
+fa,chu,hou 发出后 1
+fa,chu,qu 发出去 2
+fa,dao 发到 1
+fa,de 发的 2
+fa,gei 发给 2
+fa,la,di 法拉第 3
+fa,la,di,long 法拉第笼 1
+fa,lai 发来 1
+fa,le 发了 2
+fa,qi 发起 15
+fa,qi,le 发起了 2
+fa,qi,qing,qiu 发起请求 1
+fa,re 发热 1
+fa,she 发射 3
+fa,sheng 发生 1
+fa,song 发送 22
+fa,song,dao 发送到 1
+fa,xian 发现 11
+fa,xiao,xi 发消息 4
+fa,yi,ci 发一次 1
+fa,yuan 发源 1
+fa,zhan 发展 1
+fan,dao 反倒 1
+fan,fan,xin 反翻新 1
+fan,fan,ying 翻反应 1
+fan,fan,ying 翻反应 1
+fan,hui 返回 17
+fan,hui,lai,de 返回来的 1
+fan,hui,ma 返回码 1
+fan,hui,ti 返回体 3
+fan,hui,zen,me 返回怎么 1
+fan,wei 范围 5
+fan,yi 翻译 15
+fan,ying 反应 7
+fan,zheng 反正 5
+fang,an 方案 17
+fang,bian 方便 1
+fang,bo 方波 2
+fang,bu,jin,qu 放不进去 1
+fang,dao 放到 4
+fang,de 放的 4
+fang,dian 放电 2
+fang,dong,xi 放东西 1
+fang,fa 方法 14
+fang,fang,zi 放房子 1
+fang,ge 放歌 1
+fang,huo,qiang 防火墙 7
+fang,jian 房间 4
+fang,ke 访客 14
+fang,le 放了 1
+fang,mei 放没 1
+fang,mian 方面 3
+fang,na 放哪 2
+fang,qi 放弃 3
+fang,ru 放入 1
+fang,shi 方式 10
+fang,wan 放完 1
+fang,wen 访问 29
+fang,wen,bu,dao 访问不到 1
+fang,wo 放我 1
+fang,zai 放在 20
+fang,zai,le 放在了 1
+fang,zi 房子 5
+fei,chang 非常 9
+fei,fa 非法 2
+fei,hua 废话 1
+fei,jin 费尽 1
+fei,jin,xin,si 费尽心思 1
+fen,bao 分包 1
+fen,bei 分贝 1
+fen,bian 分辨 2
+fen,bian,lv 分辨率 1
+fen,bie 分别 4
+fen,fa 分发 1
+fen,fen,zhi 分分支 1
+fen,hua 分化 1
+fen,kai 分开 2
+fen,kai,xie 分开写 1
+fen,lei 分类 3
+fen,pei 分配 13
+fen,qu 分区 3
+fen,wei 分为 2
+fen,xi 分析 3
+fen,xiang 分享 2
+fen,zhi 分支 29
+feng,kuang 疯狂 1
+feng,ming 蜂鸣 6
+feng,ming,qi 蜂鸣器 5
+feng,shan 风扇 13
+feng,xian 风险 1
+feng,xian,feng,xian 风先风险 1
+fou,ze 否则 10
+fu,ben 副本 2
+fu,fu,gai 复覆盖 1
+fu,gai 覆盖 11
+fu,he 符合 3
+fu,ji 负极 2
+fu,wei 复位 1
+fu,wu 服务 32
+fu,wu,fu,wu 服务服务 1
+fu,wu,qi 服务器 62
+fu,wu,ruan,jian 服务软件 1
+fu,wu,shang 服务商 1
+fu,xi 复习 2
+fu,yong 复用 5
+fu,za 复杂 2
+fu,zai 负载 3
+fu,ze 负责 6
+fu,zhi 复制 1
+fu,zhi 赋值 2
+gai,bian 改变 3
+gai,cheng 改成 10
+gai,de 改的 2
+gai,diao 改掉 1
+gai,dong 改动 4
+gai,gai 改改 7
+gai,gai,cha,jian 改改插件 1
+gai,gan,shen,me 该干什么 1
+gai,ge 改个 1
+gai,guo 改过 2
+gai,hui 改回 2
+gai,hui,lai 改回来 1
+gai,jia 该加 1
+gai,jin 改进 3
+gai,kuang 概况 1
+gai,le 改了 5
+gai,lv 概率 2
+gai,ming 改名 1
+gai,shuo,gai,shuo,shen,me 改说该说什么 1
+gai,wan 改完 1
+gai,wei 改为 1
+gai,wen,jian 改文件 1
+gai,yi,gai 改一改 2
+gai,yong 改用 2
+gai,zen,me 该怎么 2
+gan,cui 干脆 2
+gan,dian,chi 干电池 3
+gan,jing 干净 2
+gan,jue 感觉 27
+gan,le 干了 1
+gan,ma 干嘛 11
+gan,rao 干扰 4
+gan,sha 干啥 3
+gan,shen,me 干什么 12
+gang,gang 刚刚 16
+gang,gang,na,shi 刚刚那是 1
+gang,kai,shi 刚开始 3
+gang,mai,lai 刚买来 2
+gang,xu 刚需 3
+gao,bu,hao 搞不好 1
+gao,cuo 搞错 1
+gao,di 高低 2
+gao,di,dian,ping 高低电平 1
+gao,dong 搞懂 2
+gao,du 高度 2
+gao,fa 搞法 1
+gao,gong,hao 高功耗 1
+gao,le 搞了 2
+gao,le 高了 2
+gao,le,ban,tian 搞了半天 1
+gao,qing,chu 搞清楚 1
+gao,su 告诉 6
+gao,su,ni 告诉你 1
+gao,su,wo 告诉我 15
+gao,xing,neng 高性能 11
+gao,ya 高压 6
+gao,ya,bao 高压包 1
+gao,ya,zui 高压嘴 1
+gao,zhe,ge 搞这个 1
+gao,zhe,me,xiao 搞这么小 1
+gao,zhi,liang 高质量 1
+ge,ge 各个 3
+ge,ge,ge 个各个 1
+ge,hai,you 个还有 1
+ge,li 隔离 4
+ge,qu 个去 1
+ge,ren 个人 3
+ge,shi 格式 3
+ge,shi,hua 格式化 2
+ge,wei,shu 个位数 1
+ge,zhong 各种 2
+ge,zi 各自 1
+gei,chu 给出 3
+gei,de 给的 1
+gei,ni 给你 3
+gei,ta 给它 1
+gei,ta,men 给他们 1
+gei,wo 给我 29
+gen,ben 根本 9
+gen,ju 根据 3
+gen,ni 跟你 5
+gen,wo 跟我 3
+gen,wo,qian,mian 跟我前面 1
+gen,zhe 跟着 1
+geng,duo 更多 2
+geng,gai 更改 19
+geng,gao 更高 2
+geng,hao 更好 4
+geng,lao 更老 1
+geng,qiang 更强 1
+geng,xiang,shi 更像是 1
+geng,xin 更新 10
+geng,zao 更早 3
+gong,gong,hao 公功耗 1
+gong,hao 功耗 27
+gong,hao,qiang 功耗墙 1
+gong,ji 攻击 1
+gong,ju 工具 17
+gong,jue 公爵 6
+gong,kai 公开 4
+gong,lv 功率 7
+gong,lve 攻略 1
+gong,neng 功能 23
+gong,neng,ke,yi 功能可以 1
+gong,shi 共识 1
+gong,wang 公网 15
+gong,xiang 共享 4
+gong,xiang,de 共享的 1
+gong,ying,shang 供应商 1
+gong,ying,shang 供应商 1
+gong,zuo 工作 9
+gong,zuo,liang 工作量 1
+gou,bu,gou 够不够 1
+gou,jian 构建 1
+gou,yong 够用 1
+gu,ding 固定 7
+gu,ge 谷歌 2
+gu,jian 固件 1
+gu,tai 固态 3
+gu,tai,ying,pan 固态硬盘 1
+gua,zai 挂载 7
+gua,zai,le 挂载了 1
+guan,bi 关闭 7
+guan,diao 关掉 3
+guan,fang 官方 13
+guan,fang,wen,dang 官方文档 1
+guan,jian 关键 6
+guan,jian,ci 关键词 2
+guan,jiao 管脚 5
+guan,le 关了 2
+guan,li 管理 4
+guan,li,yuan 管理员 12
+guan,lian 关联 1
+guan,wang 官网 2
+guan,xi 关系 8
+guan,xin 关心 2
+guan,yu 关于 8
+guan,zai 关在 1
+guan,zhu 关注 1
+guang,bo 广播 7
+guang,mao 光猫 8
+guang,min 光敏 3
+guang,yuan 光源 2
+gui,ding 规定 1
+gui,men 柜门 1
+gui,ze 规则 2
+gui,zi 柜子 12
+guo,cheng 过程 4
+guo,de 过的 1
+guo,fen 过分 2
+guo,ji 国籍 1
+guo,lai 过来 3
+guo,le 过了 2
+guo,qi 国企 1
+guo,qu 过去 4
+guo,wan 过完 1
+guo,zai,pian 锅仔片 1
+ha,xi 哈希 5
+hai,bao,han,le 还包含了 1
+hai,bu 还不 3
+hai,bu,ru 还不如 1
+hai,bu,shi 还不是 1
+hai,de,luo 还得落 1
+hai,de,mai 还得买 1
+hai,hui 还会 4
+hai,ke,yi 还可以 8
+hai,liang 海量 1
+hai,lou,le 还漏了 1
+hai,mei 还没 4
+hai,mei,you 还没有 2
+hai,neng 还能 9
+hai,sheng 还剩 1
+hai,shi 还是 148
+hai,shi,hui 还是会 1
+hai,shi,mei,you 还是没有 2
+hai,shi,shuo 还是说 3
+hai,shi,yao,wo 还是要我 1
+hai,shi,yi,yang 还是一样 2
+hai,shi,you 还是有 2
+hai,shi,you,si,kao,nei,rong 还是有思考内容 1
+hai,suan 还算 3
+hai,xu,yao 还需要 1
+hai,yao 还要 23
+hai,yao,deng 还要等 1
+hai,yao,jia 还要加 1
+hai,yao,wo 还要我 1
+hai,yao,zuo,dao 还要做到 1
+hai,you 还有 43
+hai,you,ke,neng 还有可能 1
+hai,you,mei,you 还有没有 1
+hai,you,shen,me 还有什么 1
+hai,zai 还在 3
+hai,zuo,le 还做了 1
+han,guo 韩国 1
+han,han,shu 汉函数 1
+han,hua 汉化 1
+han,jie 焊接 4
+han,jie,shang,qu 焊接上去 1
+han,pan 焊盘 5
+han,shu 函数 16
+hao,a 好啊 1
+hao,ba 好吧 1
+hao,de 好的 21
+hao,duo 好多 3
+hao,gao 好高 1
+hao,ji 好记 1
+hao,le 好了 16
+hao,ma 好吗 1
+hao,ma,fan 好麻烦 1
+hao,shao 好少 1
+hao,shi 好事 2
+hao,wu 毫无 2
+hao,wu,guan,xi 毫无关系 1
+hao,xiang 好像 28
+hao,xiang,jiao 好像叫 1
+hao,xiang,shi 好像是 1
+hao,xiao 好小 1
+hao,yong 好用 4
+he,bing 合并 15
+he,shi 合适 4
+he,xian 核显 1
+he,xin 核心 3
+hei,biao,bi 黑表笔 3
+hei,le 黑了 1
+hen,da 很大 2
+hen,di 很低 1
+hen,dong 很懂 1
+hen,duan 很短 1
+hen,duo 很多 12
+hen,duo,ci 很多次 1
+hen,fu,za 很复杂 2
+hen,gao 很高 2
+hen,hao 很好 1
+hen,jian,dan 很简单 1
+hen,jiu,hen,jiu 很久很久 1
+hen,kuai 很快 1
+hen,lang,fei 很浪费 1
+hen,nan 很难 2
+hen,qi,guai 很奇怪 1
+hen,qiang 很强 1
+hen,que,ding 很确定 1
+hen,xiao 很小 3
+hen,xiao,de 很小的 1
+hen,you 很有 1
+hen,yuan 很远 1
+hen,zao 很早 1
+hen,zheng,chang 很正常 1
+hen,zhun,que 很准确 1
+heng,xiang 横向 1
+hong,biao,bi 红表笔 2
+hong,guang 红光 1
+hong,se 红色 9
+hou,men 后门 1
+hou,mian 后面 21
+hou,mian,de 后面的 5
+hou,xu 后续 5
+hou,xuan 候选 4
+hou,xuan,kuang 候选框 4
+hou,yong 后用 1
+hou,zhe 后者 1
+hu,lian 互连 1
+hu,lve 忽略 1
+hu,tong 互通 1
+hu,tu 糊涂 1
+hu,xiang 互相 3
+hua,fen 划分 2
+hua,le 花了 2
+hua,mian 画面 4
+hua,ti 话题 16
+hua,yu 话语 1
+hua,zhe 画着 1
+huai,de 坏的 1
+huai,diao 坏掉 1
+huai,le 坏了 1
+huai,yi 怀疑 2
+huan,cheng 换成 9
+huan,chong 缓冲 5
+huan,chong,huan,chong,qu 缓冲缓冲区 1
+huan,cun 缓存 55
+huan,cun,bing 缓存并 1
+huan,cun,qu 缓存区 1
+huan,dao 换到 1
+huan,guo 换过 1
+huan,hai 换还 1
+huan,hang,fu 换行符 3
+huan,huan 换换 1
+huan,huan,yuan 环还原 1
+huan,hui 换回 1
+huan,jie 环节 5
+huan,jing 环境 11
+huan,jing,bian,liang 环境变量 3
+huan,le 换了 2
+huan,yuan 还原 4
+huan,zhi 换只 1
+huan,zhong 换种 1
+hui,ba 会把 2
+hui,bei 会被 5
+hui,bian 会变 1
+hui,bian,cheng 会变成 1
+hui,bu,hui 会不会 12
+hui,che 回车 4
+hui,da 回答 21
+hui,dao 会到 2
+hui,dao 回到 2
+hui,dao,zhi 回导致 1
+hui,fu 回复 12
+hui,fu 恢复 17
+hui,gun 回滚 2
+hui,hua 会话 22
+hui,hua 回话 2
+hui,hui,gun 回回滚 1
+hui,i 会i 3
+hui,i,hui,fu 会i回复 1
+hui,i,sun,shi 会i损失 1
+hui,jue,de 会觉得 1
+hui,liang 会亮 1
+hui,se 灰色 1
+hui,shi 回事 1
+hui,tui 回退 5
+hui,xian 会先 1
+hui,yong 会用 2
+hui,yong,dao 会用到 1
+hui,you 会有 5
+hui,zai 会在 2
+hui,zen,me,yang 会怎么样 1
+hun,he 混合 1
+hun,yuan 混元 1
+hun,zai,yi,qi 混在一起 1
+huo,de 获得 6
+huo,dui 火队 1
+huo,huo,zhe 获或者 1
+huo,qu 获取 31
+huo,qu,dao 获取到 3
+huo,zhe 或者 57
+huo,zhe,shi 或者是 1
+i,ran,hou i然后 1
+ji,ben 基本 4
+ji,ben,shang 基本上 1
+ji,bian 即便 6
+ji,bie 级别 4
+ji,bu,zhu 记不住 1
+ji,cha 极差 2
+ji,chu 基础 4
+ji,chu,de 基础的 1
+ji,chu,shang 基础上 1
+ji,chuan 击穿 2
+ji,cun 寄存 1
+ji,de 记得 14
+ji,di 极低 1
+ji,fang 机房 1
+ji,gao 极高 2
+ji,ge 几个 6
+ji,gui 机柜 4
+ji,hu 几乎 3
+ji,huo 激活 1
+ji,ji,shi 机几十 1
+ji,ji,xu 机继续 1
+ji,ji,xu 机继续 1
+ji,jia 机架 2
+ji,jiang 即将 1
+ji,kou 几口 3
+ji,lei 积累 1
+ji,lu 记录 15
+ji,lv 几率 1
+ji,mao,qian 几毛钱 1
+ji,miao 几秒 2
+ji,neng 技能 3
+ji,qi 机器 30
+ji,qun 集群 2
+ji,ran 既然 5
+ji,shi 即使 1
+ji,shi,tiao 几十条 1
+ji,shu 技术 3
+ji,suan 计算 11
+ji,suan,dao 计算到 1
+ji,tian 几天 1
+ji,tian,qian 几天前 1
+ji,wa 几瓦 1
+ji,xiao 极小 1
+ji,xie 机械 5
+ji,xie,pan 机械盘 1
+ji,xie,ying,pan 机械硬盘 2
+ji,xing 极性 1
+ji,xu 继续 14
+ji,xu,xiu 继续修 1
+ji,xu,xue 继续学 1
+ji,xu,yong 继续用 1
+ji,yi 记忆 2
+ji,yi,shang 及以上 1
+ji,zhe 急着 1
+ji,zhi 机制 2
+ji,zhong 几种 1
+ji,zhu 记住 3
+ji,zi 机子 1
+jia,de 假的 1
+jia,dian 加点 1
+jia,dian 家电 1
+jia,ge 加个 3
+jia,jin,qu 加进去 2
+jia,le 加了 5
+jia,li 家里 1
+jia,mi 加密 6
+jia,qiang 加强 2
+jia,ru 假如 25
+jia,ru 加入 2
+jia,shang 加上 10
+jia,shang,qu 加上去 1
+jia,su 加速 2
+jia,ting 家庭 9
+jia,yi,ceng 加一层 1
+jia,zai 加在 2
+jia,zai 加载 22
+jia,zai,chu,lai 加载出来 1
+jia,zai,hao 加载好 1
+jia,zai,le 加载了 1
+jian,ce 检测 14
+jian,ce,dao 检测到 4
+jian,cha 检查 39
+jian,cha,dian 检查点 4
+jian,cha,jian,cha 检查检查 1
+jian,cha,yi,xia 检查一下 1
+jian,cheng 简称 1
+jian,dan 简单 10
+jian,dan,de 简单的 2
+jian,dan,dian 简单点 2
+jian,ge 间隔 1
+jian,hao 建好 1
+jian,hua 简化 1
+jian,jian,ce 健检测 1
+jian,kong 监控 6
+jian,li 建立 4
+jian,pan 键盘 9
+jian,rong 兼容 2
+jian,rong,xing 兼容性 1
+jian,rui 尖锐 1
+jian,suo 检索 3
+jian,ting 监听 13
+jian,xiao 减小 1
+jian,yan 检验 1
+jian,yi 建议 5
+jian,zhi 简直 1
+jian,zhi,dui 键值对 1
+jiang,dao 讲到 1
+jiang,di 降低 5
+jiang,hua 讲话 1
+jiang,jie 讲解 1
+jiang,le 讲了 1
+jiao,an 教案 4
+jiao,ben 脚本 6
+jiao,cheng 教程 7
+jiao,gei 交给 1
+jiao,hao 较好 2
+jiao,huan 交换 4
+jiao,huan,ji 交换机 8
+jiao,hui 教会 2
+jiao,jiao 教教 2
+jiao,jiao,wo 教教我 1
+jiao,kuai 较快 1
+jiao,liu 交流 1
+jiao,luo 角落 1
+jiao,ni 叫你 1
+jiao,sha 叫啥 2
+jiao,shao 较少 1
+jiao,shen,me 教什么 1
+jiao,wan 教完 1
+jiao,wo 叫我 5
+jiao,wo 教我 1
+jiao,xue 教学 3
+jiao,zhe,ge 叫这个 1
+jiao,zuo 叫做 3
+jie,chu 接触 2
+jie,da 解答 1
+jie,de 接的 1
+jie,di 接地 6
+jie,dian 节点 1
+jie,duan 阶段 5
+jie,gou 结构 4
+jie,gou,ti 结构体 1
+jie,guo 结果 8
+jie,jin 接近 1
+jie,jue 解决 13
+jie,kou 接口 4
+jie,lun 结论 2
+jie,ma 解码 7
+jie,ma,qi 解码器 2
+jie,mian 界面 9
+jie,ou 解耦 6
+jie,re 解热 1
+jie,ru 接入 1
+jie,shao 介绍 4
+jie,shi 解释 7
+jie,shi,jie,shi 解释解释 1
+jie,shou 接受 16
+jie,shou 接收 9
+jie,shou,dao 接受到 5
+jie,shou,dao,de 接收到的 1
+jie,shu 结束 4
+jie,shu,qian 结束前 1
+jie,suo 解锁 1
+jie,wei 结尾 3
+jie,xi 解析 5
+jie,xia,jie,xia,lai 接夏接下来 1
+jie,xia,lai 接下来 5
+jie,xia,lai,shi 接下来是 1
+jie,ya,suo 解压缩 1
+jin,bu,liao 进不了 1
+jin,cheng 进程 7
+jin,du 进度 4
+jin,du,tiao 进度条 2
+jin,ji 紧急 1
+jin,jie,zhe 紧接着 1
+jin,jin 仅仅 1
+jin,jin,liang 进尽量 1
+jin,ke,neng 尽可能 6
+jin,lai 进来 1
+jin,li 尽力 1
+jin,qu 进去 11
+jin,ru 进入 13
+jin,ru,le 进入了 1
+jin,si 近似 1
 jin,tian 今天 1
-jin,xing 进行
-jin,yong 禁用
-jing,gao 警告
-jing,guo 经过
-jiu,hui 就会
-jiu,hui,zhe,yang 就会这样
-jiu,nei,rong 旧内容
-jiu,shi 就是
-jiu,xing 就行
-jiu,zai 就在
-ju,ti 具体
-jue,de 觉得
-jue,ding 决定
-ka,si 卡死
-kai,ji 开机
-kai,qi 开启
-kai,shi 开始
-kai,shi,xuan,ze 开始选择
-kai,yuan 开源
-kan,bu,jian 看不见
-kan,dao 看到
-kan,jian 看见
-kan,zhe 看着
-kao,pu 靠谱
-ke,hu 客户
-ke,hu,duan 客户端
-ke,hu,ji 客户机
-ke,neng 可能
-ke,peng 磕碰
-ke,xi 可惜
-ke,yi 可以
-ke,yi,shu,chu 可以输出
-ke,yong 可用
-kong,ge 空格
-kong,jian 空间
-kong,zhi 控制
-kong,zhi,fu 控制符
-kong,zhi,tai 控制台
-kuai,jie 快捷
-kuai,jie,jian 快捷键
-kuai,su 快速
-kuo,zhan 扩展
-lai,shuo 来说
-lai,zi 来自
-lei,si 类似
-li,hai 厉害
-li,jie 理解
-li,shi 历史
-li,te 利特
-lian,gan 连杆
-lian,jie 连接
-lian,jie 链接
-lian,xu 连续
-liang,chan 量产
-liang,ge 两个
-liang,tai 两台
-lin,shi 临时
-liu,chang 流畅
-liu,lan 浏览
-liu,lan,qi 浏览器
-liu,liang 流量
-lv,se 绿色
-ma,tou 马头 1
-mao,pao 冒泡
-mei,ci 每次
-mei,dong 没懂
-mei,fa 没法
-mei,ge 每个
-mei,you 没有
-mei,you,ba 没有吧
-mi,you 米游
-mian,ban 面板
-ming,chao 明朝
-ming,chao 鸣潮
-ming,cheng 名称
-ming,ling 命令
-ming,zi 名字
-mo,di 末地
-mo,di,zhu 末地烛
-mo,fang 模仿
-mo,kuai 模块
-mo,ni 模拟
-mo,ren 默认
-mo,shi 模式 1
-mo,shi 模式 1
-mo,xing 模型
-mou,xie 某些
-mu,biao 目标
-mu,lu 目录
-mu,qian 目前
-na,ge 哪个
-na,ge 那个
-na,lai 哪来
-na,me 那么
-na,ni 那你
-na,pa 哪怕
-na,wo 那我
-na,xie 哪些
-na,xie 那些
-na,yige 哪一个
-na,zhong 那种
-nan,beng 难绷
-nan,bu,nan 难不难
-nan,du 难度
-nan,gua 南瓜
-nei,cun 内存
-nei,rong 内容
-nei,wang 内网
-neng,bu,neng 能不能
-neng,li 能力
-ni,fen,xi 你分析
-ni,hao 你好
-ni,hao,a 你好啊
-ni,kan,kan 你看看
-ni,ke,yi 你可以
-ni,ma 你妈
-ni,neng 你能
-ni,shuchu 你输出
-ni,shuo 你说
-ni,zhe,ge 你这个
-niu,fu 牛福 1
-niu,mo 牛魔
-pai,xu 排序
-pan,duan 判断
-pei,zhi 配置
-pi,zhun 批准
-pian,pian 偏偏
-pin,yin 拼音
-pin,yin,shu,ru,fa 拼音输入法
-ping,bao 屏保
-ping,mu 屏幕
-po,huai 破坏
-pu,tong 普通
-qi,dong 启动
-qi,guai 奇怪
-qi,guai,de 奇怪的
-qi,lai 起来
-qi,ta 其他
-qi,yong 启用
-qi,yu 其余
-qian,gua 牵挂
-qian,hui 浅灰
-qiang,diao 强调
-qing,kong 清空
-qing,kuang 情况
-qing,wen 请问
-qiu,sheng 求生
-qu,bie 区别
-qu,dong 驱动
-quan,bu 全部
-que,shi 确实
-ran,hou 然后
-ren,gong 人工
-ren,he 任何
-ren,lei 人类
-rong,yi 容易
-ru,guo 如果
-ru,guo,wo 如果我
-ru,he 如何
-ruan,jian 软件
-san,re 散热
-sha,bi 傻逼
-sha,de 啥的
-shan,chu 删除 5
-shan,diao 删掉
-shan,le 删了
-she,ji 设计
-she,zhi 设置
-she,zhi,le 设置了
-shen,me 什么
-shen,me,dou,bu 什么都不
-shen,me,yong 什么用
-sheng,pi,zi 生僻字
-sheng,shi 省事
-sheng,xiao 生效
-sheng,yin 声音
-shi,bai 失败
-shi,bie 识别
-shi,bu,shi 是不是
-shi,fou 是否
-shi,guo 试过
-shi,he 适合
-shi,hou 时候
-shi,jie 世界
-shi,le 试了
-shi,qing 事情
-shi,shi 试试
-shi,wo 是我
-shi,xian 实现
-shi,yi,xia 试一下
-shi,yong 使用
-shi,yong 是用
-shi,zai 实在
-shi,zhe 试着
-shi,zhe 试者
-shi,zheng 时政
-shou,dao 收到
-shou,dong 手动
-shou,hu 守护
-shou,ming 寿命
-shou,xian 受限
-shu,biao 鼠标
-shu,chu 输出
-shu,chu,yi,xie 输出一些
-shu,ru 输入 1
-shu,ru,fa 输入法 1
-shu,zi 数字
-shun,bian 顺便
-shuo,hua 说话
-shuo,yi,xie 说一些
-sou,suo 搜索
-suan,fa 算法
-suan,le 算了
-sui,bian 随便
-sui,bian,tian 随便填
-sui,dao 隧道
-sui,ran 虽然
-sun,huai 损坏
-suo,lve 缩略
-suo,yi 所以
-tai,yuan 太远
-ti,gong 提供
-ti,gong,zhe 提供者
-ti,huan 替换
-ti,shi 提示
-tian,chong 填充
-tian,jia 添加
-tian,qi 天气 1
-tiao,shi 调试 2
-ting,zhi 停止
-tong,shi 同时
-tong,yong 通用
-tu,pian 图片
-tu,xing 图形
-tu,zi 兔子
-tui,chu 退出
-wan,jia 玩家
-wan,quan 完全
-wang,luo 网络
-wang,ye 网页
-wang,zhi 网址
-wei,li 为例
-wei,ruan 微软
-wei,shen,me 为什么
-wen,ben 文本
-wen,dang 文档
-wen,jian 文件
-wen,jian,jia 文件夹
-wen,ti 问题
-wen,zi 文字
-wo,cao 卧槽
-wo,cao 我草
-wo,chao 我超 1
-wo,de 我的
-wo,de 我的 1
-wo,ji,de 我记得
-wo,jiu,shi 我就是
-wo,jue,de 我觉得
-wo,le 卧勒
-wo,mei 我没
-wo,men 我们
-wo,neng 我能
-wo,pa 我怕
-wo,ri 我日
-wo,ru,guo 我如果
-wo,shi 我是
-wo,shu,chu 我输出
-wo,shuo 我说
-wo,wen 我问
-wo,xian 我先
-wo,xian,zai 我现在
-wo,xiang 我想
-wo,yao 我要
-wo,yong 我用
-wo,zai 我在
-wo,zhun,bei 我准备
-wu,fa 无法
-wu,lun 无论
-wu,tou 无头
-xi,huan 喜欢
-xi,tong 系统
-xi,wang 希望
-xia,la,kuang 下拉框
-xia,mian 下面
-xia,shuo 瞎说
-xia,yi,ge 下一个
-xian,ka 显卡
-xian,shi 显示
-xian,shi,qi 显示器
-xian,xiang 显像
-xian,xiang,guan 显像管
-xian,zai 现在
-xian,zhi 限制
-xiang,guan 相关
-xiang,hu 相互
-xiang,mu 项目
-xiao,guo 效果
-xiao,hao 消耗
-xiao,xi 消息
-xie,gang 斜杠
-xie,ru 写入
-xie,xie 谢谢
-xie,yi,ge 写一个
-xin,hao 信号
-xin,jian 新建
-xin,jian,wen,jian,jia 新建文件夹
-xin,xi 信息
-xing,neng 性能
-xing,wei 行为
-xiu,fu 修复
-xiu,fu,nan,du 修复难度
-xu,duo 许多
-xu,ni 虚拟
-xu,yao 需要
-xuan,ran 渲染
-xuan,xiang 选项
-xuan,ze 选择
-xuan,zhong 选中
-xue,xi 学习
-yan,se 颜色
-yan,zheng 验证
-yang,sheng,qi 扬声器
-ye,xing 也行
-yi,ban 一般
-yi,ban,lai,shuo 一般来说
-yi,ci 一次
-yi,ci 依次
-yi,duan 一段
-yi,ge 一个
-yi,gong 一共
-yi,hou,yu,jian 以后遇见
-yi,ji 以及
-yi,jing 已经
-yi,ju 依据
-yi,si 意思
-yi,sou 一搜
-yi,sou 一艘
-yi,tai 一台
-yi,wen 疑问
-yi,xia 一下
-yi,xie 一些
-yi,yi 意义
-yi,zhi 一直
-yin,wei 因为
-ying,gai 应该
-ying,guang 荧光
-ying,guang,fen 荧光粉
-ying,pan 硬盘 1
-ying,wei,da 英伟达
-ying,yong 应用
-yong,de 用的
-yong,hu 用户
-yong,lai 用来
-you,dian 有点
-you,ge 有个
-you,hui 又会
-you,mei,you 有没有
-you,shi 又是
-you,shuo 又说
-you,wo 由我
-you,xian 优先
-you,xiao 有效
-you,yi,tai 有一台
-you,you 又有
-yu,yan 语言
-yuan,ben 原本
-yuan,sheng 原生
-yuan,su 元素
-yuan,yin 原因
-yun,xing 运行
-yun,xu 允许
-za,ban 咋办
-zai,ci 在此
-zai,na 在哪
-zai,na 在那
-zan,shi 暂时
-zen,me 怎么
-zen,me,yang 怎么样
-zhan,tie 粘贴
-zhan,yong 占用
-zhao,dao 找到
-zhe,ci 这次
-zhe,ge 这个
-zhe,me 这么
-zhe,xie 这些
-zhe,zhong 这种
-zhen,zheng 真正
-zheng,chang 正常
-zhi,chi 支持
-zhi,dao 知道 2
-zhi,ding 指定
-zhi,jie 直接
-zhi,kan 只看
-zhi,li 智力
-zhi,lu 之路
-zhi,neng 只能
-zhi,neng 智能
-zhi,qian 之前
-zhi,shao 至少
-zhi,shiyong 只使用
-zhi,wai 之外
-zhi,xing 执行
-zhi,you 只有
-zhong,dian 重点
-zhong,duan 终端
-zhong,li 重力
-zhong,wen 中文 5
-zhong,wen,shu,ru,fa 中文输入法
-zhong,wu 中午
-zhong,zhuan 中转
-zhu,ti 主题
-zhuan,jie,tou 转接头
-zhuang,tai 状态
-zhuang,tai,lan 状态栏
-zhuang,tai 状态
-zhuo,mian 桌面
-zhu,se 主色
-zhu,ti 主题
-zi,ci 字词
-zi,dingyi 自定义
-zi,dong 自动
-zi,fu 字符
-zi,ji 自己
-zi,liao 资料
-zi,ti 字体
-zi,yuan 资源
-zi,dong 自动
-zi,fu 字符
-zi,ji,kan 自己看
-zi,ji,qu 自己去
-zi,liao 资料
-zi,ti 字体
-zong,you 总有
-zu,wang 组网
-zui,di 最低
-zui,hao 最好
-zui,da 最大
-zui,duo 最多
-zui,hao 最好
-zuo,dao 做到
-zuo,de 做的
-zuo,wei 作为
-zuo,yi,ge 做一个
-zuo,yong 作用
+jin,xian 仅限 1
+jin,xing 进行 17
+jin,yi,bu 进一步 1
+jin,yong 禁用 3
+jin,zhi 禁止 2
+jing,cha 警察 1
+jing,gao 警告 2
+jing,guo 经过 3
+jing,jian 精简 3
+jing,mo 静默 1
+jing,que 精确 1
+jing,tai 静态 3
+jing,zhun 精准 1
+jiu,ba 就把 1
+jiu,ban 旧版 1
+jiu,bei 就被 3
+jiu,bi,ru 就比如 1
+jiu,bu,xu,yao 就不需要 1
+jiu,de 旧的 2
+jiu,dui,hua 旧对话 1
+jiu,gei 就给 1
+jiu,hao 就好 5
+jiu,hao,xiang 就好像 5
+jiu,hui 就会 14
+jiu,hui,bei 就会被 1
+jiu,hui,dao,zhi 就会导致 1
+jiu,hui,jin,xing 就会进行 1
+jiu,jia,ru 就假如 1
+jiu,jiao 就叫 1
+jiu,jing 酒精 1
+jiu,ka 就卡 1
+jiu,kai,shi 就开始 1
+jiu,kan,bu,jian 就看不见 1
+jiu,ke 就可 2
+jiu,ke,yi 就可以 7
+jiu,ke,yi,le 就可以了 1
+jiu,lian 就连 1
+jiu,mei 就没 3
+jiu,mei,ban,fa 就没办法 1
+jiu,mei,ju 就枚举 1
+jiu,neng 就能 1
+jiu,ni 就你 1
+jiu,shi 就是 64
+jiu,shuo,ming 就说明 1
+jiu,suan 就算 3
+jiu,xia 就下 1
+jiu,xiang 就像 5
+jiu,xiang,shi 就像是 1
+jiu,xing 就行 17
+jiu,xing,le 就行了 5
+jiu,xing,wen,jian 就行文件 1
+jiu,yao 就要 2
+jiu,yi 就以 1
+jiu,yi,jing 就已经 1
+jiu,yong 就用 4
+jiu,you 就有 3
+jiu,you,dian 就有点 1
+jiu,zai 就在 2
+jiu,zhe,me 就这么 2
+jiu,zhe,xie 就这些 1
+jiu,zhe,yang 就这样 2
+jiu,zhi,dao 就知道 1
+jiu,zhi,dao,le 就知道了 1
+jiu,zhi,hui 就只会 1
+ju,bu 局部 1
+ju,bu,bian,liang 局部变量 2
+ju,chi,bo 锯齿波 1
+ju,de 举的 1
+ju,ju,bei 据具备 1
+ju,jue 拒绝 3
+ju,li 举例 3
+ju,li 距离 4
+ju,ti 具体 4
+ju,yu,wang 局域网 9
+jue,bu 绝不 1
+jue,de 觉得 12
+jue,ding 决定 7
+jue,dui 绝对 3
+jue,dui,jin,zhi 绝对禁止 1
+jue,se 角色 1
+ka,chi 卡池 1
+ka,dun 卡顿 3
+ka,ka 卡卡 2
+ka,ka,de 卡卡的 1
+ka,le 卡了 1
+ka,si,le 卡死了 1
+ka,zai 卡在 1
+ka,zhu 卡住 3
+ka,zhu,le 卡住了 2
+kai,bian,zhu 开边珠 1
+kai,fa 开发 12
+kai,fa,ban 开发板 2
+kai,fang 开放 9
+kai,guan 开关 3
+kai,ji 开机 8
+kai,kai 开开 1
+kai,kou 开口 1
+kai,le 开了 4
+kai,mei,kai 开没开 1
+kai,qi 开启 15
+kai,qi,le 开启了 1
+kai,shi 开始 35
+kai,xiang 开箱 1
+kai,yi,ge 开一个 1
+kai,yi,xia 开一下 1
+kai,yuan 开源 8
+kai,yuan,ban 开源版 1
+kai,zhe 开着 1
+kan,ba 看吧 1
+kan,bu,dao 看不到 1
+kan,bu,dong 看不懂 2
+kan,bu,jian 看不见 4
+kan,chu,lai 看出来 2
+kan,dao 看到 5
+kan,dao,de 看到的 1
+kan,de 看的 1
+kan,dong 看懂 5
+kan,jian 看见 20
+kan,jian,le 看见了 1
+kan,kan 看看 130
+kan,kan,na 看看那 1
+kan,lai 看来 1
+kan,le 看了 2
+kan,le 砍了 1
+kan,qi,lai 看起来 6
+kan,qing,chu 看清楚 1
+kan,shang,qu 看上去 1
+kan,yi,kan 看一看 1
+kan,yi,xia 看一下 1
+kan,zhe 看着 2
+kang,bu,liao 扛不了 1
+kao,lv 考虑 8
+ke,bu,de 可不得 1
+ke,bu,ke,yi 可不可以 1
+ke,cheng 课程 8
+ke,gong 可供 1
+ke,hu 客户 3
+ke,hu,duan 客户端 11
+ke,hu,ji 客户机 5
+ke,kao 可靠 3
+ke,kao,xing 可靠性 1
+ke,kong 可控 1
+ke,long 克隆 1
+ke,man 可慢 1
+ke,neng 可能 23
+ke,shi 可是 6
+ke,shi,ta 可是它 1
+ke,shi,wo 可是我 1
+ke,ting 客厅 12
+ke,wo 可我 2
+ke,xing 可行 2
+ke,xing,xing 可行性 1
+ke,yi 可以 98
+ke,yi,bang,wo 可以帮我 1
+ke,yi,kai 可以开 1
+ke,yi,ma 可以吗 4
+ke,yi,me 可以么 1
+ke,yi,rang 可以让 2
+ke,yi,shan 可以删 1
+ke,yi,ti 可以提 1
+ke,yi,yong 可以用 1
+ke,yi,zen,me 可以怎么 2
+ke,yi,zen,me,nong 可以怎么弄 1
+ke,yi,zen,me,zuo 可以怎么做 4
+ke,yong 可用 7
+ke,zhi,xing 可执行 1
+ken,ding 肯定 10
+ken,ding,shi 肯定是 1
+kong,de 空的 3
+kong,ge 空格 5
+kong,jian 控件 2
+kong,jian 空间 10
+kong,shen,me 空什么 1
+kong,shu,zu 空数组 1
+kong,tiao 空调 1
+kong,xian 空闲 1
+kong,yu 空余 1
+kong,zhi 控制 6
+kong,zhi,tai 控制台 6
+kou,tou,hui,da 口头回答 1
+kou,wen 口吻 1
+ku,li 库里 1
+kuai,shang,bu,shao 快上不少 1
+kuai,su 快速 2
+kuai,yi,dian 快一点 1
+kun,nan 困难 1
+kun,rao 困扰 1
+kuo,chong 扩充 1
+kuo,rong 扩容 2
+la,chang 拉长 1
+la,man 拉满 2
+la,qu 拉取 6
+la,yuan 拉远 1
+lai,de 来的 2
+lai,de,ji 来的及 1
+lai,shuo 来说 8
+lai,yuan 来源 1
+lai,zhe 来着 1
+lai,zi 来自 4
+lan,bao,shi 蓝宝石 1
+lan,jie 拦截 5
+lan,ren 懒人 1
+lan,se 蓝色 2
+lan,wei 栏位 1
+lang,fei 浪费 3
+lao,shi 老师 1
+lao,shi 老是 1
+lao,yang,zi 老样子 3
+le,ba 了吧 1
+le,ma 了吗 5
+le,shuo 了说 1
+lei,si 类似 5
+lei,si,yu 类似于 3
+lei,xing 类型 3
+li,de 里的 4
+li,jie 理解 5
+li,ke 立刻 6
+li,li,ma 里立马 1
+li,lun,shang 理论上 1
+li,mi 厘米 1
+li,mian 里面 20
+li,mian,de 里面的 5
+li,xian 离线 1
+li,yong 利用 6
+li,yong,lv 利用率 1
+li,you 理由 1
+li,yuan,le 离远了 1
+li,zi 例子 3
+lian,bu,shang 连不上 18
+lian,dao 连到 2
+lian,dao,le 连到了 1
+lian,de 连的 1
+lian,jie 连接 30
+lian,jie 链接 5
+lian,jie,bu,shang 连接不上 1
+lian,shang 连上 11
+lian,shang,lai,le 连上来了 1
+lian,wang 连网 1
+lian,xu 连续 6
+liang,bai,duo 两百多 1
+liang,bei 两倍 1
+liang,bu 两步 1
+liang,chu 两处 1
+liang,ci 两次 4
+liang,duan 两段 1
+liang,duan 两端 2
+liang,ge 两个 27
+liang,hua 量化 6
+liang,jiao 两脚 2
+liang,kuai 两块 5
+liang,qi 亮起 2
+liang,yang 两样 1
+liang,zhe 两者 2
+liao,de 聊的 5
+liao,dian 聊点 4
+liao,jie 了解 4
+liao,le 聊了 3
+liao,liao 聊聊 1
+liao,liao,jie 聊了解 1
+liao,tian 聊天 1
+lie,biao 列表 2
+lie,chu 列出 2
+lie,chu,lai 列出来 1
+lie,ju 列举 1
+lin,shi 临时 1
+ling,ji,chu 零基础 1
+ling,qi 另起 1
+ling,shuo 另说 1
+ling,wai 另外 12
+ling,yi 另一 1
+ling,yi,ge 另一个 1
+ling,yi,ge 另一个 3
+ling,yi,tai 另一台 2
+liu,cheng 流程 4
+liu,ge 六个 3
+liu,lan 浏览 3
+liu,lan,liu,lan,qi 浏览浏览器 1
+liu,lan,qi 浏览器 5
+liu,liang 流量 1
+liu,shi 流式 2
+liu,wo,yao 流我要 1
+lou,bao 漏保 1
+lou,dian 漏电 3
+lou,dian,bao,hu,qi 漏电保护器 1
+lou,dong 漏洞 2
+lou,le 漏了 2
+lu,jing 路径 5
+lu,ru 录入 2
+lu,yin 录音 3
+lu,you 路由 6
+lu,you,qi 路由器 3
+luan,gao 乱搞 1
+luan,luan,qi,ba,zao 乱乱七八糟 1
+luan,qi,lai,le 乱起来了 1
+luan,tao 乱套 1
+luan,zhao 乱找 1
+lun,qie 轮切 1
+luo,ji 逻辑 29
+luo,ji,ru,guo,yao 逻辑如果要 1
+luo,si 螺丝 1
+lv,jing 滤镜 1
+lv,se 绿色 2
+ma,fan 麻烦 6
+ma,ke 马克 2
+ma,le 麻了 1
+mai,de 买的 3
+mai,ke,feng 麦克风 14
+man,fang 慢放 1
+man,le 慢了 2
+man,le,xu,duo 慢了许多 1
+man,man 慢慢 1
+man,si 慢死 1
+man,su 满速 6
+man,you 漫游 1
+man,zai 满载 2
+mang,mu 盲目 1
+mao,pao 冒泡 1
+mao,si 貌似 1
+mei,ban,fa 没办法 14
+mei,bei 没被 1
+mei,bi,yao 没必要 2
+mei,bian 没变 1
+mei,bie,de 没别的 4
+mei,cha 没插 1
+mei,chu 没出 1
+mei,ci 每次 11
+mei,diao 没掉 1
+mei,dong 没懂 4
+mei,dong,guo 没动过 1
+mei,dong,jing 没动静 4
+mei,dong,xi 没东西 2
+mei,dong,xi 没东西 1
+mei,dui 没对 1
+mei,fa 没法 2
+mei,fa,xian 没发现 1
+mei,fan,ying 没反应 9
+mei,gai,bian 没改变 1
+mei,gao,dong 没搞懂 1
+mei,gao,su 没告诉 1
+mei,ge 每个 7
+mei,ge 每隔 1
+mei,ge 没个 1
+mei,gei 没给 1
+mei,gen,ni 没跟你 1
+mei,gong,zuo 没工作 1
+mei,guan 美观 1
+mei,guan,xi 没关系 4
+mei,huai 没坏 1
+mei,jia 没加 1
+mei,jian 没见 1
+mei,jie,suo 没解锁 1
+mei,ju 枚举 2
+mei,kan,dong 没看懂 1
+mei,kan,jian 没看见 11
+mei,kao,lv 没考虑 1
+mei,le 没了 4
+mei,liao,jie 没了解 1
+mei,mai 没买 1
+mei,mei,jie 没每节 1
+mei,neng 没能 1
+mei,pao 每跑 1
+mei,pao 没跑 1
+mei,ren 没人 2
+mei,sha 没啥 9
+mei,sha,qu,bie 没啥区别 1
+mei,sha,yong 没啥用 1
+mei,shan 没删 1
+mei,shen,me 没什么 10
+mei,shen,me,yong 没什么用 1
+mei,sheng,xiao 没生效 1
+mei,sheng,yin 没声音 7
+mei,shi 没事 2
+mei,shi,yong 没使用 1
+mei,shu,chu 没输出 4
+mei,shuo 没说 4
+mei,shuo,o,a 没说哦啊 1
+mei,tiao 每条 1
+mei,ting,jian 没听见 1
+mei,tong,yi 没同意 1
+mei,wen,ti 没问题 3
+mei,xia,zai 没下载 1
+mei,xiao,guo 没效果 1
+mei,yong 没用 10
+mei,you 没有 50
+mei,you 没有 9
+mei,you 没有 54
+mei,you,ban,fa 没有办法 1
+mei,you,ci 没有词 1
+mei,you,ge 没有个 1
+mei,za 没咋 1
+mei,zen,me 没怎么 1
+mei,zhang 每章 1
+mei,zhu,yi 没注意 1
+mei,zhuang 没装 1
+mei,zhun,wo,qie,huan 没准我切换 1
+mei,zuo 没做 1
+mei,zuo,guo 没做过 1
+mi,ma 密码 5
+mi,yao 密钥 7
+mian,ban 面板 3
+mian,bao 面包 2
+mian,bao,ban 面包板 1
+mian,fei 免费 1
+mian,xiang,dui,xiang 面向对象 1
+miao,shu 描述 1
+min,gan 敏感 1
+ming,bai 明白 2
+ming,chao 鸣潮 3
+ming,cheng 名称 4
+ming,jiao 名叫 1
+ming,ling 命令 16
+ming,ling,hang 命令行 2
+ming,ming 命名 3
+ming,ming 明明 3
+ming,wei 名为 1
+ming,wen 明文 1
+ming,xian 明显 2
+ming,zi 名字 11
+mo,bu,dao 摸不到 1
+mo,gai 魔改 1
+mo,kuai 模块 10
+mo,ni 模拟 3
+mo,ni,xin,hao 模拟信号 1
+mo,ren 默认 20
+mo,ren,she,zhi 默认设置 1
+mo,sheng,ren 陌生人 1
+mo,shi 模式 18
+mo,wang 魔王 1
+mo,wei 末位 3
+mo,xing 模型 53
+mo,xing,ming,cheng 模型名称 1
+mo,zu 模组 5
+mou,ge 某个 8
+mou,yi 某一 1
+mou,zhong 某种 2
+mu,ban 母板 4
+mu,biao 目标 3
+mu,di 目的 6
+mu,ji 母机 30
+mu,lu 目录 43
+mu,lu,xia 目录下 1
+mu,qian 目前 58
+mu,qian,de 目前的 4
+mu,qian,shi 目前是 2
+na,bian 那边 11
+na,bu,dao 拿不到 1
+na,chu,qu 拿出去 1
+na,dao 拿到 4
+na,dong,xi 拿东西 1
+na,ge 哪个 24
+na,ge 那个 42
+na,gen 那根 1
+na,gen 那跟 1
+na,guo,lai 拿过来 2
+na,hai,neng 那还能 1
+na,hai,yao 那还要 1
+na,hang 那行 2
+na,hao 那好 2
+na,ji,ge 哪几个 1
+na,ji,lei 哪几类 1
+na,jiu 那就 13
+na,jiu,hui,chu,xian 那就会出现 1
+na,jiu,shi 那就是 1
+na,lai 哪来 1
+na,lai 拿来 2
+na,lai,yong 拿来用 1
+na,li 哪里 11
+na,li 那里 10
+na,li,mian 那里面 2
+na,li,you 哪里有 1
+na,liang,ge 那两个 2
+na,me 那么 23
+na,me,chang 那么长 1
+na,me,da 那么大 2
+na,me,duo 那么多 7
+na,me,jiu 那么久 1
+na,na,qu 那拿去 1
+na,ni 那你 47
+na,ni,ba 那你把 1
+na,ni,jue,de 那你觉得 2
+na,ni,men 那你们 1
+na,ni,shuo,de 那你说的 1
+na,ni,xian 那你先 1
+na,ni,yao,shi 那你要是 1
+na,ni,zai 那你在 1
+na,pa 哪怕 9
+na,ru,guo 那如果 2
+na,san,ge 哪三个 1
+na,san,ge 那三个 2
+na,shi 那是 7
+na,shou,ji 拿手机 1
+na,suan,le 那算了 1
+na,ta,de 那它的 1
+na,wei,sha 那为啥 1
+na,wei,shen,me 那为什么 1
+na,wo 拿我 1
+na,wo 那我 34
+na,wo,jue,de 那我觉得 1
+na,wo,men 那我们 1
+na,wo,shi 那我是 1
+na,wo,shuo 那我说 1
+na,wo,zhe 那我这 1
+na,xie 哪些 23
+na,xie 那些 9
+na,xie,ren 那些人 1
+na,yang 那样 7
+na,yang,de 那样的 4
+na,yao 那要 2
+na,yao,shi 那要是 1
+na,ye 那也 1
+na,yi,ci 哪一次 1
+na,yi,ge 那一个 1
+na,yi,gen 那一根 1
+na,yi,hang 那一行 4
+na,yi,ke 哪一课 1
+na,yi,ke 那一刻 1
+na,yi,si 那意思 1
+na,you 哪有 3
+na,you,mei,you 那有没有 1
+na,zhe 那这 1
+na,zhe,ge 拿这个 1
+na,zhe,ge 那这个 4
+na,zhe,xie 那这些 1
+na,zhong 那种 14
+nan,beng 难绷 1
+nan,bu,cheng 难不成 1
+nan,bu,nan 难不难 2
+nan,bu,nan,bu,cheng 难部难不成 1
+nan,dao 难道 2
+nan,dian 难点 1
+nan,dong 难懂 1
+nan,du 难度 1
+nan,du,da,bu,da 难度大不大 1
+nan,gua 南瓜 1
+nan,ma 难吗 1
+nan,mian 难免 1
+nan,ti 难题 3
+nan,ting 难听 1
+nang,de,guo,fen 囊得过分 3
+nei,cun 内存 4
+nei,he 内核 4
+nei,rong 内容 46
+nei,wang 内网 9
+neng,bu 能不 2
+neng,bu,neng 能不能 16
+neng,fou 能否 11
+neng,gai 能改 1
+neng,gou 能够 1
+neng,huo,qu 能获取 2
+neng,jie,jue 能解决 1
+neng,kan 能看 1
+neng,kan,jian 能看见 3
+neng,li 能力 4
+neng,lian,shang,le 能连上了 1
+neng,pao 能跑 1
+neng,rang 能让 1
+neng,shan 能删 1
+neng,ting,dao 能听到 1
+neng,xuan 能选 1
+neng,yong 能用 7
+neng,yong,dao 能用到 1
+neng,zai 能在 2
+neng,zen,me 能怎么 1
+neng,zhao,dao 能找到 1
+neng,zhe,yang 能这样 1
+neng,zuo,dao,ma 能做到吗 1
+ni,ba 你把 9
+ni,bao,cun 你保存 1
+ni,bie 你别 2
+ni,bu 你不 5
+ni,bu,hui 你不会 2
+ni,bu,neng 你不能 1
+ni,bu,ru 你不如 7
+ni,bu,shi 你不是 1
+ni,cong,na 你从哪 1
+ni,da,kai 你打开 1
+ni,de 你的 22
+ni,deng,hui 你等会 1
+ni,deng,wo 你等我 1
+ni,deng,xia 你等下 1
+ni,dong 你懂 1
+ni,dou 你都 3
+ni,fang 你放 1
+ni,gai,cuo 你改错 1
+ni,gai,guo 你改过 1
+ni,gai,le 你改了 1
+ni,gan,cui 你干脆 1
+ni,gan,le 你干了 1
+ni,gang,gang 你刚刚 3
+ni,gao,su 你告诉 1
+ni,gao,su,wo 你告诉我 3
+ni,gei,ta 你给它 1
+ni,gei,wo 你给我 1
+ni,hai 你还 6
+ni,hai,neng 你还能 3
+ni,hai,shi 你还是 7
+ni,hao 你好 21
+ni,hao,a 你好啊 5
+ni,hao,ya 你好呀 8
+ni,hui 你会 3
+ni,hui,fu 你回复 1
+ni,hui,fu 你恢复 1
+ni,ji,ran 你既然 1
+ni,jian,cha 你检查 3
+ni,jiao,wo 你叫我 1
+ni,jiu 你就 5
+ni,jue,de 你觉得 12
+ni,kan 你看 9
+ni,kan,kan 你看看 22
+ni,ke,yi 你可以 10
+ni,lian 你连 1
+ni,mei 你没 4
+ni,mei,ban,fa 你没办法 1
+ni,men 你们 5
+ni,na 你那 1
+ni,neng 你能 15
+ni,neng,jian,ce,dao 你能检测到 1
+ni,neng,shuo,hua 你能说话 1
+ni,qu 你去 2
+ni,que,ding 你确定 8
+ni,ren 你认 1
+ni,ren,wei 你认为 1
+ni,ru,guo 你如果 2
+ni,she,zhi,yi,xia 你设置一下 1
+ni,shi 你是 6
+ni,shi,bu,shi 你是不是 1
+ni,shi,ni,shi,shi 你是你试试 1
+ni,shi,shi 你试试 1
+ni,shi,shuo 你是说 1
+ni,shuo 你说 15
+ni,shuo,de 你说的 11
+ni,shuo,shuo 你说说 1
+ni,sou 你搜 1
+ni,sui,bian 你随便 2
+ni,tian,jia 你添加 1
+ni,tiao,guo 你跳过 1
+ni,ting,bu,dong 你听不懂 1
+ni,tui,jian 你推荐 2
+ni,wang 你往 1
+ni,wo 你我 1
+ni,xian 你先 9
+ni,xian,ba 你先把 2
+ni,xian,bie 你先别 1
+ni,xian,bie,zuo 你先别做 1
+ni,xian,ni 你先你 1
+ni,xian,zai 你先在 1
+ni,xiang,duo,le 你想多了 1
+ni,xiang,xiang 你想想 3
+ni,xie,le,mei 你写了没 1
+ni,xu,yao 你需要 1
+ni,xuan 你选 1
+ni,yao,bu 你要不 4
+ni,ye 你也 2
+ni,yi,jing 你已经 1
+ni,yong 你用 5
+ni,yong,fa 你用法 1
+ni,you,shuo 你又说 1
+ni,yun,xing 你运行 2
+ni,za 你咋 5
+ni,za,bu,shuo,le 你咋不说了 1
+ni,zai 你再 16
+ni,zai 你在 6
+ni,zai,gan,shen,me 你在干什么 1
+ni,zai,kan,kan 你再看看 2
+ni,zai,shi,shi,wo,an,zhuang,le 你再试试我安装了 1
+ni,zen,me 你怎么 17
+ni,zen,me,bao,zheng 你怎么保证 1
+ni,zen,me,kan 你怎么看 2
+ni,zen,me,zhi,dao 你怎么知道 1
+ni,zhao 你找 1
+ni,zhe 你这 11
+ni,zhe,ci 你这次 1
+ni,zhe,jie 你这节 1
+ni,zhe,jie,ke 你这节课 1
+ni,zhe,me 你这么 2
+ni,zhe,tao 你这套 1
+ni,zhe,zhong 你这种 1
+ni,zhi 你只 1
+ni,zhi,dao 你知道 1
+ni,zhi,jie 你直接 6
+ni,zhi,jie,kan 你直接看 1
+ni,zhi,qian 你之前 2
+ni,zhi,xu,yao 你只需要 1
+ni,zhi,yao 你只要 1
+ni,zhuan,zhu 你专注 1
+ni,zi,ji 你自己 4
+ni,zi,ji,kan 你自己看 1
+ni,zuo,de 你做的 1
+ni,zuo,le 你做了 1
+niu,pi 牛皮 1
+nong,ge 弄个 5
+nong,hao 弄好 1
+nong,shang,qu 弄上去 1
+nong,tu,wan 弄吐完 1
+nong,yi,ge 弄一个 1
+o,dui,le 哦对了 1
+ou,he 耦合 5
+ou,mu 欧姆 4
+ou,mu,dang 欧姆档 2
+pai,cha 排查 1
+pai,chu 排除 1
+pai,huai 徘徊 1
+pai,shang 派上 1
+pai,sheng 派生 3
+pan,duan 判断 5
+pan,pan,duan 盘判断 1
+pang,bian 旁边 1
+pao,bu,dao 跑不到 1
+pao,dao 跑到 1
+pao,le 跑了 1
+pao,man 跑满 1
+pao,pao 跑跑 1
+pao,qi 抛弃 2
+pao,tong 跑通 3
+pao,wan 跑完 1
+pao,zai 跑在 2
+pei,dui 配对 2
+pei,wang 配网 6
+pei,wang,xiang 配网箱 2
+pei,zhi 配置 19
+pei,zhi,wen,jian 配置文件 4
+pen,qi 喷漆 2
+pi,fu 皮肤 1
+pi,mao 皮毛 1
+pi,pei 匹配 24
+pi,pei,dao 匹配到 1
+pi,pei,du 匹配度 1
+pi,pei,shang 匹配上 1
+pian,pi 偏僻 1
+pian,pian 偏偏 2
+pin,lv 频率 6
+pin,lv,di 频率低 1
+pin,lv,shao,wei,gao 频率稍微高 1
+pin,ming 拼命 1
+pin,yin 拼音 3
+ping,jing 瓶颈 1
+ping,kong 凭空 1
+ping,mu 屏幕 2
+ping,tai 平台 8
+ping,ti 平替 2
+po,chu 破除 1
+po,huai 破坏 1
+pu,tong 普通 4
+pu,tong,de 普通的 1
+qi,bu 岂不 2
+qi,bu,shi 岂不是 4
+qi,ci 其次 2
+qi,dong 启动 13
+qi,dong,jie,mian 启动界面 1
+qi,guai 奇怪 3
+qi,hao 七号 1
+qi,jian 期间 1
+qi,lai 起来 6
+qi,pao 气泡 1
+qi,qi,guai 汽奇怪 1
+qi,qi,jian 其期间 1
+qi,qi,jian 其期间 1
+qi,qi,zhong 器其中 1
+qi,shi 七十 1
+qi,shi 其实 1
+qi,ta 其他 28
+qi,ta,de 其他的 1
+qi,ta,gui,zi 其他柜子 1
+qi,ta,shi,hou 其他时候 1
+qi,yong 启用 4
+qi,yu 其余 1
+qi,zhong 其中 2
+qian,bo 浅薄 1
+qian,mi 千米 1
+qian,mian 前面 6
+qian,mian,de 前面的 3
+qian,ming 签名 1
+qian,qi 前期 1
+qian,ru,guo 前如果 1
+qian,tao 嵌套 1
+qian,ti 前提 2
+qian,wen 千问 3
+qian,yi 迁移 1
+qian,zhao 千兆 2
+qian,zhe 前者 2
+qian,zhi 前置 2
+qian,zhui 前缀 9
+qiang,diao 强调 1
+qiang,du 强度 9
+qiang,qiu 强求 1
+qiang,ti 墙体 1
+qiang,wo 抢我 1
+qiang,zhi 强制 4
+qiao,jie 桥接 3
+qiao,liang 桥梁 1
+qie,dao 切到 2
+qie,huan 切换 17
+qie,huan,dao 切换到 3
+qie,huan,qie,huan,dao 切换切换到 1
+qie,pian 切片 1
+qing,chu 清楚 6
+qing,chu 清除 1
+qing,kong 清空 7
+qing,kuang 情况 28
+qing,li 清理 9
+qing,li,diao 清理掉 2
+qing,liang 轻量 1
+qing,ling 清零 1
+qing,qing,chu,chu 清清楚楚 1
+qing,qing,kong 情清空 1
+qing,qiu 请求 42
+qing,qiu,tou 请求头 1
+qing,wei 轻微 2
+qing,wen 请问 1
+qiu,sheng,zhi,lu 求生之路 1
+qu,bie 区别 7
+qu,dao 取到 1
+qu,diao 去掉 3
+qu,dong 驱动 7
+qu,dong,xi 取东西 1
+qu,fen 区分 9
+qu,jian 区间 4
+qu,kan,kan 去看看 1
+qu,le 去了 3
+qu,na 去哪 1
+qu,na,le 去哪了 1
+qu,xian 曲线 1
+qu,xiao 取消 4
+qu,xiao,le 取消了 1
+qu,zhi,ke,shu 屈指可数 1
+quan,bu 全部 14
+quan,cheng 全程 2
+quan,heng 权衡 1
+quan,hong 全红 1
+quan,ju 全局 5
+quan,kao 全靠 1
+quan,ping 全屏 1
+quan,shan,diao 全删掉 1
+quan,shi 全是 4
+quan,wei 权威 1
+quan,wu 全屋 4
+quan,xian 权限 12
+quan,yong 全用 3
+que,bao 确保 1
+que,ding 确定 6
+que,hen,gao 却很高 1
+que,ren 确认 5
+que,shi 确实 12
+que,shi,shi 确实是 1
+que,shi,you 确实有 1
+que,xian 缺陷 1
+que,xin 确信 1
+ran,hou 然后 126
+ran,hou,qu 然后去 1
+ran,hou,shi 然后是 2
+rang,ni 让你 1
+rang,ni,men 让你们 1
+rang,wo 让我 4
+rao,guo 绕过 4
+re,dian 热点 5
+re,rong 热熔 1
+ren,cheng 认成 1
+ren,ding 认定 1
+ren,gong 人工 2
+ren,gong,zhi,neng 人工智能 3
+ren,he 任何 20
+ren,he,ren 任何人 1
+ren,jia 人家 1
+ren,lei 人类 3
+ren,qu 人取 1
+ren,sheng 人声 1
+ren,shi 认识 2
+ren,wei 认为 5
+ren,wu 任务 1
+ren,wu,guan,li,qi 任务管理器 1
+ren,zheng 认证 1
+reng,jiu 仍旧 1
+reng,mei,you 仍没有 1
+reng,ran 仍然 2
+ri,qi 日期 1
+ri,ri,zhi 日日志 1
+ri,zhi 日志 74
+ri,zhi,shu,chu 日志输出 3
+rong,he 融合 4
+rong,liang 容量 1
+rong,qi 容器 5
+rong,qi,hua 容器化 1
+rou,ji 肉机 1
+ru,guo 如果 67
+ru,guo,shi 如果是 1
+ru,guo,wo 如果我 1
+ru,guo,yao,ni 如果要你 1
+ru,guo,yong 如果用 2
+ru,guo,you 如果有 4
+ru,he 如何 26
+ru,he,jie,jue 如何解决 2
+ru,he,zuo 如何做 1
+ru,kou 入口 2
+ru,ri,zhi 如日志 1
+ruan,hua 软化 1
+ruan,jian 软件 16
+ruan,jian,bao 软件包 3
+ruan,jian,mei,you 软件没有 1
+ruan,lu,you 软路由 7
+ruan,lu,you 软路由 2
+ruo,gan 若干 2
+san,ge 三个 13
+san,ji,guan 三极管 1
+san,ke 三颗 1
+san,re 散热 1
+san,re,pian 散热片 7
+san,si 三四 2
+san,tiao 三条 1
+sao,miao 扫描 2
+sao,pan 扫盘 1
+se,mang 色盲 1
+sha,de 啥的 9
+sha,dou 啥都 5
+sha,fa 沙发 1
+sha,zi 啥子 1
+shan,ba 删吧 1
+shan,chu 删除 41
+shan,chu,le 删除了 1
+shan,dian 闪电 1
+shan,diao 删掉 12
+shan,le 删了 4
+shan,shan,le 山删了 1
+shan,shuo 闪烁 1
+shan,wu,lun 删无论 1
+shang,bai 上百 2
+shang,bai,ge 上百个 3
+shang,bu,liao,wang 上不了网 1
+shang,bu,qu 上不去 1
+shang,ceng 上层 1
+shang,chuan 上传 1
+shang,chuan,dao 上传到 1
+shang,de 上的 3
+shang,ke 上课 1
+shang,la 上拉 3
+shang,le 上了 3
+shang,men 上门 1
+shang,mian 上面 5
+shang,mian,de 上面的 3
+shang,qu 上去 2
+shang,wan 上万 1
+shang,wan,zi 上万字 1
+shang,wang 上网 1
+shang,xia 上下 2
+shang,xia,wen 上下文 13
+shang,yi,ci 上一次 8
+shang,yi,ge 上一个 8
+shang,yi,jie 上一节 1
+shao,dian 少点 1
+shao,hui 烧毁 1
+shao,le 少了 4
+shao,liang 少量 2
+shao,lu 烧录 6
+shao,qian 烧钱 1
+shao,wei 稍微 3
+she,bei 设备 13
+she,ji 设计 3
+she,ji,dao 涉及到 1
+she,ji,hao 设计好 1
+she,qu 社区 2
+she,she,qi 设舍弃 1
+she,shen,me 设什么 1
+she,shen,me 设什么 1
+she,xian 射线 1
+she,xiang 设想 1
+she,zhi 设置 59
+she,zhi,cheng 设置成 2
+she,zhi,de 设置的 1
+she,zhi,guo 设置过 1
+she,zhi,hao 设置好 2
+she,zhi,le 设置了 5
+she,zhi,wei 设置为 5
+she,zhi,yi,xia 设置一下 2
+shei,de 谁的 1
+shei,dou 谁都 1
+shei,dou,bu,zhi,dao 谁都不知道 1
+shei,gen,ni 谁跟你 1
+shen,du 深度 2
+shen,me 什么 223
+shen,me,de 什么的 3
+shen,me,dong,xi 什么东西 1
+shen,me,dou,bu,gan 什么都不干 1
+shen,me,dou,xing 什么都行 1
+shen,me,qing,kuang 什么情况 1
+shen,me,shen,me 什么什么 2
+shen,me,shi 什么是 3
+shen,me,shi,hou 什么时候 6
+shen,me,shi,shen,me,shi,hou 什么是什么时候 1
+shen,me,shi,shen,me,shi,hou 什么是什么时候 1
+shen,me,wan,yi,er 什么玩意儿 1
+shen,me,wen,ti 什么问题 1
+shen,me,yang 什么样 1
+shen,me,yi,si 什么意思 4
+shen,qing 申请 2
+shen,zhi 甚至 11
+shen,zhi,ni 甚至你 1
+shen,zhi,shi 甚至是 1
+sheng,chan 生产 1
+sheng,cheng 生成 9
+sheng,cheng,de 生成的 1
+sheng,ji 升级 1
+sheng,ming 声明 2
+sheng,tu 生图 1
+sheng,xia 剩下 1
+sheng,xiao 生效 7
+sheng,xiao,le 生效了 1
+sheng,yin 声音 21
+sheng,yu 剩余 2
+sheng,yu,de 剩余的 1
+shi,ba 是吧 2
+shi,bai 失败 5
+shi,bai,le 失败了 1
+shi,bie 识别 6
+shi,bu 是不 1
+shi,bu,shi 是不是 44
+shi,chang 时长 1
+shi,da,shi 实打实 1
+shi,fang 释放 1
+shi,fou 是否 22
+shi,gan,ma 是干嘛 1
+shi,gan,sha 是干啥 2
+shi,gan,sha,de 是干啥的 1
+shi,gan,shen,me 是干什么 1
+shi,ge 是个 3
+shi,gei 是给 1
+shi,guo 试过 3
+shi,he 适合 3
+shi,hou 时候 26
+shi,ji 世纪 1
+shi,ji 十几 2
+shi,ji 实际 3
+shi,ji 时机 2
+shi,ji,miao 十几秒 1
+shi,ji,shi 实际是 1
+shi,jian 事件 22
+shi,jian 时间 8
+shi,jian,chuo 时间戳 2
+shi,jiao,wo 是叫我 1
+shi,jie 世界 2
+shi,li 实例 2
+shi,li 示例 8
+shi,li,cheng,xu 示例程序 1
+shi,ma 是吗 14
+shi,miao 十秒 1
+shi,ni 是你 1
+shi,pei 适配 1
+shi,pin 视频 5
+shi,qing 事情 1
+shi,sha 是啥 1
+shi,shei 是谁 1
+shi,shen,me 是什么 24
+shi,shi 实时 1
+shi,shi 试试 35
+shi,shi,hou 是时候 1
+shi,shi,hou 是时候 1
+shi,shi,jian 时事件 1
+shi,shi,ni,hao 试试你好 1
+shi,shuo 是说 1
+shi,tai 十台 1
+shi,tu 试图 4
+shi,wo 是我 4
+shi,wo,men 是我们 1
+shi,xian 实现 15
+shi,xian,le 实现了 1
+shi,yang,shi,yong 是样使用 1
+shi,yi 世一 2
+shi,yi,bing 世一冰 1
+shi,yi,ge 是一个 1
+shi,yi,kuan 是一款 1
+shi,yin,wei 是因为 3
+shi,yong 使用 47
+shi,yong,lv 使用率 1
+shi,you 是有 2
+shi,zai 是在 2
+shi,zhe 试着 4
+shi,zhe,yang 是这样 4
+shi,zhe,yang,de 是这样的 1
+shi,zhe,yang,ma 是这样吗 1
+shi,zhe,yi,ci 是这一次 1
+shi,zhen,de,ma 是真的吗 1
+shi,zhi 实质 2
+shi,zhi 是指 3
+shi,zhong 始终 1
+shi,zuo 是做 1
+shou,ci 首次 2
+shou,cuo 手搓 1
+shou,dao 收到 4
+shou,dong 手动 13
+shou,fu 收复 1
+shou,hui 手绘 1
+shou,ji 手机 14
+shou,ji 收集 5
+shou,ji,shang 手机上 1
+shou,jiao 手脚 1
+shou,li 手里 2
+shou,ming 寿命 1
+shou,ting 收听 1
+shou,wei 手为 1
+shou,xian 首先 8
+shou,yao 首要 1
+shou,yin 收音 2
+shu,biao 鼠标 3
+shu,chu 输出 91
+shu,chuan 数传 1
+shu,de 输的 1
+shu,fu 舒服 1
+shu,ju 数据 18
+shu,ju,bao 数据包 2
+shu,ju,ku 数据库 3
+shu,ju,liang 数据量 3
+shu,liang 数量 4
+shu,ru 输入 23
+shu,ru,bu,liao 输入不了 1
+shu,ru,dao 输入到 1
+shu,ru,fa 输入法 48
+shu,ru,wan 输入完 1
+shu,shu,shu 数叔叔 1
+shu,yu 属于 2
+shu,zi 数字 12
+shu,zi,duan,kou 数字端口 1
+shu,zu 数组 19
+shua,ru 刷入 1
+shua,xie 刷写 5
+shuang,fang 双方 1
+shun,bian 顺便 3
+shun,li 顺利 2
+shun,shun,bian 顺顺便 1
+shun,xu 顺序 3
+shun,zhe 顺着 1
+shuo,ba 说吧 1
+shuo,bu,wan 说不完 1
+shuo,ci 说辞 1
+shuo,de 说的 11
+shuo,dian 说点 2
+shuo,fa 说法 1
+shuo,guo 说过 2
+shuo,guo,de 说过的 1
+shuo,hua 说话 8
+shuo,le 说了 9
+shuo,le,xie 说了些 1
+shuo,ming 说明 12
+shuo,qing,chu 说清楚 1
+shuo,shuo 说说 1
+shuo,shuo 说说 3
+shuo,shuo,hua 说说话 1
+shuo,yi,shuo 说一说 1
+shuo,yi,xia 说一下 3
+si,ge 四个 5
+si,gen 四根 2
+si,hu 似乎 2
+si,kao 思考 14
+si,kao,le 思考了 1
+si,lu 思路 1
+si,wei 思维 2
+si,wei,fang,shi 思维方式 1
+si,wu 四五 1
+si,xun,huan 死循环 1
+si,you 私有 1
+si,zhong 四种 1
+song,kai 松开 1
+sou,bu,dao 搜不到 1
+sou,bu,dao 搜不到 1
+sou,chu,lai 搜出来 1
+sou,dao 搜到 4
+sou,gou 搜狗 2
+sou,gou,shu,ru,fa 搜狗输入法 1
+sou,shou,ji 搜收集 1
+sou,sou 搜搜 1
+sou,suo 搜索 36
+sou,suo,yin,qing 搜索引擎 1
+sou,yi,sou 搜一搜 1
+su,bu,xing 速不行 1
+su,cheng 俗称 1
+su,du 速度 22
+su,hui 溯回 1
+su,liao 塑料 1
+su,lv 速率 13
+suan,bu 算不 2
+suan,bu,suan 算不算 1
+suan,dao 算到 1
+suan,de 算的 1
+suan,de,shang 算得上 1
+suan,fa 算法 6
+suan,le 算了 9
+sui,bian 随便 14
+sui,dao 隧道 3
+sui,ji 随机 5
+sui,ji,xing 随机性 2
+sui,ran 虽然 4
+sui,yi 随意 2
+sun,shi 损失 1
+suo,shuo 所说 1
+suo,shuo,le 所说了 1
+suo,xiao 缩小 1
+suo,xue 所学 1
+suo,yi 所以 40
+suo,you 所有 31
+suo,you,de 所有的 4
+suo,you,hang 所有行 1
+suo,you,quan 所有权 1
+suo,you,zhe 所有者 5
+suo,zai 所在 1
+ta,de 他的 1
+ta,de 她的 1
+ta,de 它的 2
+ta,mei,you 它没有 1
+ta,men 他们 9
+ta,men 它们 1
+ta,men,fa 他们发 1
+ta,neng 它能 1
+ta,ren 他人 2
+ta,shi 它是 3
+ta,shuo 它说 1
+ta,zen,me 它怎么 1
+tai,da 太大 2
+tai,duo 太多 2
+tai,gao 太高 2
+tai,ji,dian 台积电 1
+tai,la,rui,ya 泰垃瑞亚 1
+tai,ma,fan 太麻烦 1
+tai,man 太慢 2
+tai,man,le 太慢了 1
+tai,shi,ji 台式机 1
+tai,wan 台湾 1
+tai,xiao 太小 4
+tai,xiao,le 太小了 2
+tai,xiao,tai,xiao,le 太小太小了 1
+tai,zai,he 台载荷 1
+tan,chu 弹出 2
+tan,chu,lai 弹出来 1
+tan,chuang 弹窗 1
+tan,ke 坦克 1
+tan,tan,chuang 谈弹窗 1
+tang,zhe 躺着 1
+tao,bao 淘宝 1
+tao,bu,diao 逃不掉 1
+tao,ci 陶瓷 3
+tao,le 套了 1
+tao,lun 讨论 7
+tao,tai 淘汰 1
+te,bie 特别 2
+te,bie,zhi,chu 特别之处 2
+te,gan 特感 2
+te,shu 特殊 2
+te,xing 特性 1
+te,zheng 特征 1
+ti,chu 提出 2
+ti,dai 替代 2
+ti,dao 提到 2
+ti,dao,guo 提到过 1
+ti,gan 体感 1
+ti,gao 提高 7
+ti,gong 提供 16
+ti,gong,le 提供了 2
+ti,gong,shang 提供商 7
+ti,gong,zhe 提供者 1
+ti,huan 替换 7
+ti,huan,cheng 替换成 2
+ti,jiao 提交 11
+ti,jiao,le 提交了 1
+ti,qian 提前 3
+ti,qu 提取 2
+ti,quan 提权 3
+ti,sheng 提升 4
+ti,shi 提示 10
+ti,shi,ci 提示词 12
+ti,shi,yin 提示音 1
+ti,ti,ji 提体积 1
+ti,wen 提问 4
+ti,xing 提醒 2
+ti,zi 梯子 11
+tian,bu,chu,lai 填不出来 1
+tian,jia 添加 40
+tian,jia,dao 添加到 1
+tian,jia,jian,pan 添加键盘 1
+tian,jia,le 添加了 1
+tian,jia,yi,ge 添加一个 1
+tian,kong 填空 1
+tian,shen,me 填什么 1
+tian,xian 天线 18
+tiao,ban 跳板 1
+tiao,dao 调到 1
+tiao,guo 跳过 3
+tiao,jian 条件 3
+tiao,jian,bian,yi 条件编译 1
+tiao,shi 调试 6
+tiao,tiao,shi 条调试 1
+tiao,zha 跳闸 1
+tiao,zheng 调整 5
+tie,ba 贴吧 1
+tie,hao 贴好 1
+ting,bu 听不 2
+ting,bu,dao 听不到 1
+ting,bu,dong 听不懂 2
+ting,da 挺大 1
+ting,dao 听到 2
+ting,de,dong 听得懂 1
+ting,diao 停掉 1
+ting,dong 听懂 1
+ting,duo 挺多 1
+ting,jian 听见 5
+ting,liu 停留 1
+ting,qi,lai 听起来 6
+ting,shuo 听说 5
+ting,xia,lai,le 停下来了 1
+ting,zhi 停止 3
+tong,bu 同步 3
+tong,bu,tong,guo 通不通过 1
+tong,bu,tong,xin 通不通信 1
+tong,bu,tong,yi 同不同意 1
+tong,dian 通电 3
+tong,guo 通过 15
+tong,hua 通话 2
+tong,ji 同级 1
+tong,le 通了 1
+tong,lu 通路 1
+tong,mu,lu 同目录 1
+tong,ran,hou 通然后 1
+tong,shi 同时 6
+tong,tong,bu,zhi,dao 通通不知道 1
+tong,xin 通信 15
+tong,yang 同样 4
+tong,yi 同一 1
+tong,yi 同意 2
+tong,yi,ge 同一个 8
+tong,yi,nei,cun 统一内存 1
+tong,yong 通用 1
+tong,yong,xing 通用性 1
+tou,ji 投机 3
+tou,ji,jie,ma 投机解码 1
+tou,tou 偷偷 1
+tou,wen,jian 头文件 3
+tu,an 图案 1
+tu,biao 图标 1
+tu,chu 吐出 3
+tu,chu,lai 吐出来 1
+tu,chu,lai,de 吐出来的 1
+tu,le 吐了 2
+tu,pian 图片 1
+tu,ran,cong 突然从 1
+tu,wan 吐完 2
+tu,xing 图形 5
+tu,xing,hua 图形化 1
+tu,xing,jie,mian 图形界面 2
+tu,zi 吐字 1
+tui,chu 退出 2
+tui,dao 推到 1
+tui,hua 退化 1
+tui,hui,qu 退回去 1
+tui,jian 推荐 4
+tui,li 推理 7
+tui,wo,xian,zai 推我现在 1
+tuo,guan 托管 1
+tuo,tuo,pu 托拓扑 1
+u,bian,yi u编译 1
+wa,kuang 挖矿 1
+wai,bu 外部 6
+wai,di 外地 1
+wai,jie 外接 1
+wai,ke 外壳 1
+wai,lai,zhe 外来者 1
+wai,mian 外面 2
+wai,wang 外网 5
+wan,bi 完毕 6
+wan,cheng 完成 11
+wan,le 完了 3
+wan,mei 完美 1
+wan,quan 完全 13
+wan,quan,shi 完全是 1
+wan,shan 完善 1
+wan,yi 万一 11
+wan,yi 玩意 2
+wan,yi,er 玩意儿 21
+wan,yong,biao 万用表 5
+wan,zheng 完整 6
+wang,duan 网段 10
+wang,ge 网格 1
+wang,guan 网管 6
+wang,guang 忘光 1
+wang,ji 忘记 8
+wang,ji,le 忘记了 1
+wang,ka 网卡 3
+wang,kou 网口 1
+wang,le 忘了 2
+wang,li,mian 往里面 1
+wang,luo 网络 20
+wang,min 网民 1
+wang,pan 网盘 1
+wang,shang 往上 1
+wang,shang 网上 6
+wang,xian 网线 4
+wang,ye 网页 2
+wang,zhan 网站 4
+wang,zhi 网址 5
+wang,zhuang 网状 1
+wei,dai,ma 伪代码 1
+wei,du 唯独 3
+wei,hu 维护 2
+wei,le 为了 11
+wei,sha 为啥 11
+wei,shen,me 为什么 75
+wei,wei,he 为为何 1
+wei,wei,zhi 为位置 1
+wei,xian 危险 3
+wei,xiang,ying 未响应 1
+wei,yi 唯一 14
+wei,yi,biao,shi,fu 唯一标识符 2
+wei,yi,yi,ge 唯一一个 1
+wei,zhi 位置 2
+wei,zhui 尾缀 5
+wei,zhun 为准 1
+wen,da,huan,jie 问答环节 1
+wen,dang 文档 11
+wen,dang,shuo,ming 文档说明 1
+wen,dao 问到 1
+wen,de 问的 2
+wen,ding 稳定 6
+wen,ding,ban 稳定版 1
+wen,ding,xing 稳定性 1
+wen,du 温度 3
+wen,jian 文件 130
+wen,jian,jia 文件夹 37
+wen,jian,li 文件里 1
+wen,jian,ming 文件名 8
+wen,jian,shang,xia,wen 文件上下文 1
+wen,jian,shu 文件数 1
+wen,ni 问你 3
+wen,ti 问题 49
+wen,ti,shi 问题是 2
+wen,wen 问问 1
+wen,wen,da 问问答 1
+wen,zhang 文章 1
+wen,zi 文字 8
+wen,zi 蚊子 1
+wo,an,zhuang 我安装 1
+wo,ba 我把 3
+wo,ba 我把 3
+wo,bei 我被 1
+wo,bing,mei,you 我并没有 1
+wo,bu 我不 10
+wo,bu,da,suan 我不打算 1
+wo,bu,ji,de 我不记得 2
+wo,bu,ke,neng 我不可能 1
+wo,bu,liao,jie 我不了解 1
+wo,bu,shi 我不是 7
+wo,bu,shi,ji,de 我不是记得 1
+wo,bu,xiang 我不想 6
+wo,bu,yao 我不要 4
+wo,bu,yao,qiu 我不要求 1
+wo,bu,zhi,dao 我不知道 4
+wo,cai,hui 我才会 1
+wo,cai,neng 我才能 1
+wo,ce,shi 我测试 1
+wo,cha 我插 2
+wo,cha 我查 1
+wo,chai,le 我拆了 1
+wo,cheng,gong 我成功 1
+wo,chong,qi 我重启 2
+wo,chuan,shu 我传输 1
+wo,chuang,jian,hao 我创建好 1
+wo,cong 我从 2
+wo,cong,tou 我从头 1
+wo,dan,xin 我担心 1
+wo,dang,qian 我当前 1
+wo,dang,shi 我当时 1
+wo,de 我的 49
+wo,de,i 我得i 1
+wo,de,shi,jie 我的世界 2
+wo,de,yao,qiu 我的要求 1
+wo,de,yi,si 我的意思 3
+wo,dian 我点 1
+wo,dou 我都 8
+wo,dou,ba 我都把 1
+wo,dou,xiang 我都想 1
+wo,fa,xian 我发现 2
+wo,fang,le 我放了 1
+wo,gai 我改 1
+wo,gai,zen,me,zuo 我该怎么做 1
+wo,gan,jue 我感觉 2
+wo,gang,gang 我刚刚 1
+wo,gei 我给 2
+wo,gen,ben 我根本 1
+wo,gen,ni 我跟你 2
+wo,gen,wo,gen,ju 我跟我根据 1
+wo,geng,xi,wang 我更希望 1
+wo,geng,xiang 我更想 1
+wo,guan,bi 我关闭 1
+wo,hai 我还 15
+wo,hai,mei 我还没 1
+wo,hai,shi 我还是 5
+wo,hai,xi,wang 我还希望 1
+wo,hai,yao 我还要 1
+wo,hai,yi,wei 我还以为 1
+wo,hao 我好 1
+wo,huai,yi 我怀疑 2
+wo,hui 我会 1
+wo,ji,de 我记得 10
+wo,jia 我家 2
+wo,jian,chi 我坚持 1
+wo,jiao 我叫 1
+wo,jiao,ni 我叫你 2
+wo,jin,jin 我仅仅 1
+wo,jin,qu 我进去 1
+wo,jin,ru 我进入 2
+wo,jiu 我就 8
+wo,jiu,de,zai 我就得在 1
+wo,jiu,qu 我就去 1
+wo,jiu,shi 我就是 2
+wo,jiu,zhi,dao 我就知道 1
+wo,jue,de 我觉得 7
+wo,kai,le 我开了 1
+wo,kan 我看 20
+wo,kan,bu,dong 我看不懂 1
+wo,kan,bu,jian 我看不见 1
+wo,kan,jian 我看见 1
+wo,kan,kan 我看看 6
+wo,kan,le 我看了 1
+wo,kan,wo,kan 我看我看 1
+wo,kan,zhe 我看着 1
+wo,kao,lv 我考虑 1
+wo,ke 我可 5
+wo,ke,shi 我可是 1
+wo,ke,yi 我可以 1
+wo,ken,ding 我肯定 4
+wo,lai 我来 2
+wo,li,ke 我立刻 1
+wo,lian 我连 1
+wo,liang,le 我亮了 1
+wo,mai 我买 2
+wo,mai,le 我买了 1
+wo,mei 我没 16
+wo,mei,dong 我没懂 1
+wo,mei,kan 我没看 1
+wo,mei,shen,me 我没什么 1
+wo,mei,shuo 我没说 1
+wo,mei,ting,dong 我没听懂 1
+wo,mei,you 我没有 1
+wo,men 我们 38
+wo,men,ba 我们把 1
+wo,men,de 我们的 17
+wo,men,xian 我们先 1
+wo,men,yao 我们要 2
+wo,men,yao,de 我们要的 1
+wo,men,ye 我们也 1
+wo,ming,zi 我名字 1
+wo,mu,qian 我目前 7
+wo,na,ge 我那个 1
+wo,na,pa 我哪怕 1
+wo,nan,dao 我难道 1
+wo,neng 我能 3
+wo,pa 我怕 1
+wo,pao 我跑 3
+wo,pao,dao 我跑到 1
+wo,qie,huan 我切换 4
+wo,qu 我去 2
+wo,que,shi 我确实 1
+wo,ren,wei 我认为 3
+wo,ru,guo 我如果 1
+wo,sha 我啥 1
+wo,shang 我上 1
+wo,shang 我上 1
+wo,she,zhi 我设置 2
+wo,shen,zhi 我甚至 2
+wo,shi 卧室 16
+wo,shi 我是 12
+wo,shi,guo 我试过 1
+wo,shi,jiao 我是叫 1
+wo,shi,shuo 我是说 7
+wo,shou,dong 我手动 2
+wo,shou,li 我手里 1
+wo,shou,shang 我手上 1
+wo,shu,ru 我输入 1
+wo,shuo 我说 18
+wo,shuo,cuo,le 我说错了 1
+wo,shuo,de 我说的 15
+wo,shuo,le 我说了 1
+wo,sui,bian 我随便 1
+wo,ting 我听 4
+wo,ting,dao,de 我听到的 1
+wo,ting,shuo 我听说 1
+wo,ting,ting 我听听 1
+wo,tong,yi 我同意 1
+wo,wan,quan 我完全 1
+wo,wei,le 我为了 1
+wo,wei,shen,me 我为什么 2
+wo,wei,shen,me 我为什么 1
+wo,wen,chu 我问出 1
+wo,wen,ni 我问你 1
+wo,xi,wang 我希望 6
+wo,xia,ci 我下次 1
+wo,xian 我先 4
+wo,xian,ka 我显卡 1
+wo,xian,kan,kan 我先看看 1
+wo,xian,wo 我先我 1
+wo,xian,zai 我现在 17
+wo,xian,zai 我现在 11
+wo,xian,zai 我现在 2
+wo,xiang 我想 23
+wo,xiang,bu,chu,lai 我想不出来 1
+wo,xiang,kan 我想看 1
+wo,xiang,rang 我想让 1
+wo,xiang,wen 我想问 1
+wo,xiang,xiang 我想想 2
+wo,xiang,xin 我相信 1
+wo,xiang,zhi,dao 我想知道 1
+wo,xie 我写 2
+wo,xie,chu,lai,le 我写出来了 1
+wo,xue,de 我学的 1
+wo,yao 我要 48
+wo,yao,de 我要的 10
+wo,yao,de,shi 我要的是 2
+wo,yao,kan 我要看 2
+wo,yao,ni 我要你 3
+wo,yao,qiu 我要求 3
+wo,yao,shi 我要是 4
+wo,yao,shi,you 我要是有 1
+wo,yao,wen 我要问 1
+wo,yao,yong 我要用 1
+wo,yao,zai 我要在 1
+wo,yao,zen,me 我要怎么 2
+wo,yao,zuo,dao 我要做到 1
+wo,yao,zuo,de 我要做的 1
+wo,ye 我也 17
+wo,ye,bu 我也不 2
+wo,ye,bu,hui 我也不会 1
+wo,ye,bu,xiang 我也不想 1
+wo,ye,bu,zhi,dao 我也不知道 1
+wo,ye,mai,le 我也买了 1
+wo,ye,neng 我也能 1
+wo,ye,yao 我也要 1
+wo,ye,zhi,dao 我也知道 1
+wo,yi,ding 我一定 2
+wo,yi,jing 我已经 5
+wo,yi,wei 我以为 1
+wo,yi,zhi 我一直 1
+wo,ying,gai 我应该 2
+wo,yong 我用 18
+wo,yong,dian,rong 我用电容 1
+wo,yong,hu 我用户 1
+wo,you 我又 2
+wo,you 我有 13
+wo,you,dian 我有点 1
+wo,you,dian 我有点 1
+wo,you,ge 我有个 2
+wo,you,shi,hou 我有时候 1
+wo,yuan,ben 我原本 2
+wo,za 我咋 1
+wo,zai 我再 2
+wo,zai 我在 8
+wo,zai,xiang 我在想 1
+wo,zen,me 我怎么 8
+wo,zen,me,zhi,dao 我怎么知道 4
+wo,zhao,dao,de 我找到的 1
+wo,zhe 我这 4
+wo,zhe,ci 我这次 1
+wo,zhe,ge 我这个 4
+wo,zhe,li,zen,me 我这里怎么 1
+wo,zhe,shi 我这是 2
+wo,zhe,tai 我这台 1
+wo,zhi 我只 13
+wo,zhi,da,suan 我只打算 1
+wo,zhi,dao 我知道 10
+wo,zhi,dao,le 我知道了 1
+wo,zhi,hui 我只会 2
+wo,zhi,ji,de 我只记得 1
+wo,zhi,jie 我直接 3
+wo,zhi,jie,tao,tao,bao 我直接陶淘宝 1
+wo,zhi,ren 我只认 1
+wo,zhi,ting,jian 我只听见 1
+wo,zhi,wo,zhi,qian 我只我之前 1
+wo,zhi,xiang 我只想 1
+wo,zhi,xu,yao 我只需要 1
+wo,zhi,yao 我只要 2
+wo,zhun,bei 我准备 2
+wo,zi,ji 我自己 2
+wo,zi,wo,zi,ji 我自我自己 1
+wo,zui,duo 我最多 1
+wo,zuo 我做 2
+wu,bi 无比 1
+wu,fa 无法 40
+wu,ge 五个 1
+wu,guan 无关 3
+wu,guan,jin,yao 无关紧要 1
+wu,hui 误会 1
+wu,li,ji 物理机 1
+wu,lun 无论 3
+wu,neng,wei,li 无能为力 1
+wu,pan 误判 1
+wu,pin 物品 2
+wu,ran 污染 1
+wu,shi,duo 五十多 1
+wu,sun 无损 2
+wu,suo,wei 无所谓 4
+wu,tou 无头 1
+wu,wu,ge 无五个 1
+wu,wu,kai 五五开 1
+wu,wu,pin 物物品 1
+wu,xian 无线 3
+wu,xian 无限 4
+wu,xian,lu,you,qi 无限路由器 1
+wu,xiao 无效 1
+wu,xu 无需 1
+wu,yong 无用 2
+wu,zhe,dang 无遮挡 1
+xi,fen 细分 1
+xi,huan 喜欢 1
+xi,mie 熄灭 1
+xi,que 稀缺 1
+xi,tong 系统 17
+xi,tong,li 系统里 1
+xi,tong,xing 系统性 1
+xi,wang 希望 5
+xi,zhi 细致 1
+xia,ci 下次 3
+xia,dan 下单 1
+xia,dao 下到 1
+xia,de 下的 4
+xia,la 下拉 1
+xia,lai 下来 6
+xia,mian 下面 2
+xia,qu 下去 1
+xia,shu 下属 1
+xia,xian,zai 下现在 1
+xia,yi,bu 下一步 2
+xia,yi,ci 下一次 1
+xia,yi,ge 下一个 1
+xia,zai 下载 16
+xia,zai,de 下载的 1
+xian,ba 先把 4
+xian,bie 先别 2
+xian,bu 先不 1
+xian,cheng 现成 4
+xian,cheng 线程 1
+xian,cheng,shu 线程数 1
+xian,cun 显存 9
+xian,hou 先后 1
+xian,jin 先进 1
+xian,ka 显卡 23
+xian,kan,kan 先看看 2
+xian,qian 先前 1
+xian,quan 线圈 1
+xian,shi 显示 23
+xian,shi 现实 4
+xian,shi,de 显示的 2
+xian,shi,qi 显示器 2
+xian,shi,shi 先试试 2
+xian,tian,jia 先添加 1
+xian,xian,ding 先限定 1
+xian,yu 先于 1
+xian,zai 现在 127
+xian,zai,cha,kan 现在查看 1
+xian,zai,kan,kan 现在看看 1
+xian,zai,shi 现在是 4
+xian,zai,sui,ran 现在虽然 1
+xian,zai,you 现在有 1
+xian,zhe,yang 先这样 1
+xian,zhi 限制 9
+xian,zhuang 现状 1
+xian,zuo 先做 2
+xiang,bi 相比 1
+xiang,bu 想不 1
+xiang,bu,chu,lai 想不出来 1
+xiang,dang 相当 1
+xiang,dang,yu 相当于 4
+xiang,dao 想到 2
+xiang,de 想的 1
+xiang,dui 相对 1
+xiang,dui,lai,shuo 相对来说 1
+xiang,fa 想法 4
+xiang,ge 想个 1
+xiang,guan 相关 15
+xiang,guan,xin,xi 相关信息 1
+xiang,hu 相互 1
+xiang,le 响了 1
+xiang,le,xiang 想了想 1
+xiang,mu 项目 37
+xiang,mu,yi,dian,dian 项目一点点 1
+xiang,qi 响起 1
+xiang,shi 像是 2
+xiang,si 相似 1
+xiang,si,du 相似度 2
+xiang,tong 相同 10
+xiang,tong,de 相同的 1
+xiang,wen 想问 1
+xiang,xi 详细 6
+xiang,xiang 想像 1
+xiang,xiang 想想 6
+xiang,xiang,ni 想像你 1
+xiang,xin 相信 1
+xiang,yao 想要 3
+xiang,yi,sheng 响一声 2
+xiao,chu 消除 1
+xiao,fan,wei 小范围 1
+xiao,gai,lv 小概率 1
+xiao,guo 效果 13
+xiao,jiang,shi 小僵尸 1
+xiao,shi 小时 1
+xiao,xi 消息 25
+xiao,xiao 小小 1
+xiao,xie 小写 1
+xiao,ying 效应 4
+xiao,zhong 小众 2
+xie,bu,chu,lai 写不出来 3
+xie,cheng 写成 3
+xie,cheng,xie 写成写 1
+xie,chu 写出 1
+xie,chu,lai 写出来 4
+xie,cuo,le 写错了 1
+xie,dao 写到 4
+xie,de 写的 3
+xie,fa 写法 2
+xie,ge 写个 2
+xie,jin 写进 2
+xie,jin,qu 写进去 2
+xie,le 写了 9
+xie,le 卸了 3
+xie,ru 写入 25
+xie,si 写死 1
+xie,yi 协议 1
+xie,yi,ci 写一次 1
+xie,yi,fen 写一份 2
+xie,yi,ge 写一个 2
+xie,yi,ge 写一个 6
+xie,yi,xia 写一下 2
+xie,zai 写在 2
+xie,zai 卸载 2
+xie,zhe,zhong 写这种 1
+xie,zuo 协作 1
+xin,chuang,jian 新创建 1
+xin,dao 信道 7
+xin,de 新的 9
+xin,dong,xi 新东西 1
+xin,dui,hua 新对话 13
+xin,hao 信号 29
+xin,jia 新加 1
+xin,jian 新建 8
+xin,kai 新开 1
+xin,li 心理 1
+xin,mu,lu 新目录 1
+xin,sheng,cheng 新生成 1
+xin,si 心思 1
+xin,wen,jian 新文件 2
+xin,xi 信息 27
+xin,xin,hao 新信号 1
+xin,xin,hao 新信号 1
+xin,xin,xi 新信息 1
+xin,zeng 新增 3
+xing,jia,bi 性价比 1
+xing,le 行了 3
+xing,le,ba 行了吧 1
+xing,ma 行吗 3
+xing,neng 性能 7
+xing,neng,di 性能低 1
+xing,wei 行为 1
+xiu,fu 修复 5
+xiu,gai 修改 24
+xiu,gai,le,shen,me 修改了什么 1
+xiu,gai,ri,qi 修改日期 1
+xiu,hao 修好 1
+xiu,mian 休眠 1
+xiu,xiu,fu 修修复 1
+xiu,yi,xiu 修一修 1
+xu,hao 序号 1
+xu,ni 虚拟 9
+xu,ni,jian,cha 续你检查 1
+xu,ni,wang,ka 虚拟网卡 1
+xu,ni,zu,wang 虚拟组网 1
+xu,qiu 需求 2
+xu,yao 需要 21
+xuan,ding 选定 1
+xuan,fu 悬浮 1
+xuan,ran 渲染 4
+xuan,ze 选择 5
+xuan,ze,wei 选择为 1
+xue,dao 学到 2
+xue,dao,de 学到的 1
+xue,guo 学过 1
+xue,hua 雪花 6
+xue,hui 学会 2
+xue,shen,me 学什么 1
+xue,xi 学习 7
+xun,huan 循环 4
+xun,qiu 寻求 1
+xun,wen 询问 1
+xun,zhao 寻找 1
+ya,dao 压到 1
+ya,li 压力 1
+ya,suo 压缩 18
+yan,chi 延迟 7
+yan,ge 严格 2
+yan,jiu 研究 1
+yan,ke 严苛 1
+yan,se 颜色 3
+yan,shi 延时 2
+yan,shou 验收 4
+yan,yan,chi 验延迟 1
+yan,zheng 验证 8
+yan,zheng,guo 验证过 1
+yan,zhong 严重 1
+yang,de 样的 1
+yang,sheng,qi 扬声器 2
+yang,shi 样式 3
+yang,zi 样子 3
+yao,bi 要比 1
+yao,biao,shi 要表示 1
+yao,bu 要不 5
+yao,bu,yao 要不要 1
+yao,cun 要存 1
+yao,dai 要带 1
+yao,dao 要到 1
+yao,de 要的 4
+yao,duo,shao 要多少 1
+yao,fang 要放 1
+yao,gan,shen,me 要干什么 1
+yao,hao 要好 1
+yao,jian,ting 要监听 1
+yao,jiang 要讲 1
+yao,kan,kan 要看看 1
+yao,kong 遥控 1
+yao,me 要么 2
+yao,neng 要能 1
+yao,ni 要你 5
+yao,ni,men 要你们 1
+yao,qiu 要求 10
+yao,rang 要让 2
+yao,shi 要是 17
+yao,shi 钥匙 1
+yao,shi,yong 要使用 1
+yao,ti,sheng 要提升 1
+yao,wen 要问 1
+yao,wo 要我 4
+yao,xia,zai 要下载 1
+yao,xian 要先 1
+yao,xiang 要想 2
+yao,xie 要写 2
+yao,yao 要要 1
+yao,yong 要用 2
+yao,you 要有 1
+yao,zai 要在 2
+yao,zen,me 要怎么 14
+yao,zen,me,zuo 要怎么做 1
+yao,zuo 要做 2
+ye,ba 也把 1
+ye,bie 也别 2
+ye,bu,dui 也不对 1
+ye,bu,hao 也不好 1
+ye,bu,hui 也不会 5
+ye,bu,huo 也捕获 1
+ye,bu,pa 也不怕 1
+ye,bu,shi 也不是 3
+ye,bu,tai 也不太 1
+ye,bu,xiang 也不想 1
+ye,bu,xing 也不行 1
+ye,bu,zhi,dao 也不知道 4
+ye,dou,shi 也都是 1
+ye,fang 也放 1
+ye,gei 也给 1
+ye,hao 也好 20
+ye,hen 也很 1
+ye,hui 也会 12
+ye,jia,jin,qu 也加进去 1
+ye,jia,ru 也加入 1
+ye,jiu 也就 4
+ye,jiu,hui 也就会 1
+ye,jiu,shi 也就是 39
+ye,jiu,shi,shuo 也就是说 4
+ye,jiu,suan,le 也就算了 1
+ye,ke,yi 也可以 5
+ye,lai 也来 1
+ye,mei 也没 6
+ye,mei,ban,fa 也没办法 1
+ye,mei,you 也没有 1
+ye,mian 页面 2
+ye,neng 也能 1
+ye,shi 也是 6
+ye,shi,wo 也是我 1
+ye,shuo 也说 1
+ye,suan 也算 1
+ye,wu,luo,ji 业务逻辑 1
+ye,xing 也行 2
+ye,xu 也许 1
+ye,yao 也要 7
+ye,yong 也用 1
+ye,you 也有 4
+ye,zhi 也只 2
+ye,zhi,hui 也只会 1
+yi,ban 一般 13
+yi,ban,dou,shi 一般都是 1
+yi,ban,shi 一般是 2
+yi,bian 一边 1
+yi,bian 一遍 7
+yi,bian 以便 1
+yi,bu 异步 2
+yi,ceng 一层 2
+yi,cha 一查 1
+yi,chang,duan 一长段 1
+yi,chu 移除 1
+yi,ci 一次 25
+yi,ci,xing 一次性 1
+yi,da,dui 一大堆 8
+yi,dan 一旦 2
+yi,dian 一点 21
+yi,dian 疑点 1
+yi,dian,dian 一点点 1
+yi,ding 一定 9
+yi,ding,dian 一丁点 2
+yi,ding,yao 一定要 3
+yi,dong 移动 1
+yi,duan 一段 2
+yi,duan 一端 2
+yi,dui,yi 一对一 1
+yi,fu 一幅 1
+yi,ge 一个 161
+yi,ge,ji,qi 一个机器 1
+yi,ge,pan 一个盘 1
+yi,ge,shi 一个是 2
+yi,ge,zi 一个字 1
+yi,gen 一根 3
+yi,gen,xian 一根线 2
+yi,gong 一共 1
+yi,hang 一行 5
+yi,he 一盒 1
+yi,hou 以后 1
+yi,hui 一会 2
+yi,hui,er 一会儿 2
+yi,ji 一级 1
+yi,ji 以及 17
+yi,jia,zai 已加载 1
+yi,jie 一节 3
+yi,jing 已经 15
+yi,jing,you 已经有 1
+yi,ju 一句 3
+yi,ju 依据 2
+yi,kai,shi 一开始 3
+yi,lai 依赖 9
+yi,lei 一类 1
+yi,mao,yi,yang 一毛一样 1
+yi,mian 以免 1
+yi,miao 一秒 1
+yi,mo 一模 1
+yi,pian 一片 1
+yi,qi 一起 4
+yi,qie 一切 1
+yi,shang 以上 1
+yi,sheng 一声 2
+yi,si 意思 23
+yi,si 疑似 2
+yi,si,jiu,shi 意思就是 4
+yi,si,shi 意思是 9
+yi,sou 一艘 1
+yi,ta,hu,tu 一塌糊涂 1
+yi,tai 一台 5
+yi,tiao 一条 2
+yi,wan,cheng 已完成 1
+yi,wei 以为 4
+yi,wei,zhe 意味着 1
+yi,wen 疑问 6
+yi,wen,dian 疑问点 1
+yi,wu,suo,zhi 一无所知 1
+yi,xia 一下 68
+yi,xia 以下 4
+yi,xiang 一想 1
+yi,xie 一些 3
+yi,yang 一样 32
+yi,yang,de 一样的 2
+yi,yi,bian 一一边 1
+yi,yi,hou 一以后 1
+yi,yi,xia 一一下 1
+yi,you 已有 1
+yi,zhang 一张 1
+yi,zhen 一阵 1
+yi,zhi 一直 19
+yi,zhi 一致 1
+yi,zhi,yu 以至于 1
+yi,zhi,zai 一直在 1
+yi,zhong 一种 1
+yi,zi,yi,zi 一字一字 1
+yin,dao 引导 1
+yin,diao 音调 10
+yin,hao 引号 1
+yin,jiao 引脚 15
+yin,liang 音量 1
+yin,ni 隐匿 1
+yin,pin 音频 12
+yin,qing 引擎 4
+yin,ru 引入 1
+yin,shang 印上 1
+yin,wei 因为 30
+yin,wei,shi 因为是 2
+yin,xiang 印象 1
+yin,xiang 音响 1
+yin,yin,pin 音音频 1
+yin,yin,ru 音引入 1
+yin,yue 音乐 1
+yin,zhi 音质 2
+ying,deng 硬等 1
+ying,gai 应该 26
+ying,gai,shi 应该是 4
+ying,guang 荧光 1
+ying,jian 硬件 1
+ying,pan 硬盘 32
+ying,pan,wen,jian 硬盘文件 1
+ying,she 映射 12
+ying,she,biao 映射表 1
+ying,wen 英文 13
+ying,xiang 影响 4
+ying,xing 硬性 1
+ying,yong 应用 5
+ying,yong,ruan,jian 应用软件 1
+yo,yong 哟用 1
+yong,bu 永不 1
+yong,bu,liao 用不了 2
+yong,bu,zhao 用不着 1
+yong,chang 用场 1
+yong,chu 用处 1
+yong,dao 用到 4
+yong,de 用的 10
+yong,de,yong,de,zhao 用的用得着 1
+yong,fa 用法 2
+yong,guo 用过 1
+yong,hu 用户 65
+yong,hu,de 用户的 2
+yong,jiu 永久 1
+yong,le 用了 4
+yong,shang 用上 1
+yong,tu 用途 1
+yong,yi,ge 用一个 1
+yong,yong,yuan 用永远 1
+yong,you 拥有 1
+yong,yu 用于 2
+yong,zhe,ge 用这个 3
+you,ban,fa 有办法 1
+you,bi,ru 有比如 1
+you,bi,yao 有必要 1
+you,bian 右边 1
+you,bu,shi 又不是 1
+you,de 有的 1
+you,dian 有点 10
+you,dian,xiang 有点像 1
+you,dian,xiao 有点小 1
+you,duo,da 有多大 1
+you,fang,huo,qiang 有防火墙 1
+you,ge 有个 12
+you,guan 有关 1
+you,guo 有过 1
+you,hen,duo,ge 有很多个 1
+you,hua 优化 5
+you,ke,neng 有可能 4
+you,le 有了 5
+you,ma 有吗 1
+you,mei,you 有没有 73
+you,mei,you,ban,fa 有没有办法 2
+you,mei,you,shen,me 有没有什么 1
+you,mei,you,yong 有没有用 2
+you,na,xie 有哪些 7
+you,que,dian 优缺点 1
+you,ren 有人 9
+you,sha 有啥 2
+you,shen,me 有什么 15
+you,shen,me,qu,bie 有什么区别 1
+you,shi 又是 10
+you,shi 有时 4
+you,shi,hou 有时候 1
+you,shi,shen,me 又是什么 1
+you,shuo 有说 1
+you,wen,ti 有问题 3
+you,xi 游戏 7
+you,xia,jiao 右下角 3
+you,xian 优先 7
+you,xian,ji 优先级 1
+you,xian,wang,luo 有线网络 1
+you,xiang 邮箱 1
+you,xiao 有效 1
+you,xie 有些 3
+you,xiu 优秀 1
+you,yan,chi 有延迟 1
+you,yao 又要 13
+you,yi,ge 有一个 8
+you,yi,xie 有一些 1
+you,yong 有用 4
+you,yong,de 有用的 1
+you,yu 由于 2
+you,zhong 有种 1
+yu,ce 预测 2
+yu,chu,li 预处理 2
+yu,dao 遇到 5
+yu,fa 语法 4
+yu,ju 语句 5
+yu,ming 域名 6
+yu,qi 与其 1
+yu,xian 预先 2
+yu,xuan,kuang 预选框 1
+yu,yan 语言 20
+yu,yan,bao 语言包 1
+yu,yan,lan 语言栏 2
+yu,yi 语义 3
+yu,yin 语音 9
+yuan,ben 原本 3
+yuan,ben,you 原本有 1
+yuan,chang 原厂 1
+yuan,chao 远超 1
+yuan,cheng 远程 8
+yuan,dai,ma 源代码 5
+yuan,dai,ma 源代码 12
+yuan,dian 原点 1
+yuan,jian 元件 1
+yuan,ju,li 远距离 1
+yuan,kan 源看 1
+yuan,lai 原来 3
+yuan,lai,yong,de 原来用的 1
+yuan,li 原理 4
+yuan,ma 源码 3
+yuan,sheng 原生 6
+yuan,shi 原始 2
+yuan,su 元素 3
+yuan,tou 源头 1
+yuan,wen,jian 源文件 2
+yuan,xian 原先 2
+yuan,xian,de 原先的 2
+yuan,xing 原型 1
+yuan,yin 原因 2
+yuan,yuan,cheng 源远程 1
+yuan,yuan,su 原元素 1
+yuan,yuan,su 源元素 1
+yuan,yuan,yang 源原样 1
+yuan,yuan,yi 原愿意 1
+yuan,yuan,yuan,su 源源元素 1
+yuan,zai 远在 1
+yuan,ze 原则 3
+yuan,zhu 援助 1
+yuan,zuo,zhe 源作者 1
+yue,cha 越差 1
+yue,cun 越存 1
+yue,duo 越多 3
+yue,gao 越高 1
+yue,kuai 越快 1
+yun,duan 云端 4
+yun,fu,wu 云服务 1
+yun,ma 匀码 6
+yun,suan 运算 3
+yun,xing 运行 25
+yun,xing,le 运行了 1
+yun,xing,zhong 运行中 1
+yun,xu 允许 5
+yun,ying 运营 2
+yun,ying,shang 运营商 2
+za,ban 咋办 2
+za,cai 咋才 1
+za,hai 咋还 1
+za,qi,za,ba 杂七杂八 1
+za,zheng 咋整 1
+zai,bang,wo 再帮我 1
+zai,ci 再次 1
+zai,ci 在此 1
+zai,he 载荷 9
+zai,kan,kan 再看看 9
+zai,lai 再来 1
+zai,le 在了 1
+zai,li,mian 在里面 1
+zai,na 在哪 11
+zai,qu 再去 1
+zai,shi,shi 再试试 3
+zai,shua 再刷 1
+zai,shuo 再说 3
+zai,wen 再问 1
+zai,wo,men 在我们 1
+zai,xie 再写 2
+zai,yi,ge 在一个 1
+zai,zen,me 在怎么 1
+zai,zen,me,yang 在怎么样 1
+zai,zhe 在这 2
+zai,zhe,ge 在这个 2
+zai,zuo 再做 1
+zan,shi 暂时 3
+zao,jiu 早就 2
+zao,sheng 噪声 4
+zao,zao,yin 早噪音 1
+ze,shi 则是 3
+ze,zen,me 则怎么 1
+ze,zen,me 则怎么 1
+zei,cha 贼差 1
+zen,me 怎么 198
+zen,me,ban 怎么办 7
+zen,me,cong 怎么从 1
+zen,me,hui,shi 怎么回事 8
+zen,me,jie 怎么接 1
+zen,me,jiu 怎么就 1
+zen,me,kan 怎么看 2
+zen,me,ke,neng 怎么可能 2
+zen,me,nong 怎么弄 3
+zen,me,shan,chu 怎么删除 1
+zen,me,shi 怎么试 1
+zen,me,shi,xian 怎么实现 1
+zen,me,shi,yong 怎么使用 1
+zen,me,shuo 怎么说 2
+zen,me,xie 怎么写 1
+zen,me,yang 怎么样 4
+zen,me,yong 怎么用 3
+zen,me,zuo 怎么做 2
+zen,yang 怎样 3
+zen,zen,me 怎怎么 1
+zeng,fu 增幅 1
+zeng,jia 增加 1
+zeng,liang 增量 1
+zeng,qiang 增强 2
+zeng,shan,zeng,shan,gai,cha 增山增删改查 1
+zha,le 炸了 1
+zhan,de 占的 1
+zhan,kai 展开 3
+zhan,le 占了 3
+zhan,man 占满 1
+zhan,shen,me 站什么 1
+zhan,shi 展示 1
+zhan,yong 占用 9
+zhan,yong,lv 占用率 1
+zhang,ai 障碍 1
+zhang,hao 账号 2
+zhang,jie 章节 2
+zhao,bu,dao 找不到 3
+zhao,dao 找到 6
+zhao,dao 找到 7
+zhao,de,dao 找得到 1
+zhao,dong,xi 找东西 1
+zhao,dou,dao 找都到 1
+zhao,ge 找个 2
+zhao,hu 招呼 1
+zhao,ji 着急 2
+zhao,yi,ge 找一个 2
+zhao,zhao 找找 4
+zhao,zhe 照着 1
+zhe,bian 这边 3
+zhe,bu 这不 2
+zhe,bu,shi 这不是 1
+zhe,ci 这次 7
+zhe,duan,shi,jian 这段时间 1
+zhe,dui,wo 这对我 1
+zhe,fang,mian 这方面 2
+zhe,fen 这份 1
+zhe,ge 这个 143
+zhe,ge,shi 这个是 1
+zhe,ge,shi,hou 这个时候 1
+zhe,hai,zhi,shi 这还只是 1
+zhe,he 这和 1
+zhe,ji,ge 这几个 1
+zhe,jie,ke 这节课 8
+zhe,kan,shang,qu 这看上去 1
+zhe,lei 这类 1
+zhe,li 这里 19
+zhe,li,de 这里的 3
+zhe,li,mian 这里面 3
+zhe,li,shuo,de 这里说的 1
+zhe,lia 这俩 2
+zhe,liang,ge 这两个 4
+zhe,me 这么 23
+zhe,me,da 这么大 1
+zhe,me,duo 这么多 2
+zhe,me,jiu 这么久 1
+zhe,me,man 这么慢 1
+zhe,me,shao 这么少 1
+zhe,me,shuo 这么说 1
+zhe,neng 这能 1
+zhe,qi,jian 这期间 1
+zhe,san,ge 这三个 2
+zhe,shi 这是 10
+zhe,shi,ge 这是个 2
+zhe,shi,miao 这十秒 1
+zhe,shi,xin,dui,hua 这是新对话 1
+zhe,tai 这台 2
+zhe,tai,dian,nao 这台电脑 1
+zhe,teng 折腾 1
+zhe,wan,yi,er 这玩意儿 3
+zhe,wo 这我 1
+zhe,xie 这些 1
+zhe,xie 这些 24
+zhe,xie,gong,ju 这些工具 1
+zhe,yang 这样 53
+zhe,yang,de 这样的 4
+zhe,yi,dian 这一点 1
+zhe,yi,ge 这一个 2
+zhe,yi,kuai 这一块 1
+zhe,za,ban 这咋办 1
+zhe,zhang 这张 2
+zhe,zhe,zhong 这这种 1
+zhe,zhong 这中 1
+zhe,zhong 这种 24
+zhe,zhong,cheng,du 这种程度 1
+zhe,zhong,shi 这种事 1
+zhen,de 真的 16
+zhen,de,shi 真的是 1
+zhen,dui 针对 3
+zhen,huan,chong 帧缓冲 1
+zhen,mei 真没 1
+zhen,mei,you 真没有 1
+zhen,shi 真实 2
+zhen,xiang 真想 1
+zhen,zhe,me 真这么 1
+zhen,zheng 真正 6
+zhen,zheng,de 真正的 3
+zheng,chang 正常 34
+zheng,fu 正负 1
+zheng,ge 整个 2
+zheng,gui 正规 1
+zheng,ji 整机 1
+zheng,ji 正极 2
+zheng,li 整理 1
+zheng,liu 整流 1
+zheng,que 正确 5
+zheng,que,de 正确的 2
+zheng,ru 正如 1
+zheng,shu 证书 3
+zheng,tao 整套 1
+zheng,ti 整体 1
+zheng,xian,bo 正弦波 3
+zheng,zai 正在 1
+zheng,zheng,shu 整证书 1
+zheng,zheng,zai 整正在 1
+zhi,bu,guo 只不过 1
+zhi,bu,zhi,chi 支不支持 2
+zhi,chi 支持 43
+zhi,cun 只存 1
+zhi,dao 直到 2
+zhi,dao 知道 46
+zhi,ding 指定 5
+zhi,fang,zai 只放在 1
+zhi,fei,fa 之非法 1
+zhi,fen 之分 1
+zhi,hou 之后 5
+zhi,hui 只会 7
+zhi,jian 之间 7
+zhi,jie 直接 69
+zhi,jie,ba 直接把 1
+zhi,jie,cong 直接从 1
+zhi,jie,pao 直接跑 1
+zhi,jie,sou 直接搜 1
+zhi,jie,yong 直接用 1
+zhi,kan 只看 5
+zhi,kan,de,jian 只看得见 1
+zhi,ke,yi 只可以 1
+zhi,lei 之类 1
+zhi,lei,de 之类的 1
+zhi,lian 直连 1
+zhi,liang 质量 1
+zhi,ling 指令 4
+zhi,liu 只留 2
+zhi,liu 直流 1
+zhi,ming 致命 1
+zhi,neng 只能 18
+zhi,neng 智能 16
+zhi,qian 之前 23
+zhi,qian,de 之前的 7
+zhi,qian,shuo 之前说 1
+zhi,qu 只取 1
+zhi,shao 至少 11
+zhi,shi 只是 4
+zhi,shi 指示 2
+zhi,shi 知识 11
+zhi,shi,deng 指示灯 1
+zhi,shi,dian 知识点 1
+zhi,shi,he 只适合 2
+zhi,shi,ku 知识库 1
+zhi,shi,wo 只是我 1
+zhi,sun 止损 1
+zhi,wei 只为 1
+zhi,xian 直线 2
+zhi,xiang 只想 2
+zhi,xing 执行 8
+zhi,xing,hou 执行后 1
+zhi,xiu,gai 只修改 1
+zhi,xu,yao 只需要 3
+zhi,yao 只要 5
+zhi,yong 只用 1
+zhi,you 只有 40
+zhi,you,yi,ge 只有一个 1
+zhi,yu 至于 6
+zhi,yun,xu 只允许 1
+zhi,zai 只在 1
+zhi,zhen 指针 5
+zhi,zhi,hou 只之后 1
+zhi,zhi,neng 只只能 1
+zhi,zhi,qian 只之前 1
+zhi,zhi,zhen 指指针 1
+zhi,zuo 制作 1
+zhi,zuo 只做 2
+zhong,dian 终点 1
+zhong,duan 中断 5
+zhong,duan 终端 7
+zhong,guo 中国 3
+zhong,ji 中继 1
+zhong,jian 中间 3
+zhong,jie 中介 1
+zhong,wen 中文 34
+zhong,wen,ban 中文版 1
+zhong,yao 重要 7
+zhong,yao,de,shi 重要的是 1
+zhong,zhuan,zhan 中转站 1
+zhu,ban 主板 3
+zhu,ce 注册 11
+zhu,ce,biao 注册表 4
+zhu,chu 住处 1
+zhu,dong 主动 1
+zhu,duo 诸多 1
+zhu,han,shu 主函数 1
+zhu,ji 主机 3
+zhu,ji,ming 主机名 6
+zhu,ji,ti 驻极体 1
+zhu,jian 逐渐 1
+zhu,long,yu 猪龙鱼 6
+zhu,ru 注入 2
+zhu,shi 注释 15
+zhu,shi,diao 注释掉 1
+zhu,xian 主线 4
+zhu,xiao 注销 1
+zhu,yao 主要 3
+zhu,yao,shi 主要是 1
+zhu,yi 注意 1
+zhu,yi 逐一 1
+zhu,yi,shi,xiang 注意事项 1
+zhu,zhu 主主 1
+zhu,zhu,shi 注注释 1
+zhua,bao 抓包 6
+zhua,dao 抓到 1
+zhua,qu 抓取 1
+zhuan,bian 转变 1
+zhuan,cheng 转成 1
+zhuan,fa 转发 11
+zhuan,gei 转给 1
+zhuan,huan 转换 2
+zhuan,jia 专家 1
+zhuan,jie 转接 1
+zhuan,lan 专栏 1
+zhuan,ma 转码 1
+zhuan,men 专门 5
+zhuan,su 转速 11
+zhuan,wei 转为 1
+zhuan,xiang 转向 1
+zhuan,yi 转译 2
+zhuan,yin 转印 1
+zhuan,zhu 专注 3
+zhuang,hao,le 装好了 1
+zhuang,shang 装上 2
+zhuang,tai 状态 18
+zhuang,zai 装在 1
+zhun,bei 准备 2
+zhun,que 准确 6
+zhun,que,xing 准确性 1
+zhuo,mian 桌面 1
+zi,ban 子板 2
+zi,dai 自带 3
+zi,ding,yi 自定义 6
+zi,dong 自动 13
+zi,dong,lian,jie 自动连接 1
+zi,dong,qi,dong 自动启动 1
+zi,fu 字符 11
+zi,fu,chuan 字符串 9
+zi,fu,chuan 字符串 16
+zi,ji 子机 35
+zi,ji 子集 1
+zi,ji 自己 35
+zi,ji,de 自己的 1
+zi,ji,kan,kan 自己看看 3
+zi,ji,kan,kan,ba 自己看看吧 1
+zi,ji,qu 自己去 1
+zi,ji,zhao 自己找 1
+zi,jian 自建 3
+zi,jie 字节 4
+zi,jie,shu 子节数 1
+zi,liao 资料 1
+zi,mu 子母 6
+zi,mu 字母 6
+zi,mu,ji 子母机 1
+zi,pen,qi 自喷漆 1
+zi,shen 自身 1
+zi,wang 子网 1
+zi,wen,jian,jia 子文件夹 3
+zi,wo 自我 1
+zi,wo,jie,shao 自我介绍 1
+zi,xi 仔细 1
+zi,xun 咨询 2
+zi,you 自由 5
+zi,yuan 资源 2
+zi,zhi 自制 1
+zi,zi,ran 子自然 1
+zi,zi,sheng 滋滋声 1
+zong,fa 总发 1
+zong,hui 总会 1
+zong,jie 总结 6
+zong,you 总有 4
+zong,zhi 总之 3
+zou,de 走的 1
+zou,xian 走线 1
+zu,ai 阻碍 1
+zu,cheng 组成 1
+zu,gou 足够 2
+zu,gou,kuai 足够快 1
+zu,se 阻塞 15
+zu,wang 组网 5
+zu,zu,se 阻阻塞 1
+zu,zu,zhi 组阻止 1
+zui,chu 最初 1
+zui,da 最大 5
+zui,duo 最多 3
+zui,fang,bian 最方便 1
+zui,gao 最高 3
+zui,hao 最好 12
+zui,hao,yong 最好用 1
+zui,hou 最后 10
+zui,hou,chu 最后出 1
+zui,hou,de 最后的 1
+zui,hou,yi,ci 最后一次 1
+zui,hou,yi,ge 最后一个 1
+zui,ji,ben,de 最基本的 1
+zui,ma,fan 最麻烦 1
+zui,man 最满 1
+zui,nan 最难 2
+zui,nan,de 最难的 1
+zui,shao 最少 1
+zui,shu,xi 最熟悉 1
+zui,xiao 最小 3
+zui,xiao,hua 最小化 1
+zui,xin 最新 7
+zui,xin,ban 最新版 1
+zui,xin,de 最新的 1
+zui,xin,fen,zhi 最新分支 1
+zui,zao 最早 2
+zui,zhong 最终 4
+zui,zhong,jian 最中间 1
+zun,xun 遵循 1
+zuo,bian 左边 1
+zuo,bu,dao 做不到 1
+zuo,chu,lai 做出来 1
+zuo,dao 做到 15
+zuo,de 做的 10
+zuo,ge 做个 3
+zuo,gen 做根 1
+zuo,guo 做过 5
+zuo,le 做了 6
+zuo,le,gai,yi,gai 做了改一改 1
+zuo,le,shen,me 做了什么 1
+zuo,qi 做起 2
+zuo,wei 作为 3
+zuo,wei 做为 8
+zuo,yi,ci 做一次 1
+zuo,yi,ge 做一个 5
+zuo,yong 作用 9
+zuo,yong,yu 作用域 1
+zuo,you 左右 5
+zuo,zai 做在 1
+zuo,zhe 作者 2
+zuo,zhe,yang,de 做这样的 1
+zuo,zuo 做做 1

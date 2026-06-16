@@ -2,6 +2,7 @@
 #include "proto_core.h"
 #include "proto_engine.h"
 #include "proto_ui.h"
+#include "../pinyin_file_io.h"
 
 bool ProtoIME::Initialize(HINSTANCE h) {
     ProtoIME::Engine::Init();
@@ -10,7 +11,6 @@ bool ProtoIME::Initialize(HINSTANCE h) {
 
 void ProtoIME::Shutdown() {
     ProtoIME::UI::Shutdown();
-    ProtoIME::Engine::Init();  // reset
 }
 
 void ProtoIME::SetActive(bool a) {
@@ -24,16 +24,13 @@ void ProtoIME::SetActive(bool a) {
 
 bool ProtoIME::IsActive() { return ProtoIME::Engine::IsActive(); }
 
-void ProtoIME::SetFocused(bool focused) {
-    if (focused) {
-        // Re-activate engine if it was shut down by a previous unfocus
+void ProtoIME::SetFocused(bool f) {
+    if (f) {
         if (!ProtoIME::Engine::IsActive())
             ProtoIME::Engine::SetActive(true);
         ProtoIME::UI::ShowSettings(true);
     } else {
         ProtoIME::UI::ShowSettings(false);
-        // When settings bar disappears, the "program" has closed.
-        // Clear engine state and hide related windows.
         ProtoIME::Engine::SetActive(false);
         ProtoIME::UI::Show(false);
         ProtoIME::UI::ShowCand(false);
@@ -55,75 +52,46 @@ bool ProtoIME::OnKeyUp(UINT vk) { (void)vk; return false; }
 
 const std::wstring& ProtoIME::GetCompositionString() { return ProtoIME::Engine::CompStr(); }
 
-bool ProtoIME::LoadSkinFromFile(const wchar_t* path, ProtoIME::NinePatchSkin& skin,
-                                 int mL, int mT, int mR, int mB) {
-    ProtoIME::UI::NinePatchSkin uiSkin;
-    if (!ProtoIME::UI::LoadSkin(path, uiSkin, mL, mT, mR, mB)) return false;
-    skin.hBmp = uiSkin.hBmp;
-    skin.srcW = uiSkin.srcW;
-    skin.srcH = uiSkin.srcH;
-    skin.marginL = uiSkin.marginL;
-    skin.marginT = uiSkin.marginT;
-    skin.marginR = uiSkin.marginR;
-    skin.marginB = uiSkin.marginB;
+size_t      ProtoIME::GetCandidateCount()     { return ProtoIME::Engine::GetCandidateCount(); }
+std::wstring ProtoIME::GetCandidateText(size_t i) { return ProtoIME::Engine::GetCandidateText(i); }
+size_t      ProtoIME::GetCandidatePage()      { return ProtoIME::Engine::GetCandidatePage(); }
+size_t      ProtoIME::GetTotalPages()         { return ProtoIME::Engine::GetTotalPages(); }
+
+void ProtoIME::SetDataDir(const wchar_t* dir) {
+    int n = WideCharToMultiByte(CP_UTF8, 0, dir, -1, nullptr, 0, nullptr, nullptr);
+    if (n <= 0) return;
+    std::string s((size_t)(n - 1), '\0');
+    WideCharToMultiByte(CP_UTF8, 0, dir, -1, &s[0], n, nullptr, nullptr);
+    set_pinyin_data_dir(s);
+}
+
+// --- Skin wrappers ---
+bool ProtoIME::LoadSkinFromFile(const wchar_t* path, NinePatchSkin& sk, int mL, int mT, int mR, int mB) {
+    ProtoIME::UI::NinePatchSkin ui;
+    if (!ProtoIME::UI::LoadSkin(path, ui, mL, mT, mR, mB)) return false;
+    sk.hBmp = ui.hBmp; sk.srcW = ui.srcW; sk.srcH = ui.srcH;
+    sk.marginL = ui.marginL; sk.marginT = ui.marginT;
+    sk.marginR = ui.marginR; sk.marginB = ui.marginB;
     return true;
 }
 
-void ProtoIME::FreeSkin(ProtoIME::NinePatchSkin& skin) {
-    ProtoIME::UI::NinePatchSkin uiSkin;
-    uiSkin.hBmp = skin.hBmp;
-    ProtoIME::UI::FreeSkin(uiSkin);
-    skin.hBmp = nullptr;
+void ProtoIME::FreeSkin(NinePatchSkin& sk) {
+    ProtoIME::UI::NinePatchSkin ui; ui.hBmp = sk.hBmp;
+    ProtoIME::UI::FreeSkin(ui); sk.hBmp = nullptr;
 }
 
-void ProtoIME::SetSkin(const ProtoIME::NinePatchSkin* skin) {
-    if (skin) {
-        static ProtoIME::UI::NinePatchSkin uiSkin;
-        uiSkin.hBmp = skin->hBmp;
-        uiSkin.srcW = skin->srcW;
-        uiSkin.srcH = skin->srcH;
-        uiSkin.marginL = skin->marginL;
-        uiSkin.marginT = skin->marginT;
-        uiSkin.marginR = skin->marginR;
-        uiSkin.marginB = skin->marginB;
-        ProtoIME::UI::SetSkin(&uiSkin);
-    } else {
-        ProtoIME::UI::SetSkin(nullptr);
-    }
+#define WRAP_SKIN(Fn, UiFn) \
+void ProtoIME::Fn(const NinePatchSkin* sk) { \
+    if (sk) { static ProtoIME::UI::NinePatchSkin ui; \
+        ui.hBmp=sk->hBmp; ui.srcW=sk->srcW; ui.srcH=sk->srcH; \
+        ui.marginL=sk->marginL; ui.marginT=sk->marginT; \
+        ui.marginR=sk->marginR; ui.marginB=sk->marginB; \
+        ProtoIME::UI::UiFn(&ui); \
+    } else ProtoIME::UI::UiFn(nullptr); \
 }
 
-void ProtoIME::SetSettingsSkin(const ProtoIME::NinePatchSkin* skin) {
-    if (skin) {
-        static ProtoIME::UI::NinePatchSkin uiSkin;
-        uiSkin.hBmp = skin->hBmp;
-        uiSkin.srcW = skin->srcW;
-        uiSkin.srcH = skin->srcH;
-        uiSkin.marginL = skin->marginL;
-        uiSkin.marginT = skin->marginT;
-        uiSkin.marginR = skin->marginR;
-        uiSkin.marginB = skin->marginB;
-        ProtoIME::UI::SetSettingsSkin(&uiSkin);
-    } else {
-        ProtoIME::UI::SetSettingsSkin(nullptr);
-    }
-}
+WRAP_SKIN(SetSkin, SetSkin)
+WRAP_SKIN(SetSettingsSkin, SetSettingsSkin)
+WRAP_SKIN(SetBtnSkin, SetBtnSkin)
 
-void ProtoIME::SetBtnSkin(const ProtoIME::NinePatchSkin* skin) {
-    if (skin) {
-        static ProtoIME::UI::NinePatchSkin uiSkin;
-        uiSkin.hBmp = skin->hBmp;
-        uiSkin.srcW = skin->srcW;
-        uiSkin.srcH = skin->srcH;
-        uiSkin.marginL = skin->marginL;
-        uiSkin.marginT = skin->marginT;
-        uiSkin.marginR = skin->marginR;
-        uiSkin.marginB = skin->marginB;
-        ProtoIME::UI::SetBtnSkin(&uiSkin);
-    } else {
-        ProtoIME::UI::SetBtnSkin(nullptr);
-    }
-}
-
-bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) {
-    return ProtoIME::UI::SetBtnIcon(idx, path);
-}
+bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetBtnIcon(idx, path); }

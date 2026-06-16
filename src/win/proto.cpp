@@ -71,13 +71,17 @@ public:
     // --- ITfTextInputProcessor ---
     STDMETHODIMP Activate(ITfThreadMgr* tm, TfClientId id) override {
         m_tm = tm; m_id = id; tm->AddRef();
+
+        // Set data dir relative to DLL
+        wchar_t dllDir[MAX_PATH];
+        GetModuleFileNameW(g_hinst, dllDir, MAX_PATH);
+        *wcsrchr(dllDir, L'\\') = L'\0';
+        ProtoIME::SetDataDir((std::wstring(dllDir) + L"\\data").c_str());
+
         ProtoIME::Initialize(g_hinst);
         ProtoIME::SetActive(true);
 
         // Load 9-patch skin (shadow.png) relative to DLL
-        wchar_t dllDir[MAX_PATH];
-        GetModuleFileNameW(g_hinst, dllDir, MAX_PATH);
-        *wcsrchr(dllDir, L'\\') = L'\0';  // strip filename
         std::wstring skinPath = std::wstring(dllDir) + L"\\res\\shadow.png";
         if (ProtoIME::LoadSkinFromFile(skinPath.c_str(), g_skin, 4, 4, 4, 4)) {
             ProtoIME::SetSkin(&g_skin);
@@ -120,7 +124,22 @@ public:
         return S_OK;
     }
     STDMETHODIMP Deactivate() override {
-        if (m_tm) { m_tm->Release(); m_tm = nullptr; }
+        // Unadvise sinks before releasing thread manager
+        if (m_tm) {
+            ITfKeystrokeMgr* km = nullptr;
+            if (SUCCEEDED(m_tm->QueryInterface(IID_ITfKeystrokeMgr, (void**)&km))) {
+                km->UnadviseKeyEventSink(m_id); km->Release();
+            }
+            ITfSource* src = nullptr;
+            if (SUCCEEDED(m_tm->QueryInterface(IID_ITfSource, (void**)&src))) {
+                if (m_cookie != TF_INVALID_COOKIE) {
+                    src->UnadviseSink(m_cookie);
+                    m_cookie = TF_INVALID_COOKIE;
+                }
+                src->Release();
+            }
+            m_tm->Release(); m_tm = nullptr;
+        }
         ProtoIME::SetActive(false);
         ProtoIME::SetSkin(nullptr);
         ProtoIME::FreeSkin(g_skin);

@@ -1,28 +1,30 @@
-// proto_engine.h - Pure input engine: composition buffer + key dispatch + commit.
-// ZERO dependency on GDI, windows, or rendering. Only uses SendInput via windows.h.
+// proto_engine.h - Real pinyin engine for Windows TSF.
 #pragma once
 #include <windows.h>
 #include <string>
+#include <vector>
 
 namespace ProtoIME {
 namespace Engine {
+
+struct Candidate { std::wstring text; int weight; };
 
 void Init();
 void SetActive(bool active);
 bool IsActive();
 
-// Non-mutating check: would this virtual key be consumed?
 bool TestKey(UINT vk);
-
-// Process key, returns true if eaten. Modifies composition state.
-// May call SendInput on commit.
 bool ProcessKey(UINT vk);
 
 const std::wstring& CompStr();
 bool HasText();
 
-// Commit current composition via SendInput and clear buffer.
-void Commit();
+// Candidate access
+size_t GetCandidateCount();
+std::wstring GetCandidateText(size_t i);
+size_t GetCandidatePage();
+size_t GetTotalPages();
+bool IsChineseMode();
 
 } // Engine
 } // ProtoIME

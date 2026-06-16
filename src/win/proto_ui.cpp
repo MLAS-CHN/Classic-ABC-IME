@@ -1,6 +1,7 @@
 // proto_ui.cpp - Candidate window UI implementation.
 #include "proto_ui.h"
 #include "proto_engine.h"
+#include "proto_core.h"
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
 
@@ -32,16 +33,10 @@ static const ProtoIME::UI::NinePatchSkin* g_btnSkin = nullptr;  // button.png
 static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
 
 // --- test ---
-// Candidate list (test data, 10 rows of hardcoded candidates).
-// In production this would be populated by the IME engine's lookup.
-static const wchar_t* kTestCands[] = {
-    L"1:\u5927", L"2:\u6253", L"3:\u8FBE", L"4:\u642D", L"5:\u55D2",
-    L"6:\u7B54", L"7:\u6422", L"8:\u7422", L"9:\u6422", L"0:\u6424"
-};
 static const wchar_t kCandClass[] = L"ProtoCandListWnd";
-static HWND  g_candWnd   = nullptr;
-static bool  g_candClassRegistered = false;
-static const int kCandW = 120, kCandH = 169;
+static HWND  g_candWnd;
+static bool  g_candClassRegistered;
+static int   g_candW = 120, g_candH = 200;
 
 // --- font ---
 static void init_font() {
@@ -93,6 +88,12 @@ static void Draw9Patch(HDC dc, const RECT& rc) {
 
 // --- wndproc ---
 static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
+    if (msg == WM_ERASEBKGND) {
+        HDC dc = (HDC)w; RECT rc; GetClientRect(hwnd, &rc);
+        HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0));
+        FillRect(dc, &rc, bg); DeleteObject(bg);
+        return 1;
+    }
     if (msg == WM_PAINT) {
         PAINTSTRUCT ps; HDC dc = BeginPaint(hwnd, &ps); RECT rc; GetClientRect(hwnd, &rc);
 
@@ -126,8 +127,10 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
 bool ProtoIME::UI::Init(HINSTANCE hInst, int width, int height) {
     g_inst = hInst; g_cw = width; g_ch = height;
 
-    Gdiplus::GdiplusStartupInput si;
-    Gdiplus::GdiplusStartup(&g_gdiToken, &si, nullptr);
+    if (g_gdiToken == 0) {
+        Gdiplus::GdiplusStartupInput si;
+        Gdiplus::GdiplusStartup(&g_gdiToken, &si, nullptr);
+    }
     return true;
 }
 
@@ -140,7 +143,6 @@ void ProtoIME::UI::Shutdown() {
     for (int i = 0; i < 5; ++i) {
         if (g_btnIcons[i]) { delete g_btnIcons[i]; g_btnIcons[i] = nullptr; }
     }
-    if (g_gdiToken) { Gdiplus::GdiplusShutdown(g_gdiToken); g_gdiToken = 0; }
 }
 
 void ProtoIME::UI::Show(bool visible) {
@@ -170,33 +172,42 @@ void ProtoIME::UI::Update() {
     InvalidateRect(g_wnd, nullptr, TRUE);
 }
 
-// --- test ---
-// Candidate list wndproc. Test-only: draws 10 hardcoded candidates in purple.
-// Uses the same 9-patch shadow skin as the input window.
+// --- candidate wndproc ---
 static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
+    if (msg == WM_ERASEBKGND) {
+        HDC dc = (HDC)w; RECT rc; GetClientRect(hwnd, &rc);
+        HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0));
+        FillRect(dc, &rc, bg); DeleteObject(bg);
+        return 1;
+    }
     if (msg == WM_PAINT) {
         PAINTSTRUCT ps; HDC dc = BeginPaint(hwnd, &ps);
         RECT rc; GetClientRect(hwnd, &rc);
-
-        if (g_skin) {
-            Draw9Patch(dc, rc);
-        } else {
-            HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0));
-            FillRect(dc, &rc, bg); DeleteObject(bg);
+        if (g_skin) { Draw9Patch(dc, rc); }
+        else {
+            HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0)); FillRect(dc, &rc, bg); DeleteObject(bg);
             HPEN pen = CreatePen(PS_SOLID, 1, RGB(180, 180, 180));
             HPEN op = (HPEN)SelectObject(dc, pen);
             HBRUSH nb = (HBRUSH)GetStockObject(NULL_BRUSH); SelectObject(dc, nb);
             Rectangle(dc, 0, 0, rc.right, rc.bottom);
             SelectObject(dc, op); DeleteObject(pen);
         }
-
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
-        SetTextColor(dc, RGB(128, 0, 128));  // purple
-        for (int i = 0; i < 10; ++i)
-            TextOutW(dc, 6, 2 + i * (g_fh + 0), kTestCands[i], (int)wcslen(kTestCands[i]));
+        SetTextColor(dc, RGB(128, 0, 128));
+        size_t count = ProtoIME::GetCandidateCount();
+        for (size_t i = 0; i < count; ++i) {
+            std::wstring text = ProtoIME::GetCandidateText(i);
+            if (text.empty()) continue;
+            int n = (int)i + 1;
+            if (n == 10) n = 0;
+            wchar_t num[4]; wsprintfW(num, L"%d:", n);
+            SetTextColor(dc, RGB(128, 0, 128));
+            TextOutW(dc, 6, 6 + (int)i * g_fh, num, (int)wcslen(num));
+            SetTextColor(dc, RGB(128, 0, 128));
+            TextOutW(dc, 6 + g_fw * 2 + g_fw/2, 6 + (int)i * g_fh, text.c_str(), (int)text.size());
+        }
         SelectObject(dc, old);
-
         EndPaint(hwnd, &ps); return 0;
     }
     return DefWindowProc(hwnd, msg, w, l);
@@ -215,7 +226,7 @@ void ProtoIME::UI::ShowCand(bool visible) {
             g_candWnd = CreateWindowExW(
                 WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
                 kCandClass, L"", WS_POPUP,
-                0, 0, kCandW, kCandH,
+                0, 0, g_candW, g_candH,
                 nullptr, nullptr, g_inst, nullptr);
         }
         ShowWindow(g_candWnd, SW_SHOWNOACTIVATE);
@@ -225,14 +236,11 @@ void ProtoIME::UI::ShowCand(bool visible) {
 }
 
 void ProtoIME::UI::UpdateCand() {
-    const auto& buf = ProtoIME::Engine::CompStr();
-    // Test: show candidate list when composition has more than 1 character.
-    // In production this would be driven by the IME engine's lookup logic.
-    if (buf.size() <= 1) {
-        ShowCand(false);
-        return;
-    }
+    size_t count = ProtoIME::GetCandidateCount();
+    if (count == 0) { ShowCand(false); return; }
     ShowCand(true);
+    int h = g_fh * ((int)count + 1) + 4;
+    if (h < 30) h = 30;
 
     // Position: default to the RIGHT of the input window.
     // If no room on right, go LEFT. Then, try below the caret; if no room, go above.
@@ -243,17 +251,17 @@ void ProtoIME::UI::UpdateCand() {
     int inputL = cp.x;
     int inputR = cp.x + g_cw;
     int x = inputR + 4;                     // right of input
-    if (x + kCandW > sw) x = inputL - kCandW - 4; // fallback: left of input
+    if (x + g_candW > sw) x = inputL - g_candW - 4; // fallback: left of input
 
     // Vertical: below caret then upward if needed
     int inputY = cp.y + g_fh + 4;
     int y = inputY;                         // below caret
-    if (y + kCandH > sh) y = cp.y - kCandH - 4;   // fallback: above caret
+    if (y + h > sh) y = cp.y - h - 4;   // fallback: above caret
 
     if (x < 0) x = 0; if (y < 0) y = 0;
-    if (x + kCandW > sw) x = sw - kCandW;
-    if (y + kCandH > sh) y = sh - kCandH;
-    SetWindowPos(g_candWnd, HWND_TOPMOST, x, y, kCandW, kCandH,
+    if (x + g_candW > sw) x = sw - g_candW;
+    if (y + h > sh) y = sh - h;
+    SetWindowPos(g_candWnd, HWND_TOPMOST, x, y, g_candW, h,
                  SWP_NOACTIVATE | SWP_SHOWWINDOW);
     InvalidateRect(g_candWnd, nullptr, TRUE);
 }
@@ -338,6 +346,12 @@ static int HitTestBtn(POINT pt) {
 
 static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
+    if (msg == WM_ERASEBKGND) {
+        HDC dc = (HDC)w; RECT rc; GetClientRect(hwnd, &rc);
+        HBRUSH bg = CreateSolidBrush(RGB(0xF0, 0xF0, 0xF0));
+        FillRect(dc, &rc, bg); DeleteObject(bg);
+        return 1;
+    }
     if (msg == WM_SETCURSOR) {
         if (LOWORD(l) == HTCLIENT) {
             POINT pt; GetCursorPos(&pt); ScreenToClient(hwnd, &pt);

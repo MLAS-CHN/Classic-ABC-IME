@@ -5,6 +5,15 @@
 #include <string>
 
 #ifdef _WIN32
+#ifdef _MSC_VER
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#else
+typedef __int64 ssize_t;
+#endif
+#endif
+
+#ifdef _WIN32
 typedef __int64 ssize_t;
 #endif
 
