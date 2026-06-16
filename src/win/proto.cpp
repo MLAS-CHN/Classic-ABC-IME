@@ -96,7 +96,10 @@ public:
 };
 
 // ========== Text Service (thin wrapper around ProtoIME) ==========
-class ProtoService : public ITfTextInputProcessor, public ITfKeyEventSink, public ITfThreadMgrEventSink {
+class ProtoService : public ITfTextInputProcessor,
+                     public ITfTextInputProcessorEx,
+                     public ITfKeyEventSink,
+                     public ITfThreadMgrEventSink {
     LONG m_ref = 1;
     ITfThreadMgr* m_tm = nullptr;
     TfClientId m_id = 0;
@@ -109,6 +112,8 @@ public:
         if (!ppv) return E_POINTER; *ppv = nullptr;
         if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITfTextInputProcessor))
             { *ppv = (ITfTextInputProcessor*)this; AddRef(); return S_OK; }
+        if (IsEqualIID(riid, IID_ITfTextInputProcessorEx))
+            { *ppv = (ITfTextInputProcessorEx*)this; AddRef(); return S_OK; }
         if (IsEqualIID(riid, IID_ITfKeyEventSink))
             { *ppv = (ITfKeyEventSink*)this; AddRef(); return S_OK; }
         if (IsEqualIID(riid, IID_ITfThreadMgrEventSink))
@@ -117,6 +122,11 @@ public:
     }
     STDMETHODIMP_(ULONG) AddRef() override { return InterlockedIncrement(&m_ref); }
     STDMETHODIMP_(ULONG) Release() override { LONG r = InterlockedDecrement(&m_ref); if (r == 0) delete this; return r; }
+
+    // --- ITfTextInputProcessorEx ---
+    STDMETHODIMP ActivateEx(ITfThreadMgr* tm, TfClientId id, DWORD /*dwFlags*/) override {
+        return Activate(tm, id);
+    }
 
     // --- ITfTextInputProcessor ---
     STDMETHODIMP Activate(ITfThreadMgr* tm, TfClientId id) override {
