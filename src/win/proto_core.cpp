@@ -31,6 +31,8 @@ void ProtoIME::SetFocused(bool f) {
     if (f) {
         if (!ProtoIME::Engine::IsActive())
             ProtoIME::Engine::SetActive(true);
+        else
+            ProtoIME::Engine::ReloadDict();      // other process may have updated
         ProtoIME::UI::ShowSettings(true);
     } else {
         ProtoIME::UI::ShowSettings(false);
@@ -48,6 +50,9 @@ bool ProtoIME::OnKeyDown(UINT vk) {
         ProtoIME::UI::Update();
         ProtoIME::UI::UpdateCand();
     }
+    // Also hide windows if buffer was flushed (CapsLock, etc.)
+    if (!eaten && ProtoIME::Engine::CompStr().empty())
+        { ProtoIME::UI::Show(false); ProtoIME::UI::ShowCand(false); }
     ProtoIME::UI::RefreshSettings();
     return eaten;
 }
@@ -55,6 +60,8 @@ bool ProtoIME::OnKeyDown(UINT vk) {
 bool ProtoIME::OnKeyUp(UINT vk) {
     if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT) {
         bool eaten = ProtoIME::Engine::ProcessShiftTap();
+        ProtoIME::UI::Update();
+        ProtoIME::UI::UpdateCand();
         ProtoIME::UI::RefreshSettings();
         return eaten;
     }
@@ -114,12 +121,22 @@ bool ProtoIME::SetLockIcon(const wchar_t* path) { return ProtoIME::UI::SetLockIc
 
 void ProtoIME::ToggleMode() {
     ProtoIME::Engine::ToggleChineseMode();
+    ProtoIME::UI::Update();
+    ProtoIME::UI::UpdateCand();
     ProtoIME::UI::RefreshSettings();
 }
 
 void ProtoIME::ToggleLock() {
     ProtoIME::Engine::ToggleLock();
+    ProtoIME::UI::Update();
+    ProtoIME::UI::UpdateCand();
     ProtoIME::UI::RefreshSettings();
 }
 
 bool ProtoIME::IsLocked() { return ProtoIME::Engine::IsLocked(); }
+
+bool ProtoIME::FlushPendingAndHideUI() {
+    bool flushed = ProtoIME::Engine::FlushPending();
+    if (flushed) { ProtoIME::UI::Show(false); ProtoIME::UI::ShowCand(false); }
+    return flushed;
+}

@@ -45,5 +45,6 @@ bool SetLockIcon(const wchar_t* path);
 void ToggleMode();
 void ToggleLock();
 bool IsLocked();
+bool FlushPendingAndHideUI();
 
 } // namespace ProtoIME

@@ -12,6 +12,7 @@ struct Candidate { std::wstring text; int weight; };
 void Init();
 void SetActive(bool active);
 bool IsActive();
+void ReloadDict();
 
 bool TestKey(UINT vk);
 bool ProcessKey(UINT vk);
@@ -19,6 +20,7 @@ bool ProcessShiftTap();
 void ToggleChineseMode();
 bool IsLocked();
 void ToggleLock();
+bool FlushPending();  // flush buffer text + hide UI; returns true if flushed
 
 const std::wstring& CompStr();
 bool HasText();

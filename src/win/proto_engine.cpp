@@ -158,7 +158,10 @@ void ProtoIME::Engine::Init() {
 }
 void ProtoIME::Engine::SetActive(bool a) {
     g.active = a;
-    if (!a) {
+    if (a) {
+        // Reload dictionaries to pick up changes from other processes
+        init_pinyin_data();
+    } else {
         bool wasChinese = g.chinese;
         g = State{};
         g.chinese = wasChinese;
@@ -167,6 +170,21 @@ void ProtoIME::Engine::SetActive(bool a) {
     write_log("Engine: SetActive(" + std::string(a ? "true" : "false") + ") chinese=" + std::to_string(g.chinese) + " locked=" + std::to_string(g.locked), LOG_DEBUG);
 }
 bool ProtoIME::Engine::IsActive() { return g.active; }
+
+void ProtoIME::Engine::ReloadDict() {
+    static FILETIME lastWrite = {};
+    WIN32_FILE_ATTRIBUTE_DATA attr;
+    std::string path = get_user_dict_file_path();
+    int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
+    if (n <= 0) return;
+    std::wstring wpath((size_t)(n - 1), L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, &wpath[0], n);
+    if (!GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &attr)) return;
+    if (memcmp(&attr.ftLastWriteTime, &lastWrite, sizeof(FILETIME)) == 0) return;  // unchanged
+    lastWrite = attr.ftLastWriteTime;
+    init_pinyin_data();
+    write_log("Engine: ReloadDict reloaded (file changed)", LOG_DEBUG);
+}
 
 bool ProtoIME::Engine::TestKey(UINT vk) {
     if (!g.active) return false;
@@ -222,12 +240,10 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
     // Any non-Shift key clears pending tap
     g_shift_pending = false;
 
-    // CapsLock press: force English mode, reset pinyin state
+    // CapsLock press: force English mode, flush + reset pinyin state
     if (vk == VK_CAPITAL) {
+        FlushPending();
         g.chinese = false;
-        g.buf.clear(); g.cur = 0; g.delmode = false;
-        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
-        g_comp.clear();
         return false;  // not eaten, let system toggle CapsLock
     }
 
@@ -236,6 +252,7 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
         (GetKeyState(VK_SHIFT) & 0x8000) ||
         (GetKeyState(VK_CONTROL) & 0x8000))
         return false;
+    if (!g.chinese) return false;
     if (!g.chinese) return false;
 
     // Chinese mode: normal pinyin processing
@@ -340,11 +357,7 @@ bool ProtoIME::Engine::ProcessShiftTap() {
 void ProtoIME::Engine::ToggleChineseMode() {
     g.chinese = !g.chinese;
     write_log("Engine: ToggleChineseMode -> chinese=" + std::to_string(g.chinese), LOG_DEBUG);
-    if (!g.chinese) {
-        g.buf.clear(); g.cur = 0; g.delmode = false;
-        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
-        g_comp.clear();
-    }
+    if (!g.chinese) FlushPending();
 }
 
 bool ProtoIME::Engine::IsLocked() { return g.locked; }
@@ -352,12 +365,17 @@ bool ProtoIME::Engine::IsLocked() { return g.locked; }
 void ProtoIME::Engine::ToggleLock() {
     g.locked = !g.locked;
     write_log("Engine: ToggleLock -> locked=" + std::to_string(g.locked), LOG_INFO);
-    if (g.locked) {
-        g.chinese = false;
-        g.buf.clear(); g.cur = 0; g.delmode = false;
-        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
-        g_comp.clear();
-    }
+    if (g.locked) { FlushPending(); g.chinese = false; }
+}
+
+bool ProtoIME::Engine::FlushPending() {
+    if (g.buf.empty()) return false;
+    send_w(u8to16(g.buf));
+    g.buf.clear(); g.cur = 0; g.delmode = false;
+    g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
+    g_comp.clear();
+    write_log("Engine: FlushPending flushed buffer", LOG_DEBUG);
+    return true;
 }
 
 const std::wstring& ProtoIME::Engine::CompStr() { return g_comp; }
