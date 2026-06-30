@@ -225,6 +225,45 @@ bool ProtoIME::Engine::TestKey(UINT vk) {
     return false;
 }
 
+// ---- key action helpers ----
+static bool handleCandidateSelect(UINT vk) {
+    if (g.pages.empty()) return false;
+    if (vk == VK_SPACE) { send_u8(pick(g.page, 0)); return true; }
+    if (vk >= '0' && vk <= '9') {
+        size_t idx = vk == '0' ? 9 : (size_t)(vk - '1');
+        send_u8(pick(g.page, idx)); return true;
+    }
+    return false;
+}
+
+static bool handlePage(UINT vk) {
+    if (g.pages.empty()) return false;
+    if (vk == VK_OEM_PLUS && g.page + 1 < g.pages.size()) { g.page++; rebuild(); return true; }
+    if (vk == VK_OEM_MINUS && g.page > 0) { g.page--; rebuild(); return true; }
+    return false;
+}
+
+static bool handleLetter(UINT vk) {
+    if (vk < 'A' || vk > 'Z') return false;
+    char c = (char)(vk - 'A' + 'a');
+    insert_at_virtual_cursor(g.buf, g.cur, c);
+    if (g.buf.size() == 1) reset_virtual_cursor_to_end(g.buf, g.cur);
+    rebuild();
+    return true;
+}
+
+static bool handleDeleteMode(UINT vk) {
+    if (vk != VK_DELETE || g.pages.empty()) return false;
+    g.delmode = !g.delmode; rebuild(); return true;
+}
+
+static bool handleCursorMove(UINT vk) {
+    if (g.buf.empty()) return false;
+    if (vk == VK_LEFT)  { move_virtual_cursor_left(g.cur); rebuild(); return true; }
+    if (vk == VK_RIGHT) { move_virtual_cursor_right(g.cur, g.buf); rebuild(); return true; }
+    return false;
+}
+
 bool ProtoIME::Engine::ProcessKey(UINT vk) {
     if (!g.active) return false;
 
@@ -253,95 +292,40 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
         (GetKeyState(VK_CONTROL) & 0x8000))
         return false;
     if (!g.chinese) return false;
-    if (!g.chinese) return false;
 
-    // Chinese mode: normal pinyin processing
-    bool eaten = false;
+    // priority: functional keys > pinyin input
+    if (handleCandidateSelect(vk)) return true;
+    if (handlePage(vk))           return true;
+    if (handleDeleteMode(vk))     return true;
+    if (handleCursorMove(vk))     return true;
 
-    // candidate selection
-    if (vk == VK_SPACE && !g.pages.empty()) {
-        send_u8(pick(g.page, 0)); eaten = true;
-    }
-    else if (vk >= '0' && vk <= '9' && !g.pages.empty()) {
-        size_t idx = vk == '0' ? 9 : (size_t)(vk - '1');
-        send_u8(pick(g.page, idx)); eaten = true;
-    }
-    // paging
-    else if (vk == VK_OEM_PLUS && !g.pages.empty() && g.page + 1 < g.pages.size()) {
-        g.page++; rebuild(); eaten = true;
-    }
-    else if (vk == VK_OEM_MINUS && !g.pages.empty() && g.page > 0) {
-        g.page--; rebuild(); eaten = true;
-    }
-    // backspace
-    else if (vk == VK_BACK && !g.buf.empty()) {
+    // editing keys
+    if (vk == VK_BACK && !g.buf.empty()) {
         if (backspace_at_virtual_cursor(g.buf, g.cur)) rebuild();
-        eaten = true;
+        return true;
     }
-    // escape
-    else if (vk == VK_ESCAPE && !g.buf.empty()) {
+    if (vk == VK_ESCAPE && !g.buf.empty()) {
         g.buf.clear(); g.cur = 0; g.delmode = false;
         g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
-        g_comp.clear(); eaten = true;
+        g_comp.clear(); return true;
     }
-    // enter flush
-    else if (vk == VK_RETURN && !g.buf.empty()) {
+    if (vk == VK_RETURN && !g.buf.empty()) {
         send_w(u8to16(g.buf));
         g.buf.clear(); g.cur = 0; g.delmode = false;
         g.pages.clear(); g.page = 0; g_comp.clear();
-        eaten = true;
+        return true;
     }
-    // pinyin letters a-z
-    else if (vk >= 'A' && vk <= 'Z') {
-        char c = (char)(vk - 'A' + 'a');
-        insert_at_virtual_cursor(g.buf, g.cur, c);
-        if (g.buf.size() == 1) reset_virtual_cursor_to_end(g.buf, g.cur);
-        rebuild(); eaten = true;
-    }
+
     // word separator '
-    else if (vk == VK_OEM_7 && !g.buf.empty()) {
+    if (vk == VK_OEM_7 && !g.buf.empty()) {
         if (can_insert_word_separator_at_virtual_cursor(g.buf, g.cur)) {
             insert_at_virtual_cursor(g.buf, g.cur, '\''); rebuild();
         }
-        eaten = true;
-    }
-    // delete mode toggle
-    else if (vk == VK_DELETE && !g.pages.empty()) {
-        g.delmode = !g.delmode; rebuild(); eaten = true;
-    }
-    // cursor left/right
-    else if (vk == VK_LEFT && !g.buf.empty()) {
-        move_virtual_cursor_left(g.cur); rebuild(); eaten = true;
-    }
-    else if (vk == VK_RIGHT && !g.buf.empty()) {
-        move_virtual_cursor_right(g.cur, g.buf); rebuild(); eaten = true;
-    }
-    // full-width punctuation (when buffer empty)
-    else if (g.buf.empty() && g.pages.empty()) {
-        const char* fw = nullptr;
-        bool s = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-        switch (vk) {
-            case VK_OEM_5:      fw = u8"\u3001"; break;
-            case VK_OEM_COMMA:  fw = u8"\uFF0C"; break;
-            case VK_OEM_PERIOD: fw = u8"\u3002"; break;
-            case VK_OEM_1:      fw = s ? u8"\uFF1A" : u8"\uFF1B"; break;
-            case VK_OEM_2:      fw = u8"\uFF1F"; break;
-            case VK_OEM_7:      fw = s ? u8"\u201C" : u8"\u2018"; break;
-            case VK_OEM_MINUS:  fw = s ? u8"\u2014" : u8"\uFF0D"; break;
-        }
-        if (fw) { send_u8(fw); eaten = true; }
-        if (s && !eaten) switch (vk) {
-            case '1': send_u8(u8"\uFF01"); eaten = true; break;
-            case '3': send_u8(u8"\uFF03"); eaten = true; break;
-            case '4': send_u8(u8"\uFFE5"); eaten = true; break;
-            case '5': send_u8(u8"\uFF05"); eaten = true; break;
-            case '6': send_u8(u8"\u2026"); eaten = true; break;
-            case '9': send_u8(u8"\uFF08"); eaten = true; break;
-            case '0': send_u8(u8"\uFF09"); eaten = true; break;
-        }
+        return true;
     }
 
-    return eaten;
+    // pinyin letter input (must be last - fallback)
+    return handleLetter(vk);
 }
 
 bool ProtoIME::Engine::ProcessShiftTap() {
