@@ -218,7 +218,7 @@ static void process_winch_if_needed() {
 int main() {
     // 禁止嵌套运行检测
     if (getenv("LITE_TTY_IME_ACTIVE")) {
-        std::cerr << "Error: lite-tty-ime is already running in this terminal." << std::endl;
+        std::cerr << "Error: lite-tty-ime is already running in this terminal." << '\n';
         return 1;
     }
 

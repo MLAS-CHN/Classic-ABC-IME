@@ -13,6 +13,9 @@
 #include <algorithm>
 #include <sstream>
 
+static const int kStatusBarPrefixLen = 4;
+static const int kCursorLen = 1;
+
 /**
  * 获取智能拼接短语候选（预留接口）。
  *
@@ -58,7 +61,7 @@ static std::vector<CandidateItem> getAllSuitableCharElements(
             const std::string& line = g_pinyin_map_lines[array_index];
             size_t space_pos = line.find(' ');
             if (space_pos != std::string::npos) {
-                std::string pinyin_part = line.substr(0, space_pos);
+                std::string pinyin_part = get_pinyin_from_line(line);
                 std::string chars_part = line.substr(space_pos + 1);
 
                 // 将后面的字符串按 UTF-8 字符拆分开
@@ -163,7 +166,7 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     get_terminal_size(rows, max_cols);
 
     // 2. 计算“[中]”占用的列数（4列）
-    int prefix_len = 4;
+    int prefix_len = kStatusBarPrefixLen;
 
     // 3. 将 split_options 第一个方案转为逗号分隔的字符串并计算长度
     std::string pinyin_str = "";
@@ -177,7 +180,7 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     int pinyin_len = static_cast<int>(pinyin_str.length());
 
     // 4. 计算“剩余字符空间” = 最大列数 - [中]占用 - 拼音长度 - 光标长度(1)
-    int cursor_len = 1;
+    int cursor_len = kCursorLen;
     int remaining_space = max_cols - prefix_len - pinyin_len - cursor_len;
 
     // 5. 按照剩余空间动态拆分数组为二维数组

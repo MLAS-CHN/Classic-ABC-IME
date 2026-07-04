@@ -8,18 +8,7 @@
 #include <string>
 #include <cstddef>
 
-#ifdef _WIN32
-#ifdef _MSC_VER
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#else
-typedef __int64 ssize_t;
-#endif
-#endif
-
-#ifdef _WIN32
-typedef __int64 ssize_t;
-#endif
+#include "util.h"
 
 // 将虚拟光标重置到缓冲区右侧（buffer.length）
 void reset_virtual_cursor_to_end(const std::string& buffer, size_t& virtual_cursor);

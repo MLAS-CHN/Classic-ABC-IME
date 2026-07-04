@@ -12,6 +12,8 @@
 #include <vector>
 
 static const size_t kCandidatePageSize = 5;
+static const char   kEscapeByte = 0x1B;
+static const char   kNulByte    = 0x00;
 
 struct ImeState {
     bool is_chinese_mode = false;
@@ -44,9 +46,6 @@ static void update_composing_display(const std::string& pinyin_buffer,
         return;
     }
 
-    std::string composing_text = buildComposingDisplayText(
-        pinyin_buffer, virtual_cursor, candidate_page, kCandidatePageSize, &paged_candidates);
-
     if (reset_page) {
         candidate_page = 0;
     }
@@ -57,7 +56,7 @@ static void update_composing_display(const std::string& pinyin_buffer,
         candidate_page = paged_candidates.size() - 1;
     }
 
-    composing_text = buildComposingDisplayText(
+    std::string composing_text = buildComposingDisplayText(
         pinyin_buffer, virtual_cursor, candidate_page, kCandidatePageSize, &paged_candidates);
 
     if (is_delete_mode) {
@@ -410,7 +409,7 @@ static bool handle_direct_fullwidth_punctuation_key(unsigned char c, const ImeSt
 static int try_finish_pending_escape_sequence(ImeState& state, std::string& passthrough) {
     const std::string& s = state.pending_escape;
     if (s.empty()) return -1;
-    if ((unsigned char)s[0] != 0x1B) {
+    if ((unsigned char)s[0] != kEscapeByte) {
         passthrough += s;
         state.pending_escape.clear();
         return 0;
@@ -526,7 +525,7 @@ bool ime_controller_handle_input_bytes(const char* buf, ssize_t n, int master_fd
     for (ssize_t i = 0; i < n; ++i) {
         unsigned char c = (unsigned char)buf[i];
 
-        if (c == 0) {
+        if (c == kNulByte) {
             flush_passthrough();
             ime_state.is_chinese_mode = !ime_state.is_chinese_mode;
             ime_state.pinyin_buffer.clear();
@@ -555,7 +554,7 @@ bool ime_controller_handle_input_bytes(const char* buf, ssize_t n, int master_fd
             }
             continue;
         }
-        if (c == 0x1B) {
+        if (c == kEscapeByte) {
             ime_state.pending_escape.push_back((char)c);
             int r = try_finish_pending_escape_sequence(ime_state, passthrough);
             if (r == 1) {

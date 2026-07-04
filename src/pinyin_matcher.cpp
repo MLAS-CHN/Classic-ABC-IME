@@ -12,39 +12,7 @@
  * 拼音匹配模块实现
  */
 
-/**
- * 从词典行中提取拼音键。
- * 行格式约定为：`pinyin 空格 候选内容`，本函数返回空格前部分。
- *
- * @param line 原始词典行。
- * @return 提取后的拼音键；若无空格则返回整行。
- */
-static std::string get_pinyin_from_line(const std::string& line) {
-    size_t space_pos = line.find(' ');
-    if (space_pos == std::string::npos) return line;
-    return line.substr(0, space_pos);
-}
 
-/**
- * 以逗号分割拼音串。
- *
- * @param pinyin_csv 逗号分隔的拼音字符串（如 "jiu,nei,rong"）。
- * @return 分割后的拼音段数组。
- */
-static std::vector<std::string> split_pinyin_csv(const std::string& pinyin_csv) {
-    std::vector<std::string> parts;
-    std::string current;
-    for (char c : pinyin_csv) {
-        if (c == ',') {
-            if (!current.empty()) parts.push_back(current);
-            current.clear();
-        } else {
-            current.push_back(c);
-        }
-    }
-    if (!current.empty()) parts.push_back(current);
-    return parts;
-}
 
 /**
  * 最小化智能匹配：
@@ -189,7 +157,7 @@ std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pin
     for (int i = start_line - 1; i <= end_line && i < (int)g_user_dict_lines.size(); ++i) {
         const std::string& line = g_user_dict_lines[i];
         std::string target_pinyin_csv = get_pinyin_from_line(line);
-        std::vector<std::string> target_parts = split_pinyin_csv(target_pinyin_csv);
+        std::vector<std::string> target_parts = split_csv(target_pinyin_csv);
 
         // 第一次筛选：分段长度不一致直接跳过
         if (target_parts.size() != pinyin_parts.size()) continue;

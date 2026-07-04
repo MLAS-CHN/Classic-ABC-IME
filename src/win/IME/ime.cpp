@@ -63,8 +63,8 @@ BOOL WINAPI ImeSelect(HIMC hIMC, BOOL fSelect) {
   std::shared_ptr<IME> p = IME::GetInstance(hIMC);
   if (!p)
     return FALSE;
-  HRESULT hr = p->OnIMESelect(fSelect);
-  if (FAILED(hr))
+  LRESULT lr = p->OnIMESelect(fSelect);
+  if (lr != 0)
     return FALSE;
 
   return TRUE;
@@ -78,8 +78,8 @@ BOOL WINAPI ImeSetActiveContext(HIMC hIMC, BOOL fFocus) {
     std::shared_ptr<IME> p = IME::GetInstance(hIMC);
     if (!p)
       return FALSE;
-    HRESULT hr = p->OnIMEFocus(fFocus);
-    if (FAILED(hr))
+    LRESULT lr = p->OnIMEFocus(fFocus);
+    if (lr != 0)
       return FALSE;
   }
 

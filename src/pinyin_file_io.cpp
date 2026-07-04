@@ -139,7 +139,7 @@ static void build_index_from_lines(const std::vector<std::string>& lines,
 static void persist_lines_to_file(const std::string& file_path, const std::vector<std::string>& lines) {
     std::ofstream file(file_path, std::ios::trunc);
     if (!file.is_open()) {
-        std::cerr << "Failed to open file for writing: " << file_path << std::endl;
+        std::cerr << "Failed to open file for writing: " << file_path << '\n';
         return;
     }
     for (const auto& line : lines) {
@@ -206,50 +206,25 @@ void init_pinyin_data() {
     load_file_and_build_index(get_char_freq_file_path(), g_char_freq_lines, g_char_freq_index);
 }
 
-void load_file_and_build_index(const std::string& file_path, 
-                               std::vector<std::string>& lines, 
+void load_file_and_build_index(const std::string& file_path,
+                               std::vector<std::string>& lines,
                                std::vector<PinyinIndexItem>& index) {
-    /**
-     * 通用“加载文件 + 构建首字母索引”流程：
-     * 1) 读取非空行到 lines；
-     * 2) 按行首字符分段记录 start_line/end_line 到 index。
-     */
     lines.clear();
     index.clear();
 
     std::ifstream file(file_path);
     if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << file_path << std::endl;
+        std::cerr << "Failed to open file: " << file_path << '\n';
         return;
     }
 
     std::string line;
-    int current_line_num = 1;
-    char current_char = '\0';
-    int start_line = -1;
-
     while (std::getline(file, line)) {
         if (line.empty()) continue;
         lines.push_back(line);
-
-        char first_char = line[0];
-        if (first_char != current_char) {
-            // 如果不是第一个发现的字符，关闭上一个字符的索引范围
-            if (current_char != '\0') {
-                index.push_back({(int)current_char, start_line, current_line_num - 1});
-            }
-            current_char = first_char;
-            start_line = current_line_num;
-        }
-        current_line_num++;
     }
 
-    // 处理最后一个字符
-    if (current_char != '\0') {
-        index.push_back({(int)current_char, start_line, current_line_num - 1});
-    }
-
-    file.close();
+    build_index_from_lines(lines, index);
 }
 
 void write_and_update_index(const std::string& file_path, 

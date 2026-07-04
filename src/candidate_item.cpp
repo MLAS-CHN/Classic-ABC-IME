@@ -5,34 +5,13 @@
 #include "candidate_item.h"
 #include "pinyin_data.h"
 #include "pinyin_file_io.h"
+#include "util.h"
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <utility>
 
-static std::vector<std::string> split_pinyin_csv(const std::string& pinyin_csv) {
-    std::vector<std::string> parts;
-    std::string current;
-    for (char c : pinyin_csv) {
-        if (c == ',') {
-            if (!current.empty()) parts.push_back(current);
-            current.clear();
-        } else {
-            current.push_back(c);
-        }
-    }
-    if (!current.empty()) parts.push_back(current);
-    return parts;
-}
 
-static std::string build_pinyin_csv_from_parts(const std::vector<std::string>& parts) {
-    std::string res;
-    for (size_t i = 0; i < parts.size(); ++i) {
-        res += parts[i];
-        if (i + 1 < parts.size()) res += ",";
-    }
-    return res;
-}
 
 static int partition_by_weight_desc(std::vector<CandidateItem>& candidates, int low, int high) {
     int pivot_weight = candidates[(size_t)high].getWeight();
@@ -55,7 +34,7 @@ static void quick_sort_by_weight_desc_impl(std::vector<CandidateItem>& candidate
 }
 
 std::string CandidateItem::toString() const {
-    std::string pinyin_csv = build_pinyin_csv_from_parts(pinyin_parts_);
+    std::string pinyin_csv = join_csv(pinyin_parts_);
     return pinyin_csv + " " + text_ + " " + std::to_string(weight_);
 }
 
@@ -68,7 +47,7 @@ std::string CandidateItem::getSourceFileName() const {
 
 int CandidateItem::findSourceLineNumber() const {
     std::string file_path = getSourceFileName();
-    std::string pinyin_csv = build_pinyin_csv_from_parts(pinyin_parts_);
+    std::string pinyin_csv = join_csv(pinyin_parts_);
     std::string target = pinyin_csv + " " + text_;
 
     std::ifstream file(file_path);
@@ -115,7 +94,7 @@ CandidateItem CandidateItem::fromWordDictLineNumber(int line_number) {
         }
     }
 
-    std::vector<std::string> pinyin_parts = split_pinyin_csv(pinyin_csv);
+    std::vector<std::string> pinyin_parts = split_csv(pinyin_csv);
     return CandidateItem(pinyin_parts, text, weight);
 }
 

@@ -32,7 +32,7 @@ HKL FindIME(LANGID langid) {
                                &size);
         if (ret == ERROR_SUCCESS && type == REG_SZ &&
             _wcsicmp(data, L"abcime_test.ime") == 0)
-          hKL = (HKL)id;
+          hKL = (HKL)(ULONG_PTR)id;
       }
       RegCloseKey(hSubKey);
     }
@@ -63,7 +63,7 @@ BOOL RegisterProfiles() {
 
   const auto text_service_desc = get_ime_name();
   const WCHAR* text_service_desc_str = text_service_desc.c_str();
-  ULONG text_service_desc_len = text_service_desc.size() * sizeof(wchar_t);
+  ULONG text_service_desc_len = (ULONG)(text_service_desc.size() * sizeof(wchar_t));
 
   WCHAR achIconFile[MAX_PATH];
   ULONG cchIconFile =
@@ -228,7 +228,7 @@ BOOL RegisterServer() {
 #endif
 
       fRet &= RegSetValueExA(hSubKey, NULL, 0, REG_SZ, (BYTE*)achFileName,
-                             (strlen(achFileName) + 1) * sizeof(char)) ==
+                             (DWORD)((strlen(achFileName) + 1) * sizeof(char))) ==
               ERROR_SUCCESS;
       fRet &= RegSetValueExA(hSubKey, c_szModelName, 0, REG_SZ,
                              (BYTE*)TEXTSERVICE_MODEL,

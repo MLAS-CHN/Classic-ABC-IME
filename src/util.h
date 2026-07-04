@@ -3,8 +3,10 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
+#ifndef _SSIZE_T_DEFINED
 #ifdef _MSC_VER
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
@@ -12,9 +14,6 @@ typedef SSIZE_T ssize_t;
 typedef __int64 ssize_t;
 #endif
 #endif
-
-#ifdef _WIN32
-typedef __int64 ssize_t;
 #endif
 
 /**
@@ -67,5 +66,44 @@ int get_display_width(const std::string& s);
  * @return 可用于 string::resize 的字节下标（不会截断到 UTF-8 字符中间）。
  */
 size_t get_utf8_cut_index_by_width(const std::string& s, int max_width);
+
+/**
+ * 从词典行中提取拼音键（空格前部分）。
+ */
+inline std::string get_pinyin_from_line(const std::string& line) {
+    size_t space_pos = line.find(' ');
+    if (space_pos == std::string::npos) return line;
+    return line.substr(0, space_pos);
+}
+
+/**
+ * 以逗号分割字符串。
+ */
+inline std::vector<std::string> split_csv(const std::string& csv) {
+    std::vector<std::string> parts;
+    std::string current;
+    for (char c : csv) {
+        if (c == ',') {
+            if (!current.empty()) parts.push_back(current);
+            current.clear();
+        } else {
+            current.push_back(c);
+        }
+    }
+    if (!current.empty()) parts.push_back(current);
+    return parts;
+}
+
+/**
+ * 将字符串数组以逗号拼接。
+ */
+inline std::string join_csv(const std::vector<std::string>& parts) {
+    std::string res;
+    for (size_t i = 0; i < parts.size(); ++i) {
+        res += parts[i];
+        if (i + 1 < parts.size()) res += ",";
+    }
+    return res;
+}
 
 #endif // UTIL_H

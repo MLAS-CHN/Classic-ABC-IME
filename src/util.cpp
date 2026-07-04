@@ -96,7 +96,7 @@ void write_log(const std::string& message, LogLevel level) {
     ofs << "[" << std::put_time(std::localtime(&now_time), "%Y-%m-%d %H:%M:%S") 
         << "." << std::setfill('0') << std::setw(3) << ms.count() << "] "
         << "[" << level_str << "] " 
-        << message << std::endl;
+         << message << '\n';
 }
 
 /**
