@@ -1,0 +1,103 @@
+#pragma once
+
+typedef DWORD HIMC;
+typedef DWORD HIMCC;
+
+#define IME_SYSINFO_WINLOGON 0x0001
+#define IME_PROP_UNICODE 0x00080000
+#define IME_PROP_SPECIAL_UI 0x00020000
+#define IME_CMODE_FULLSHAPE 0x00000008
+#define IME_CMODE_NATIVE 0x00000001
+#define IME_SMODE_NONE 0x0000
+#define UI_CAP_2700 0x00000001
+#define SELECT_CAP_CONVERSION 0x00000001
+
+typedef struct tagIMEINFO {
+  DWORD dwPrivateDataSize;
+  DWORD fdwProperty;
+  DWORD fdwConversionCaps;
+  DWORD fdwSentenceCaps;
+  DWORD fdwUICaps;
+  DWORD fdwSCSCaps;
+  DWORD fdwSelectCaps;
+} IMEINFO, *PIMEINFO, NEAR* NPIMEINFO, FAR* LPIMEINFO;
+
+#define IMN_OPENCANDIDATE 0x0005
+#define IMN_SETCANDIDATEPOS 0x0009
+#define IMN_SETCOMPOSITIONWINDOW 0x0016
+
+#define CFS_DEFAULT 0x0000
+#define CFS_RECT 0x0001
+#define CFS_POINT 0x0002
+#define CFS_FORCE_POSITION 0x0020
+#define CFS_CANDIDATEPOS 0x0040
+
+#define GCS_COMP 0x0008
+#define GCS_RESULTSTR 0x0800
+#define INIT_COMPFORM 0x00000004
+
+typedef struct tagCOMPOSITIONSTRING {
+  DWORD dwSize;
+  DWORD dwCompStrOffset;
+  DWORD dwResultStrOffset;
+  DWORD dwCompReadStrOffset;
+  DWORD dwCompReadAttrOffset;
+  DWORD dwResultReadStrOffset;
+  DWORD dwResultReadAttrOffset;
+} COMPOSITIONSTRING, *PCOMPOSITIONSTRING, NEAR* NPCOMPOSITIONSTRING, FAR* LPCOMPOSITIONSTRING;
+
+typedef struct tagCANDIDATEFORM {
+  DWORD dwIndex;
+  DWORD dwStyle;
+  POINT ptCurrentPos;
+  RECT rcArea;
+} CANDIDATEFORM, *PCANDIDATEFORM, FAR* LPCANDIDATEFORM;
+
+typedef struct tagCOMPOSITIONFORM {
+  DWORD dwStyle;
+  POINT ptCurrentPos;
+  RECT rcArea;
+} COMPOSITIONFORM, *PCOMPOSITIONFORM, FAR* LPCOMPOSITIONFORM;
+
+typedef struct tagINPUTCONTEXT {
+  HWND hWnd;
+  BOOL fOpen;
+  POINT ptStatusWndPos;
+  POINT ptSoftKbdPos;
+  DWORD fdwConversion;
+  DWORD fdwSentence;
+  union {
+    LOGFONT A;
+    LOGFONTW W;
+  } lfFont;
+  COMPOSITIONFORM cfCompForm;
+  CANDIDATEFORM cfCandForm[4];
+  HIMCC hCompStr;
+  HIMCC hCandInfo;
+  HIMCC hGuideLine;
+  HIMCC hPrivate;
+  DWORD dwNumMsgBuf;
+  HIMCC hMsgBuf;
+  DWORD fdwInit;
+  DWORD dwReserve[3];
+} INPUTCONTEXT, *PINPUTCONTEXT, NEAR* NPINPUTCONTEXT, FAR* LPINPUTCONTEXT;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+LPINPUTCONTEXT WINAPI ImmLockIMC(HIMC);
+BOOL WINAPI ImmUnlockIMC(HIMC);
+BOOL WINAPI ImmGetOpenStatus(HIMC);
+BOOL WINAPI ImmSetOpenStatus(HIMC, BOOL);
+HIMCC WINAPI ImmCreateIMCC(DWORD);
+HIMCC WINAPI ImmReSizeIMCC(HIMCC, DWORD);
+LPVOID WINAPI ImmLockIMCC(HIMCC);
+BOOL WINAPI ImmUnlockIMCC(HIMCC);
+HIMCC WINAPI ImmDestroyIMCC(HIMCC);
+BOOL WINAPI ImmGenerateMessage(HIMC);
+#ifdef __cplusplus
+}
+#endif
+
+typedef HKL FAR* LPHKL;
+typedef UINT FAR* LPUINT;

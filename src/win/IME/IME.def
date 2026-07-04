@@ -1,0 +1,11 @@
+LIBRARY
+
+EXPORTS
+                ImeConfigure
+                ImeDestroy
+                ImeInquire
+                ImeProcessKey
+                ImeSelect
+                ImeSetActiveContext
+                ImeToAsciiEx
+                NotifyIME

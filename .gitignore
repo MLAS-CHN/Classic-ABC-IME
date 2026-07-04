@@ -1,5 +1,7 @@
 # Build outputs
 build/
+msbuild/
+output/
 *.o
 *.obj
 *.exe
@@ -17,10 +19,8 @@ tmux_shell
 
 # IDE
 .vs/
-*.vcxproj*
 *.user
 *.suo
-*.sln
 .vscode/
 
 # OS
