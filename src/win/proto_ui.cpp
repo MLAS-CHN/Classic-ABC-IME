@@ -92,9 +92,6 @@ static void Draw9Patch(HDC dc, const RECT& rc) {
 // --- wndproc ---
 static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_ERASEBKGND) {
-        HDC dc = (HDC)w; RECT rc; GetClientRect(hwnd, &rc);
-        HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0));
-        FillRect(dc, &rc, bg); DeleteObject(bg);
         return 1;
     }
     if (msg == WM_PAINT) {
@@ -184,9 +181,6 @@ void ProtoIME::UI::Update() {
 // --- candidate wndproc ---
 static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_ERASEBKGND) {
-        HDC dc = (HDC)w; RECT rc; GetClientRect(hwnd, &rc);
-        HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0));
-        FillRect(dc, &rc, bg); DeleteObject(bg);
         return 1;
     }
     if (msg == WM_PAINT) {
@@ -357,9 +351,6 @@ static int HitTestBtn(POINT pt) {
 static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
     if (msg == WM_ERASEBKGND) {
-        HDC dc = (HDC)w; RECT rc; GetClientRect(hwnd, &rc);
-        HBRUSH bg = CreateSolidBrush(RGB(0xF0, 0xF0, 0xF0));
-        FillRect(dc, &rc, bg); DeleteObject(bg);
         return 1;
     }
     if (msg == WM_SETCURSOR) {
