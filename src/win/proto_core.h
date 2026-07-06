@@ -30,6 +30,11 @@ size_t GetCandidatePage();
 size_t GetTotalPages();
 bool IsDelMode();
 
+void GoFirstPage();
+void GoLastPage();
+void GoNextPage();
+void GoPrevPage();
+
 // Data dir
 void SetDataDir(const wchar_t* dir);
 
@@ -42,6 +47,7 @@ void SetBtnSkin(const NinePatchSkin* skin);
 bool SetBtnIcon(int idx, const wchar_t* path);
 bool SetModeIcon(int idx, const wchar_t* path);
 bool SetLockIcon(const wchar_t* path);
+bool SetNavIcon(int idx, const wchar_t* path);
 void ToggleMode();
 void ToggleLock();
 bool IsLocked();

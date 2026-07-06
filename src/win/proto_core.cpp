@@ -74,6 +74,11 @@ size_t      ProtoIME::GetCandidatePage()      { return ProtoIME::Engine::GetCand
 size_t      ProtoIME::GetTotalPages()         { return ProtoIME::Engine::GetTotalPages(); }
 bool        ProtoIME::IsDelMode()            { return ProtoIME::Engine::IsDelMode(); }
 
+void ProtoIME::GoFirstPage() { ProtoIME::Engine::GoFirstPage(); ProtoIME::UI::UpdateCand(); }
+void ProtoIME::GoLastPage()  { ProtoIME::Engine::GoLastPage();  ProtoIME::UI::UpdateCand(); }
+void ProtoIME::GoNextPage()  { ProtoIME::Engine::GoNextPage();  ProtoIME::UI::UpdateCand(); }
+void ProtoIME::GoPrevPage()  { ProtoIME::Engine::GoPrevPage();  ProtoIME::UI::UpdateCand(); }
+
 void ProtoIME::SetDataDir(const wchar_t* dir) {
     int n = WideCharToMultiByte(CP_UTF8, 0, dir, -1, nullptr, 0, nullptr, nullptr);
     if (n <= 0) return;
@@ -127,6 +132,7 @@ bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::S
 bool ProtoIME::SetModeIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetModeIcon(idx, path); }
 
 bool ProtoIME::SetLockIcon(const wchar_t* path) { return ProtoIME::UI::SetLockIcon(path); }
+bool ProtoIME::SetNavIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetNavIcon(idx, path); }
 
 void ProtoIME::ToggleMode() {
     ProtoIME::Engine::ToggleChineseMode();

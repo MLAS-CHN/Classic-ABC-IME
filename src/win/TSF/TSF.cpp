@@ -160,6 +160,11 @@ void TSF::_InitEngine() {
   ProtoIME::SetModeIcon(2, (_dllDir + L"\\res\\pinyin.png").c_str());
   ProtoIME::SetLockIcon((_dllDir + L"\\res\\ABC_ICON_GRAY.png").c_str());
 
+  ProtoIME::SetNavIcon(0, (_dllDir + L"\\res\\first_page.png").c_str());
+  ProtoIME::SetNavIcon(1, (_dllDir + L"\\res\\last_page.png").c_str());
+  ProtoIME::SetNavIcon(2, (_dllDir + L"\\res\\next_page.png").c_str());
+  ProtoIME::SetNavIcon(3, (_dllDir + L"\\res\\prev_page.png").c_str());
+
   ITfDocumentMgr* pdm = nullptr;
   if (SUCCEEDED(_pThreadMgr->GetFocus(&pdm)) && pdm) {
     ProtoIME::SetFocused(true);

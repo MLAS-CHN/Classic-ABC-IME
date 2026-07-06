@@ -33,5 +33,10 @@ size_t GetTotalPages();
 bool IsChineseMode();
 bool IsDelMode();
 
+void GoFirstPage();
+void GoLastPage();
+void GoNextPage();
+void GoPrevPage();
+
 } // Engine
 } // ProtoIME

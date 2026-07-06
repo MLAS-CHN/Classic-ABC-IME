@@ -35,6 +35,11 @@ static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
 static Gdiplus::Bitmap* g_modeIcons[3] = {}; // 0=capital 1=english 2=pinyin (for button 1)
 static Gdiplus::Bitmap* g_lockIcon = nullptr; // button 0 locked state icon (ABC_ICON_GRAY)
 
+// Candidate nav bar icons (0=first 1=last 2=next 3=prev)
+static Gdiplus::Bitmap* g_navIcons[4] = {};
+static RECT g_navBtnRects[4];
+static const int kNavBtnSize = 13;
+
 // --- test ---
 static const wchar_t kCandClass[] = L"ProtoCandListWnd";
 static HWND  g_candWnd;
@@ -89,7 +94,20 @@ static void Draw9Patch(HDC dc, const RECT& rc) {
     DeleteDC(memDC);
 }
 
-// --- wndproc ---
+// --- candidate nav bar ---
+static void ComputeNavBtnRects(HWND hwnd) {
+    RECT rc; GetClientRect(hwnd, &rc);
+    int count = (int)ProtoIME::GetCandidateCount();
+    int navY = 6 + count * g_fh + 1;
+    int winW = rc.right;
+    int margin = 4;
+    g_navBtnRects[0] = { margin, navY, margin + kNavBtnSize, navY + kNavBtnSize };
+    g_navBtnRects[1] = { margin + kNavBtnSize + 1, navY, margin + kNavBtnSize * 2 + 1, navY + kNavBtnSize };
+    g_navBtnRects[2] = { winW - margin - kNavBtnSize, navY, winW - margin, navY + kNavBtnSize };
+    g_navBtnRects[3] = { winW - margin - kNavBtnSize * 2 - 1, navY, winW - margin - kNavBtnSize - 1, navY + kNavBtnSize };
+}
+
+// --- candidate wndproc ---
 static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_ERASEBKGND) {
         return 1;
@@ -148,6 +166,9 @@ void ProtoIME::UI::Shutdown() {
         if (g_modeIcons[i]) { delete g_modeIcons[i]; g_modeIcons[i] = nullptr; }
     }
     if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
+    for (int i = 0; i < 4; ++i) {
+        if (g_navIcons[i]) { delete g_navIcons[i]; g_navIcons[i] = nullptr; }
+    }
     g_wclass = false;
     g_candClassRegistered = false;
     g_settingsClass = false;
@@ -187,6 +208,20 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_ERASEBKGND) {
         return 1;
     }
+    if (msg == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
+    if (msg == WM_SETCURSOR) {
+        if (LOWORD(l) == HTCLIENT) {
+            POINT pt; GetCursorPos(&pt); ScreenToClient(hwnd, &pt);
+            ComputeNavBtnRects(hwnd);
+            for (int i = 0; i < 4; ++i) {
+                if (PtInRect(&g_navBtnRects[i], pt)) {
+                    SetCursor(LoadCursor(nullptr, IDC_HAND));
+                    return TRUE;
+                }
+            }
+        }
+        return DefWindowProc(hwnd, msg, w, l);
+    }
     if (msg == WM_PAINT) {
         PAINTSTRUCT ps; HDC dc = BeginPaint(hwnd, &ps);
         RECT rc; GetClientRect(hwnd, &rc);
@@ -201,7 +236,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         }
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
-        COLORREF candColor = ProtoIME::IsDelMode() ? RGB(128, 0, 0) : RGB(128, 0, 128);
+        COLORREF candColor = ProtoIME::IsDelMode() ? RGB(255, 0, 0) : RGB(128, 0, 128);
         size_t count = ProtoIME::GetCandidateCount();
         for (size_t i = 0; i < count; ++i) {
             std::wstring text = ProtoIME::GetCandidateText(i);
@@ -210,12 +245,50 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             if (n == 10) n = 0;
             wchar_t num[4]; wsprintfW(num, L"%d:", n);
             SetTextColor(dc, candColor);
-            TextOutW(dc, 6, 6 + (int)i * g_fh, num, (int)wcslen(num));
+            TextOutW(dc, 4, 6 + (int)i * g_fh, num, (int)wcslen(num));
             SetTextColor(dc, candColor);
-            TextOutW(dc, 6 + g_fw * 2 + g_fw/2, 6 + (int)i * g_fh, text.c_str(), (int)text.size());
+            TextOutW(dc, 4 + g_fw * 2, 6 + (int)i * g_fh, text.c_str(), (int)text.size());
+        }
+        // Nav bar
+        ComputeNavBtnRects(hwnd);
+        {
+            Gdiplus::Graphics gfx(dc);
+            for (int i = 0; i < 4; ++i) {
+                if (g_navIcons[i]) {
+                    gfx.DrawImage(g_navIcons[i], g_navBtnRects[i].left, g_navBtnRects[i].top,
+                                  kNavBtnSize, kNavBtnSize);
+                }
+            }
+        }
+        size_t totalPages = ProtoIME::GetTotalPages();
+        if (totalPages > 0) {
+            size_t curPage = ProtoIME::GetCandidatePage();
+            wchar_t pageText[16];
+            wsprintfW(pageText, L"%d/%d", (int)(curPage + 1), (int)totalPages);
+            SetTextColor(dc, RGB(0, 0, 255));
+            int textW = (int)wcslen(pageText) * g_fw;
+            int navY = g_navBtnRects[0].top;
+            int centerX = (rc.right - textW) / 2;
+            TextOutW(dc, centerX, navY, pageText, (int)wcslen(pageText));
         }
         SelectObject(dc, old);
         EndPaint(hwnd, &ps); return 0;
+    }
+    if (msg == WM_LBUTTONDOWN) {
+        POINT pt = { LOWORD(l), HIWORD(l) };
+        ComputeNavBtnRects(hwnd);
+        for (int i = 0; i < 4; ++i) {
+            if (PtInRect(&g_navBtnRects[i], pt)) {
+                switch (i) {
+                    case 0: ProtoIME::GoFirstPage(); break;
+                    case 1: ProtoIME::GoLastPage(); break;
+                    case 2: ProtoIME::GoNextPage(); break;
+                    case 3: ProtoIME::GoPrevPage(); break;
+                }
+                break;
+            }
+        }
+        return 0;
     }
     return DefWindowProc(hwnd, msg, w, l);
 }
@@ -247,7 +320,7 @@ void ProtoIME::UI::UpdateCand() {
     size_t count = ProtoIME::GetCandidateCount();
     if (count == 0) { ShowCand(false); return; }
     ShowCand(true);
-    int h = g_fh * ((int)count + 1) + 4;
+    int h = 6 + (int)count * g_fh + kNavBtnSize + 6;
     if (h < 30) h = 30;
 
     // Position: default to the RIGHT of the input window.
@@ -526,6 +599,13 @@ bool ProtoIME::UI::SetLockIcon(const wchar_t* path) {
     if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
     g_lockIcon = new Gdiplus::Bitmap(path);
     return g_lockIcon->GetLastStatus() == Gdiplus::Ok;
+}
+
+bool ProtoIME::UI::SetNavIcon(int idx, const wchar_t* path) {
+    if (idx < 0 || idx >= 4) return false;
+    if (g_navIcons[idx]) { delete g_navIcons[idx]; g_navIcons[idx] = nullptr; }
+    g_navIcons[idx] = new Gdiplus::Bitmap(path);
+    return g_navIcons[idx]->GetLastStatus() == Gdiplus::Ok;
 }
 
 void ProtoIME::UI::RefreshSettings() {

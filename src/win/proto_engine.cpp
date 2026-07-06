@@ -379,3 +379,20 @@ size_t ProtoIME::Engine::GetCandidatePage()  { return g.page; }
 size_t ProtoIME::Engine::GetTotalPages()     { return g.pages.size(); }
 bool   ProtoIME::Engine::IsChineseMode()     { return g.chinese; }
 bool   ProtoIME::Engine::IsDelMode()         { return g.delmode; }
+
+void ProtoIME::Engine::GoFirstPage() {
+    if (g.pages.empty()) return;
+    g.page = 0; rebuild();
+}
+void ProtoIME::Engine::GoLastPage() {
+    if (g.pages.empty()) return;
+    g.page = g.pages.size() - 1; rebuild();
+}
+void ProtoIME::Engine::GoNextPage() {
+    if (g.pages.empty()) return;
+    if (g.page + 1 < g.pages.size()) { g.page++; rebuild(); }
+}
+void ProtoIME::Engine::GoPrevPage() {
+    if (g.pages.empty()) return;
+    if (g.page > 0) { g.page--; rebuild(); }
+}
