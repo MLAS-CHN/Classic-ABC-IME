@@ -239,8 +239,14 @@ static bool handleCandidateSelect(UINT vk) {
 
 static bool handlePage(UINT vk) {
     if (g.pages.empty()) return false;
-    if (vk == VK_OEM_PLUS && g.page + 1 < g.pages.size()) { g.page++; rebuild(); return true; }
-    if (vk == VK_OEM_MINUS && g.page > 0) { g.page--; rebuild(); return true; }
+    if (vk == VK_OEM_PLUS) {
+        if (g.page + 1 < g.pages.size()) { g.page++; rebuild(); }
+        return true;
+    }
+    if (vk == VK_OEM_MINUS) {
+        if (g.page > 0) { g.page--; rebuild(); }
+        return true;
+    }
     return false;
 }
 

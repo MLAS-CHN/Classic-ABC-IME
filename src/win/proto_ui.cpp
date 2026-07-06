@@ -328,16 +328,24 @@ void ProtoIME::UI::UpdateCand() {
     POINT cp = caret_pos();
     int sw = GetSystemMetrics(SM_CXSCREEN), sh = GetSystemMetrics(SM_CYSCREEN);
 
-    // Horizontal: right of input window (same Y as input), fallback to left
-    int inputL = cp.x;
-    int inputR = cp.x + g_cw;
+    // Horizontal: right of input window, fallback to left (use actual pinyin bar rect)
+    RECT pr; GetWindowRect(g_wnd, &pr);
+    int inputL = pr.left;
+    int inputR = pr.right;
     int x = inputR + 4;                     // right of input
     if (x + g_candW > sw) x = inputL - g_candW - 4; // fallback: left of input
 
-    // Vertical: below caret then upward if needed
-    int inputY = cp.y + g_fh + 4;
-    int y = inputY;                         // below caret
-    if (y + h > sh) y = cp.y - h - 4;   // fallback: above caret
+    // Vertical: try below caret; if candidate doesn't fit, go above (and move pinyin bar up too)
+    int belowY = cp.y + g_fh + 4;
+    int y = belowY;
+    if (y + h > sh) {
+        y = cp.y - h - 4;
+        int pinyinY = cp.y - g_ch - 4;
+        if (pinyinY < 0) pinyinY = 0;
+        RECT pr; GetWindowRect(g_wnd, &pr);
+        SetWindowPos(g_wnd, HWND_TOPMOST, pr.left, pinyinY, 0, 0,
+                     SWP_NOACTIVATE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    }
 
     if (x < 0) x = 0; if (y < 0) y = 0;
     if (x + g_candW > sw) x = sw - g_candW;
