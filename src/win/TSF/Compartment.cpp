@@ -23,15 +23,15 @@ STDAPI CCompartmentEventSink::QueryInterface(REFIID riid,
 }
 
 STDAPI_(ULONG) CCompartmentEventSink::AddRef() {
-  return ++_refCount;
+  return InterlockedIncrement(&_refCount);
 }
 
 STDAPI_(ULONG) CCompartmentEventSink::Release() {
-  LONG cr = --_refCount;
+  LONG cr = InterlockedDecrement(&_refCount);
 
-  assert(_refCount >= 0);
+  assert(cr >= 0);
 
-  if (_refCount == 0) {
+  if (cr == 0) {
     delete this;
   }
 
@@ -191,7 +191,9 @@ void TSF::_UninitCompartment() {
 
 HRESULT TSF::_HandleCompartment(REFGUID guidCompartment) {
   if (IsEqualGUID(guidCompartment, GUID_COMPARTMENT_KEYBOARD_OPENCLOSE)) {
-    _SetKeyboardOpen(true);
+    if (!_IsKeyboardOpen()) {
+      _AbortComposition();
+    }
   }
   return S_OK;
 }

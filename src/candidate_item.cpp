@@ -8,30 +8,11 @@
 #include "util.h"
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include <cstdlib>
 #include <utility>
 
 
-
-static int partition_by_weight_desc(std::vector<CandidateItem>& candidates, int low, int high) {
-    int pivot_weight = candidates[(size_t)high].getWeight();
-    int i = low - 1;
-    for (int j = low; j < high; ++j) {
-        if (candidates[(size_t)j].getWeight() > pivot_weight) {
-            ++i;
-            std::swap(candidates[(size_t)i], candidates[(size_t)j]);
-        }
-    }
-    std::swap(candidates[(size_t)(i + 1)], candidates[(size_t)high]);
-    return i + 1;
-}
-
-static void quick_sort_by_weight_desc_impl(std::vector<CandidateItem>& candidates, int low, int high) {
-    if (low >= high) return;
-    int pivot_index = partition_by_weight_desc(candidates, low, high);
-    quick_sort_by_weight_desc_impl(candidates, low, pivot_index - 1);
-    quick_sort_by_weight_desc_impl(candidates, pivot_index + 1, high);
-}
 
 std::string CandidateItem::toString() const {
     std::string pinyin_csv = join_csv(pinyin_parts_);
@@ -110,6 +91,8 @@ CandidateItem CandidateItem::mergeCandidateItems(const std::vector<CandidateItem
 }
 
 void CandidateItem::quickSortByWeightDesc(std::vector<CandidateItem>& candidates) {
-    if (candidates.empty()) return;
-    quick_sort_by_weight_desc_impl(candidates, 0, (int)candidates.size() - 1);
+    std::sort(candidates.begin(), candidates.end(),
+              [](const CandidateItem& a, const CandidateItem& b) {
+                  return a.getWeight() > b.getWeight();
+              });
 }

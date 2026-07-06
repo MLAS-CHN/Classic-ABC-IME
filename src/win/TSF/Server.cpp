@@ -80,8 +80,14 @@ static void BuildGlobalObjects() {
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppvObject) {
   if (g_classFactory == NULL) {
     EnterCriticalSection(&g_cs);
-    if (g_classFactory == NULL)
-      BuildGlobalObjects();
+    if (g_classFactory == NULL) {
+      try {
+        BuildGlobalObjects();
+      } catch (...) {
+        LeaveCriticalSection(&g_cs);
+        return E_OUTOFMEMORY;
+      }
+    }
     LeaveCriticalSection(&g_cs);
   }
   if (IsEqualIID(riid, IID_IClassFactory) || IsEqualIID(riid, IID_IUnknown)) {

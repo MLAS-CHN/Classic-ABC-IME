@@ -45,12 +45,12 @@ STDAPI TSF::QueryInterface(REFIID riid, void** ppvObject) {
   return E_NOINTERFACE;
 }
 
-STDAPI_(ULONG) TSF::AddRef() { return ++_cRef; }
+STDAPI_(ULONG) TSF::AddRef() { return InterlockedIncrement(&_cRef); }
 
 STDAPI_(ULONG) TSF::Release() {
-  LONG cr = --_cRef;
-  assert(_cRef >= 0);
-  if (_cRef == 0) delete this;
+  LONG cr = InterlockedDecrement(&_cRef);
+  assert(cr >= 0);
+  if (cr == 0) delete this;
   return cr;
 }
 

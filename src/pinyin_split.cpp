@@ -129,7 +129,10 @@ std::string aggressivePinyinSplit(const std::string& input) {
     bool isBacktracked = false;
     SimpleStack snapshot;
 
+    size_t max_iter = input.length() * input.length() + 100;
+    size_t iter = 0;
     while (true) {
+        if (++iter > max_iter) break;
         int start = stack.peekSecond() + 1;
         int len = stack.peek() - stack.peekSecond();
         if (start >= (int)input.length()) break;
@@ -196,7 +199,10 @@ std::string conservativePinyinSplit(const std::string& input) {
     SimpleStack stack;
     stack.push(-1); stack.push(0);
 
+    size_t max_iter = input.length() * input.length() + 100;
+    size_t iter = 0;
     while (true) {
+        if (++iter > max_iter) break;
         int start = stack.peekSecond() + 1;
         int len = stack.peek() - stack.peekSecond();
         if (start >= (int)input.length() || stack.peek() >= (int)input.length()) break;

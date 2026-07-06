@@ -148,6 +148,10 @@ void ProtoIME::UI::Shutdown() {
         if (g_modeIcons[i]) { delete g_modeIcons[i]; g_modeIcons[i] = nullptr; }
     }
     if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
+    g_wclass = false;
+    g_candClassRegistered = false;
+    g_settingsClass = false;
+    if (g_gdiToken) { Gdiplus::GdiplusShutdown(g_gdiToken); g_gdiToken = 0; }
 }
 
 void ProtoIME::UI::Show(bool visible) {

@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 struct KeyInfo {
   UINT repeatCount : 16;
@@ -9,7 +10,7 @@ struct KeyInfo {
   UINT prevKeyState : 1;
   UINT isKeyUp : 1;
 
-  KeyInfo(LPARAM lparam) { *this = *reinterpret_cast<KeyInfo*>(&lparam); }
+  KeyInfo(LPARAM lparam) { memcpy(this, &lparam, sizeof(lparam)); }
 
-  operator UINT32() { return *reinterpret_cast<UINT32*>(this); }
+  operator UINT32() { UINT32 v; memcpy(&v, this, sizeof(v)); return v; }
 };

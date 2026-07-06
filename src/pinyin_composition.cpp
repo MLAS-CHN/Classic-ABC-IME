@@ -158,52 +158,10 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
         return paged_candidates;
     }
 
-    // 1. 获取当前控制台的最大列数
-    int rows = 0, max_cols = 0;
-    get_terminal_size(rows, max_cols);
-
-    // 2. 计算“[中]”占用的列数（4列）
-    int prefix_len = kStatusBarPrefixLen;
-
-    // 3. 将 split_options 第一个方案转为逗号分隔的字符串并计算长度
-    std::string pinyin_str = "";
-    if (!split_options.empty()) {
-        const auto& first_option = split_options[0];
-        for (size_t i = 0; i < first_option.size(); ++i) {
-            pinyin_str += first_option[i];
-            if (i < first_option.size() - 1) pinyin_str += ",";
-        }
-    }
-    int pinyin_len = static_cast<int>(pinyin_str.length());
-
-    // 4. 计算“剩余字符空间” = 最大列数 - [中]占用 - 拼音长度 - 光标长度(1)
-    int cursor_len = kCursorLen;
-    int remaining_space = max_cols - prefix_len - pinyin_len - cursor_len;
-
-    // 5. 按照剩余空间动态拆分数组为二维数组
     size_t current_index = 0;
     while (current_index < flat_candidates.size()) {
         std::vector<CandidateItem> current_page;
-        // 尝试从当前位置开始拿 candidate_page_size 个元素
         int count_to_take = static_cast<int>(std::min(candidate_page_size, flat_candidates.size() - current_index));
-
-        // 循环检测是否超空间，如果超了就减小拿取个数，直到只剩一个为止
-        while (count_to_take > 1) {
-            int total_space_used = 0;
-            for (int i = 0; i < count_to_take; ++i) {
-                const auto& item = flat_candidates[current_index + i];
-                // 占用空间 = 字符个数 * 2 + 2 (上标序号 + 空格)
-                int item_space = static_cast<int>(get_utf8_char_count(item.getText()) * 2 + 2);
-                total_space_used += item_space;
-            }
-
-            if (total_space_used <= remaining_space) {
-                break; // 空间足够
-            }
-            count_to_take--; // 空间不足，减少一个候选词再试
-        }
-
-        // 将确定的候选词放入当前页
         for (int i = 0; i < count_to_take; ++i) {
             current_page.push_back(flat_candidates[current_index++]);
         }

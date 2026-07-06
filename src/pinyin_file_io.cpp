@@ -136,15 +136,17 @@ static void build_index_from_lines(const std::vector<std::string>& lines,
 }
 
 static void persist_lines_to_file(const std::string& file_path, const std::vector<std::string>& lines) {
-    std::ofstream file(file_path, std::ios::trunc);
+    std::string tmp_path = file_path + ".tmp";
+    std::ofstream file(tmp_path, std::ios::trunc);
     if (!file.is_open()) {
-        std::cerr << "Failed to open file for writing: " << file_path << '\n';
+        std::cerr << "Failed to open file for writing: " << tmp_path << '\n';
         return;
     }
     for (const auto& line : lines) {
         file << line << "\n";
     }
     file.close();
+    std::filesystem::rename(tmp_path, file_path);
 }
 
 static void build_user_dict_cache() {

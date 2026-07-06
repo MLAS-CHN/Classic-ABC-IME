@@ -97,19 +97,30 @@ void ProtoIME::FreeSkin(NinePatchSkin& sk) {
     ProtoIME::UI::FreeSkin(ui); sk.hBmp = nullptr;
 }
 
-#define WRAP_SKIN(Fn, UiFn) \
-void ProtoIME::Fn(const NinePatchSkin* sk) { \
-    if (sk) { static ProtoIME::UI::NinePatchSkin ui; \
-        ui.hBmp=sk->hBmp; ui.srcW=sk->srcW; ui.srcH=sk->srcH; \
-        ui.marginL=sk->marginL; ui.marginT=sk->marginT; \
-        ui.marginR=sk->marginR; ui.marginB=sk->marginB; \
-        ProtoIME::UI::UiFn(&ui); \
-    } else ProtoIME::UI::UiFn(nullptr); \
+static ProtoIME::UI::NinePatchSkin g_wrapSkin;
+static ProtoIME::UI::NinePatchSkin g_wrapSettingsSkin;
+static ProtoIME::UI::NinePatchSkin g_wrapBtnSkin;
+
+static void copy_skin(ProtoIME::UI::NinePatchSkin& dst, const ProtoIME::NinePatchSkin& src) {
+    dst.hBmp = src.hBmp; dst.srcW = src.srcW; dst.srcH = src.srcH;
+    dst.marginL = src.marginL; dst.marginT = src.marginT;
+    dst.marginR = src.marginR; dst.marginB = src.marginB;
 }
 
-WRAP_SKIN(SetSkin, SetSkin)
-WRAP_SKIN(SetSettingsSkin, SetSettingsSkin)
-WRAP_SKIN(SetBtnSkin, SetBtnSkin)
+void ProtoIME::SetSkin(const NinePatchSkin* sk) {
+    if (sk) { copy_skin(g_wrapSkin, *sk); ProtoIME::UI::SetSkin(&g_wrapSkin); }
+    else ProtoIME::UI::SetSkin(nullptr);
+}
+
+void ProtoIME::SetSettingsSkin(const NinePatchSkin* sk) {
+    if (sk) { copy_skin(g_wrapSettingsSkin, *sk); ProtoIME::UI::SetSettingsSkin(&g_wrapSettingsSkin); }
+    else ProtoIME::UI::SetSettingsSkin(nullptr);
+}
+
+void ProtoIME::SetBtnSkin(const NinePatchSkin* sk) {
+    if (sk) { copy_skin(g_wrapBtnSkin, *sk); ProtoIME::UI::SetBtnSkin(&g_wrapBtnSkin); }
+    else ProtoIME::UI::SetBtnSkin(nullptr);
+}
 
 bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetBtnIcon(idx, path); }
 

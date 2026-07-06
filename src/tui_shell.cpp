@@ -137,11 +137,11 @@ void reset_terminal() {
     if (cols <= 0) cols = g_cols;
 
     const char* pre = "\033[0m\033[r\033[?25h";
-    write(STDOUT_FILENO, pre, 12);
+    write(STDOUT_FILENO, pre, strlen(pre));
     if (g_use_alternate_screen) {
         const char* exit_alt = "\033[?1049l";
-        write(STDOUT_FILENO, exit_alt, 8);
-        write(STDOUT_FILENO, pre, 12);
+        write(STDOUT_FILENO, exit_alt, strlen(exit_alt));
+        write(STDOUT_FILENO, pre, strlen(pre));
     }
 
     if (rows > 0) {
@@ -160,9 +160,18 @@ void reset_terminal() {
  * @param sig 信号编号。
  */
 void handle_exit_signal(int sig) {
-    write_log("Received exit signal: " + std::to_string(sig), LOG_WARN);
-    reset_terminal();
-    exit(0);
+    (void)sig;
+    const char msg[] = "Received exit signal\n";
+    write(STDERR_FILENO, msg, sizeof(msg) - 1);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    const char* pre = "\033[0m\033[r\033[?25h";
+    write(STDOUT_FILENO, pre, strlen(pre));
+    if (g_use_alternate_screen) {
+        const char* exit_alt = "\033[?1049l";
+        write(STDOUT_FILENO, exit_alt, strlen(exit_alt));
+        write(STDOUT_FILENO, pre, strlen(pre));
+    }
+    _exit(0);
 }
 
 /**

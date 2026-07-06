@@ -6,7 +6,7 @@
 #define CLSID_STRLEN 38  // strlen("{xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx}")
 
 static const char c_szInfoKeyPrefix[] = "CLSID\\";
-static const char c_szTipKeyPrefix[] = "Software\\Microsft\\CTF\\TIP\\";
+static const char c_szTipKeyPrefix[] = "Software\\Microsoft\\CTF\\TIP\\";
 static const char c_szInProcSvr32[] = "InprocServer32";
 static const char c_szModelName[] = "ThreadingModel";
 
@@ -201,14 +201,13 @@ BOOL RegisterServer() {
     return FALSE;
   memcpy(achIMEKey, c_szInfoKeyPrefix, sizeof(c_szInfoKeyPrefix) - 1);
 
-  if (fRet = RegCreateKeyExA(HKEY_CLASSES_ROOT, achIMEKey, 0, NULL,
-                             REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey,
-                             &dw) == ERROR_SUCCESS) {
-    fRet &= RegSetValueExA(hKey, NULL, 0, REG_SZ, (BYTE*)TEXTSERVICE_DESC_A,
-                           sizeof TEXTSERVICE_DESC_A) == ERROR_SUCCESS;
-    if (fRet &=
-        RegCreateKeyExA(hKey, c_szInProcSvr32, 0, NULL, REG_OPTION_NON_VOLATILE,
-                        KEY_WRITE, NULL, &hSubKey, &dw) == ERROR_SUCCESS) {
+  if ((fRet = (RegCreateKeyExA(HKEY_CLASSES_ROOT, achIMEKey, 0, NULL,
+                              REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey,
+                              &dw) == ERROR_SUCCESS)) != FALSE) {
+    fRet &= (RegSetValueExA(hKey, NULL, 0, REG_SZ, (BYTE*)TEXTSERVICE_DESC_A,
+                           sizeof TEXTSERVICE_DESC_A) == ERROR_SUCCESS);
+    if ((fRet &= (RegCreateKeyExA(hKey, c_szInProcSvr32, 0, NULL, REG_OPTION_NON_VOLATILE,
+                        KEY_WRITE, NULL, &hSubKey, &dw) == ERROR_SUCCESS)) != FALSE) {
       dw = GetModuleFileNameA(g_hInst, achFileName, ARRAYSIZE(achFileName));
 
 #ifdef _M_ARM64

@@ -20,7 +20,7 @@ BOOL WINAPI ImeInquire(IMEINFO* lpIMEInfo,
     g_is_winlogon = TRUE;
   }
 
-  wcscpy(lpszUIClass, IME::GetUIClassName());
+  wcsncpy_s(lpszUIClass, 256, IME::GetUIClassName(), _TRUNCATE);
 
   lpIMEInfo->dwPrivateDataSize = 0;
   lpIMEInfo->fdwProperty = IME_PROP_UNICODE | IME_PROP_SPECIAL_UI;

@@ -43,7 +43,12 @@ void get_terminal_size(int &rows, int &cols) {
 void init_logger() {
     auto now = std::chrono::system_clock::now();
     auto now_time = std::chrono::system_clock::to_time_t(now);
-    std::tm tm_now = *std::localtime(&now_time);
+    std::tm tm_now;
+#ifdef _WIN32
+    localtime_s(&tm_now, &now_time);
+#else
+    localtime_r(&now_time, &tm_now);
+#endif
 
     std::ostringstream oss;
     if (!g_log_dir.empty())
@@ -93,7 +98,13 @@ void write_log(const std::string& message, LogLevel level) {
     }
 
     // 写入日志：[2023-04-25 10:00:00.123] [INFO ] Message
-    ofs << "[" << std::put_time(std::localtime(&now_time), "%Y-%m-%d %H:%M:%S") 
+    std::tm tm_log;
+#ifdef _WIN32
+    localtime_s(&tm_log, &now_time);
+#else
+    localtime_r(&now_time, &tm_log);
+#endif
+    ofs << "[" << std::put_time(&tm_log, "%Y-%m-%d %H:%M:%S") 
         << "." << std::setfill('0') << std::setw(3) << ms.count() << "] "
         << "[" << level_str << "] " 
          << message << '\n';

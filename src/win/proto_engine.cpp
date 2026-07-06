@@ -26,6 +26,9 @@ struct State {
     std::vector<CandidateItem> cont;      // continuous input
     bool   contmode = false;
 };
+// NOTE: TSF/IMM is STA (single-threaded apartment) — all key handling,
+// rebuild(), WM_PAINT, and dict cache access run on the same thread.
+// No lock needed for g_comp / g / caches under this threading model.
 static State g;
 static std::wstring g_comp;
 static bool g_shift_pending = false;  // true when Shift was pressed alone (potential tap)
