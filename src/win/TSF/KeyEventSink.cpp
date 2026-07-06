@@ -74,7 +74,6 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
     *pfEaten = TRUE;
     if (_engineReady) {
       UINT vKey = static_cast<UINT>(wParam);
-      ProtoIME::SetFocused(true);
       bool eaten = ProtoIME::OnKeyDown(vKey);
       *pfEaten = eaten ? TRUE : FALSE;
       write_log("TSF: OnKeyDown vk=" + vk_name(vKey) + " eaten=" + (eaten ? "YES" : "no"), LOG_DEBUG);
@@ -83,7 +82,6 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
     _ProcessKeyEvent(wParam, lParam, pfEaten);
     if (*pfEaten && _engineReady) {
       UINT vKey = static_cast<UINT>(wParam);
-      ProtoIME::SetFocused(true);
       bool eaten = ProtoIME::OnKeyDown(vKey);
       *pfEaten = eaten ? TRUE : FALSE;
       write_log("TSF: OnKeyDown(fallback) vk=" + vk_name(vKey) + " eaten=" + (eaten ? "YES" : "no"), LOG_DEBUG);

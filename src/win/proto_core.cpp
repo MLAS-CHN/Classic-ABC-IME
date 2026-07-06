@@ -31,8 +31,6 @@ void ProtoIME::SetFocused(bool f) {
     if (f) {
         if (!ProtoIME::Engine::IsActive())
             ProtoIME::Engine::SetActive(true);
-        else
-            ProtoIME::Engine::ReloadDict();      // other process may have updated
         ProtoIME::UI::ShowSettings(true);
     } else {
         ProtoIME::UI::ShowSettings(false);
