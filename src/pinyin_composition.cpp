@@ -78,14 +78,11 @@ static std::vector<CandidateItem> getAllSuitableCharElements(
 
                     std::string single_char = chars_part.substr(i, step);
                     
-                    // 构造候选元素对象
                     int weight = 1;
-                    CandidateItem weight_probe({pinyin_part}, single_char, 1);
-                    int char_freq_line_number = weight_probe.findSourceLineNumber();
-                    if (char_freq_line_number > 0) {
-                        int read_weight = get_weight_by_line(WeightTargetFile::CharFreq,
-                                                             char_freq_line_number);
-                        if (read_weight > 0) weight = read_weight;
+                    std::string freq_key = pinyin_part + " " + single_char;
+                    auto freq_it = g_char_freq_lookup.find(freq_key);
+                    if (freq_it != g_char_freq_lookup.end()) {
+                        weight = freq_it->second.weight;
                     }
                     CandidateItem item({pinyin_part}, single_char, weight);
                     candidates.push_back(item);

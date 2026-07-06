@@ -13,7 +13,6 @@
 #include <cstdlib>
 #include <filesystem>
 #include <cctype>
-
 static std::string g_data_dir = "";
 
 static std::string join_path(const std::string& dir, const std::string& file) {
@@ -148,6 +147,44 @@ static void persist_lines_to_file(const std::string& file_path, const std::vecto
     file.close();
 }
 
+static void build_user_dict_cache() {
+    g_user_dict_parts.clear();
+    g_user_dict_segcount_map.clear();
+    g_user_dict_lookup.clear();
+
+    g_user_dict_parts.reserve(g_user_dict_lines.size());
+    for (int i = 0; i < (int)g_user_dict_lines.size(); ++i) {
+        const std::string& line = g_user_dict_lines[i];
+        std::string pinyin_csv = get_pinyin_from_line(line);
+        std::vector<std::string> parts = split_csv(pinyin_csv);
+        g_user_dict_parts.push_back(parts);
+        g_user_dict_segcount_map[parts.size()].push_back(i + 1);
+
+        std::istringstream iss(line);
+        std::string py, text;
+        if (iss >> py >> text) {
+            std::string key = py + " " + text;
+            g_user_dict_lookup[key] = i + 1;
+        }
+    }
+}
+
+static void build_char_freq_cache() {
+    g_char_freq_lookup.clear();
+    for (int i = 0; i < (int)g_char_freq_lines.size(); ++i) {
+        const std::string& line = g_char_freq_lines[i];
+        std::istringstream iss(line);
+        std::string py, text, weight_str;
+        if (!(iss >> py >> text)) continue;
+        int weight = 1;
+        if (iss >> weight_str && is_all_digits(weight_str)) {
+            weight = std::stoi(weight_str);
+        }
+        std::string key = py + " " + text;
+        g_char_freq_lookup[key] = {i + 1, weight};
+    }
+}
+
 static void insert_line_keep_ascii_sorted(const std::string& file_path,
                                           const std::string& new_line,
                                           std::vector<std::string>& lines,
@@ -192,6 +229,8 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
               LOG_INFO);
     persist_lines_to_file(file_path, lines);
     build_index_from_lines(lines, index);
+    if (&lines == &g_user_dict_lines) build_user_dict_cache();
+    if (&lines == &g_char_freq_lines) build_char_freq_cache();
 }
 
 /**
@@ -204,6 +243,8 @@ void init_pinyin_data() {
     load_file_and_build_index(get_pinyin_map_file_path(), g_pinyin_map_lines, g_pinyin_map_index);
     load_file_and_build_index(get_user_dict_file_path(), g_user_dict_lines, g_user_dict_index);
     load_file_and_build_index(get_char_freq_file_path(), g_char_freq_lines, g_char_freq_index);
+    build_user_dict_cache();
+    build_char_freq_cache();
 }
 
 void load_file_and_build_index(const std::string& file_path,
@@ -249,6 +290,7 @@ bool delete_user_dict_line(int line_number) {
     g_user_dict_lines.erase(g_user_dict_lines.begin() + idx);
     persist_lines_to_file(get_user_dict_file_path(), g_user_dict_lines);
     build_index_from_lines(g_user_dict_lines, g_user_dict_index);
+    build_user_dict_cache();
     return true;
 }
 
@@ -312,4 +354,6 @@ void increment_weight_by_line(WeightTargetFile target_file, int line_number) {
 
     persist_lines_to_file(file_path, *lines);
     build_index_from_lines(*lines, *index);
+    if (target_file == WeightTargetFile::UserDict) build_user_dict_cache();
+    if (target_file == WeightTargetFile::CharFreq) build_char_freq_cache();
 }

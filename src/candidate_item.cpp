@@ -46,20 +46,16 @@ std::string CandidateItem::getSourceFileName() const {
 }
 
 int CandidateItem::findSourceLineNumber() const {
-    std::string file_path = getSourceFileName();
     std::string pinyin_csv = join_csv(pinyin_parts_);
-    std::string target = pinyin_csv + " " + text_;
+    std::string key = pinyin_csv + " " + text_;
 
-    std::ifstream file(file_path);
-    if (!file.is_open()) return -1;
-
-    std::string line;
-    int line_number = 0;
-    while (std::getline(file, line)) {
-        ++line_number;
-        if (line == target) return line_number;
-        if (line.rfind(target + " ", 0) == 0) return line_number;
+    if (pinyin_parts_.size() == 1) {
+        auto it = g_char_freq_lookup.find(key);
+        if (it != g_char_freq_lookup.end()) return it->second.line_number;
+        return -1;
     }
+    auto it = g_user_dict_lookup.find(key);
+    if (it != g_user_dict_lookup.end()) return it->second;
     return -1;
 }
 

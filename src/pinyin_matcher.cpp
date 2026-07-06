@@ -125,10 +125,6 @@ std::vector<int> find_prefix_match_char(const std::string& pinyin) {
 }
 
 std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pinyin_parts) {
-    /**
-     * 智能词语拼音匹配函数。
-     * 接收拼音分段，返回符合该分段词语的所在行数。完整的，不做舍弃的
-     */
     if (pinyin_parts.empty() || pinyin_parts[0].empty()) return {};
 
     std::vector<int> exact_match_flags;
@@ -139,34 +135,19 @@ std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pin
         exact_match_flags.push_back(match_result > 0 ? 1 : 0);
     }
 
-    // 基于词库首字母索引，先缩小到同首字母的行区间
-    char first_char = pinyin_parts[0][0];
-    int start_line = -1;
-    int end_line = -1;
-    for (const auto& item : g_user_dict_index) {
-        if (item.start_char == (int)first_char) {
-            start_line = item.start_line;
-            end_line = item.end_line;
-            break;
-        }
-    }
-
-    if (start_line == -1) return {};
+    size_t seg_count = pinyin_parts.size();
+    auto it = g_user_dict_segcount_map.find(seg_count);
+    if (it == g_user_dict_segcount_map.end()) return {};
 
     std::vector<int> matched_lines;
-    for (int i = start_line - 1; i <= end_line && i < (int)g_user_dict_lines.size(); ++i) {
-        const std::string& line = g_user_dict_lines[i];
-        std::string target_pinyin_csv = get_pinyin_from_line(line);
-        std::vector<std::string> target_parts = split_csv(target_pinyin_csv);
+    for (int line_num : it->second) {
+        int idx = line_num - 1;
+        if (idx < 0 || idx >= (int)g_user_dict_parts.size()) continue;
+        const std::vector<std::string>& target_parts = g_user_dict_parts[idx];
 
-        // 第一次筛选：分段长度不一致直接跳过
-        if (target_parts.size() != pinyin_parts.size()) continue;
-
-        // 第二次筛选：最小化智能匹配
         if (!minimal_smart_match(pinyin_parts, exact_match_flags, target_parts)) continue;
 
-        // 保留真实行号（1-based）
-        matched_lines.push_back(i + 1);
+        matched_lines.push_back(line_num);
     }
 
     return matched_lines;

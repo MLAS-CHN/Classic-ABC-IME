@@ -75,8 +75,6 @@ static void send_w(const std::wstring& w) {
 // ---- rebuild display and candidates ----
 static void rebuild() {
     if (g.buf.empty()) { g.pages.clear(); g.page = 0; g_comp.clear(); return; }
-    auto opts = splitConservativePinyin(g.buf);
-    g.pages = getAllCandidateElements(opts, kPageSize);
     if (g.page >= g.pages.size() && !g.pages.empty()) g.page = g.pages.size() - 1;
     if (g.pages.empty()) g.page = 0;
     std::string d = buildComposingDisplayText(g.buf, g.cur, g.page, kPageSize, &g.pages);
