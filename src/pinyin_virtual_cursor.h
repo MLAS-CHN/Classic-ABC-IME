@@ -8,8 +8,6 @@
 #include <string>
 #include <cstddef>
 
-#include "util.h"
-
 // 将虚拟光标重置到缓冲区右侧（buffer.length）
 void reset_virtual_cursor_to_end(const std::string& buffer, size_t& virtual_cursor);
 
@@ -27,14 +25,5 @@ bool can_insert_word_separator_at_virtual_cursor(const std::string& buffer, size
 
 // 删除虚拟光标左侧一个字符（Backspace 语义），删除成功返回 true
 bool backspace_at_virtual_cursor(std::string& buffer, size_t& virtual_cursor);
-
-// 检查从偏移处开始是否匹配 Ctrl+Left 序列，匹配时返回 true 并输出消费字节数
-bool match_ctrl_left_sequence(const char* buf, ssize_t total_len, ssize_t offset, ssize_t& consumed_len);
-
-// 检查从偏移处开始是否匹配 Ctrl+Right 序列，匹配时返回 true 并输出消费字节数
-bool match_ctrl_right_sequence(const char* buf, ssize_t total_len, ssize_t offset, ssize_t& consumed_len);
-
-// 检查从偏移处开始是否匹配 Delete 序列，匹配时返回 true 并输出消费字节数
-bool match_delete_sequence(const char* buf, ssize_t total_len, ssize_t offset, ssize_t& consumed_len);
 
 #endif // PINYIN_VIRTUAL_CURSOR_H

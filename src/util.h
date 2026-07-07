@@ -5,17 +5,6 @@
 #include <string>
 #include <vector>
 
-#ifdef _WIN32
-#ifndef _SSIZE_T_DEFINED
-#ifdef _MSC_VER
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#else
-typedef __int64 ssize_t;
-#endif
-#endif
-#endif
-
 /**
  * 日志等级
  */
@@ -26,15 +15,6 @@ enum LogLevel {
     LOG_ERROR
 };
 
-/**
- * 通用工具函数接口
- * 包含与终端交互相关的辅助函数
- */
-
-// 获取当前终端的尺寸（行数和列数）
-// 通过引用参数 rows 和 cols 返回结果
-void get_terminal_size(int &rows, int &cols);
-
 // 写入日志
 // 参数：message - 日志内容，level - 日志等级
 void write_log(const std::string& message, LogLevel level = LOG_INFO);
@@ -42,11 +22,6 @@ void write_log(const std::string& message, LogLevel level = LOG_INFO);
 void init_logger();
 void init_logger_with_dir(const std::string& dir);
 void set_log_level(LogLevel level);
-
-/**
- * 将按键序列转换为可读名称
- */
-std::string get_key_name(const char* buf, ssize_t len);
 
 /**
  * 计算字符串的显示列宽（粗略估算）。

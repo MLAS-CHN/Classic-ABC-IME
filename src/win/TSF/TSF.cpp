@@ -159,6 +159,7 @@ void TSF::_InitEngine() {
   ProtoIME::SetModeIcon(1, (_dllDir + L"\\res\\english.png").c_str());
   ProtoIME::SetModeIcon(2, (_dllDir + L"\\res\\pinyin.png").c_str());
   ProtoIME::SetLockIcon((_dllDir + L"\\res\\ABC_ICON_GRAY.png").c_str());
+  ProtoIME::SetSignEnIcon((_dllDir + L"\\res\\sign_en.png").c_str());
 
   ProtoIME::SetNavIcon(0, (_dllDir + L"\\res\\first_page.png").c_str());
   ProtoIME::SetNavIcon(1, (_dllDir + L"\\res\\last_page.png").c_str());

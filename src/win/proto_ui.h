@@ -33,6 +33,7 @@ bool SetBtnIcon(int idx, const wchar_t* path);  // idx 0~4
 bool SetModeIcon(int idx, const wchar_t* path); // idx 0(capital) 1(english) 2(pinyin)
 void RefreshSettings();
 bool SetLockIcon(const wchar_t* path);
+bool SetSignEnIcon(const wchar_t* path);
 bool SetNavIcon(int idx, const wchar_t* path);  // idx 0=first 1=last 2=next 3=prev
 
 // Skin helpers

@@ -240,6 +240,7 @@ void IME::_InitEngine() {
   ProtoIME::SetModeIcon(1, (_dllDir + L"\\res\\english.png").c_str());
   ProtoIME::SetModeIcon(2, (_dllDir + L"\\res\\pinyin.png").c_str());
   ProtoIME::SetLockIcon((_dllDir + L"\\res\\ABC_ICON_GRAY.png").c_str());
+  ProtoIME::SetSignEnIcon((_dllDir + L"\\res\\sign_en.png").c_str());
 
   _engineReady = true;
 }

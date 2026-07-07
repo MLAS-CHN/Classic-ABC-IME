@@ -1,8 +1,4 @@
 #include "util.h"
-#ifndef _WIN32
-#include <sys/ioctl.h>
-#include <unistd.h>
-#endif
 #include <fstream>
 #include <chrono>
 #include <iomanip>
@@ -11,35 +7,12 @@
 #include <sstream>
 
 static std::string g_log_dir;
-static std::string g_log_file_path = "lite-tty-ime.log";
+static std::string g_log_file_path = "abcime.log";
 static LogLevel g_min_log_level = LOG_INFO;
 
 /**
  * 辅助函数实现
  */
-
-/**
- * 获取当前终端尺寸。
- *
- * @param rows 输出：终端行数。
- * @param cols 输出：终端列数。
- */
-void get_terminal_size(int &rows, int &cols) {
-#ifdef _WIN32
-    rows = 24;
-    cols = 80;
-#else
-    struct winsize ws;
-    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0) {
-        rows = ws.ws_row;
-        cols = ws.ws_col;
-    } else {
-        rows = 24;
-        cols = 80;
-    }
-#endif
-}
-
 void init_logger() {
     auto now = std::chrono::system_clock::now();
     auto now_time = std::chrono::system_clock::to_time_t(now);
@@ -108,71 +81,6 @@ void write_log(const std::string& message, LogLevel level) {
         << "." << std::setfill('0') << std::setw(3) << ms.count() << "] "
         << "[" << level_str << "] " 
          << message << '\n';
-}
-
-/**
- * 将原始按键字节流转为可读键名。
- * 支持普通键、控制键、方向键及常见转义序列。
- *
- * @param buf 原始输入缓冲区。
- * @param len 有效字节数。
- * @return 规范化键名字符串。
- */
-std::string get_key_name(const char* buf, ssize_t len) {
-    if (len <= 0) return "Unknown";
-
-    unsigned char c = (unsigned char)buf[0];
-
-    // 单字节普通按键
-    if (len == 1) {
-        if (c == 0) return "Ctrl+Space"; // 或者叫 NUL
-        if (c == 32) return "Space";
-        if (c == 9) return "Tab";
-        if (c == 13 || c == 10) return "Enter";
-        if (c == 27) return "Escape";
-        if (c == 127 || c == 8) return "Backspace";
-        
-        // Ctrl + A-Z (1-26)
-        if (c >= 1 && c <= 26) {
-            std::string res = "Ctrl+";
-            res += (char)('A' + c - 1);
-            return res;
-        }
-
-        // Ctrl + 其他 (比如 Ctrl+])
-        if (c == 29) return "Ctrl+]";
-
-        // 可打印字符
-        if (c >= 33 && c <= 126) {
-            return std::string(1, (char)c);
-        }
-        
-        char hex[16];
-        sprintf(hex, "Key(0x%02X)", c);
-        return hex;
-    }
-
-    // 多字节序列 (通常是功能键或转义序列)
-    std::string seq(buf, len);
-    if (seq == "\033[A") return "Up";
-    if (seq == "\033[B") return "Down";
-    if (seq == "\033[C") return "Right";
-    if (seq == "\033[D") return "Left";
-    if (seq == "\033[H") return "Home";
-    if (seq == "\033[F") return "End";
-    if (seq == "\033[3~") return "Delete";
-    if (seq == "\033[5~") return "PageUp";
-    if (seq == "\033[6~") return "PageDown";
-
-    // 如果无法识别，返回十六进制
-    std::string hex_str = "Seq(";
-    for (ssize_t i = 0; i < len; ++i) {
-        char h[8];
-        sprintf(h, "%02X ", (unsigned char)buf[i]);
-        hex_str += h;
-    }
-    hex_str.back() = ')';
-    return hex_str;
 }
 
 static bool decode_utf8_codepoint(const std::string& s, size_t offset, uint32_t& codepoint, size_t& step) {

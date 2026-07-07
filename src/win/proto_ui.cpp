@@ -34,6 +34,7 @@ static const ProtoIME::UI::NinePatchSkin* g_btnSkin = nullptr;  // button.png
 static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
 static Gdiplus::Bitmap* g_modeIcons[3] = {}; // 0=capital 1=english 2=pinyin (for button 1)
 static Gdiplus::Bitmap* g_lockIcon = nullptr; // button 0 locked state icon (ABC_ICON_GRAY)
+static Gdiplus::Bitmap* g_signEnIcon = nullptr; // button 3 English/CapsLock variant (sign_en.png)
 
 // Candidate nav bar icons (0=first 1=last 2=next 3=prev)
 static Gdiplus::Bitmap* g_navIcons[4] = {};
@@ -166,6 +167,7 @@ void ProtoIME::UI::Shutdown() {
         if (g_modeIcons[i]) { delete g_modeIcons[i]; g_modeIcons[i] = nullptr; }
     }
     if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
+    if (g_signEnIcon) { delete g_signEnIcon; g_signEnIcon = nullptr; }
     for (int i = 0; i < 4; ++i) {
         if (g_navIcons[i]) { delete g_navIcons[i]; g_navIcons[i] = nullptr; }
     }
@@ -441,7 +443,14 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
     if (msg == WM_SETCURSOR) {
         if (LOWORD(l) == HTCLIENT) {
             POINT pt; GetCursorPos(&pt); ScreenToClient(hwnd, &pt);
-            SetCursor(LoadCursor(nullptr, HitTestBtn(pt) >= 0 ? IDC_HAND : IDC_SIZEALL));
+            int btn = HitTestBtn(pt);
+            // Button 3 (sign) is not clickable — use normal arrow cursor
+            if (btn == 3)
+                SetCursor(LoadCursor(nullptr, IDC_ARROW));
+            else if (btn >= 0)
+                SetCursor(LoadCursor(nullptr, IDC_HAND));
+            else
+                SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
             return TRUE;
         }
         return DefWindowProc(hwnd, msg, w, l);
@@ -473,6 +482,12 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
                     else if (!ProtoIME::Engine::IsChineseMode())
                         mode = 1; // english
                     icon = g_modeIcons[mode];
+                }
+                // Button 3: sign_en icon when not Chinese mode
+                if (i == 3 && g_signEnIcon) {
+                    bool notChinese = (GetKeyState(VK_CAPITAL) & 0x0001) ||
+                                      !ProtoIME::Engine::IsChineseMode();
+                    if (notChinese) icon = g_signEnIcon;
                 }
                 if (!icon) continue;
                 gfx.DrawImage(icon, br.left, br.top,
@@ -607,6 +622,12 @@ bool ProtoIME::UI::SetLockIcon(const wchar_t* path) {
     if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
     g_lockIcon = new Gdiplus::Bitmap(path);
     return g_lockIcon->GetLastStatus() == Gdiplus::Ok;
+}
+
+bool ProtoIME::UI::SetSignEnIcon(const wchar_t* path) {
+    if (g_signEnIcon) { delete g_signEnIcon; g_signEnIcon = nullptr; }
+    g_signEnIcon = new Gdiplus::Bitmap(path);
+    return g_signEnIcon->GetLastStatus() == Gdiplus::Ok;
 }
 
 bool ProtoIME::UI::SetNavIcon(int idx, const wchar_t* path) {

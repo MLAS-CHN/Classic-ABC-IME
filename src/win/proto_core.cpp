@@ -132,6 +132,7 @@ bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::S
 bool ProtoIME::SetModeIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetModeIcon(idx, path); }
 
 bool ProtoIME::SetLockIcon(const wchar_t* path) { return ProtoIME::UI::SetLockIcon(path); }
+bool ProtoIME::SetSignEnIcon(const wchar_t* path) { return ProtoIME::UI::SetSignEnIcon(path); }
 bool ProtoIME::SetNavIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetNavIcon(idx, path); }
 
 void ProtoIME::ToggleMode() {

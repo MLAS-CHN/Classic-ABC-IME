@@ -202,12 +202,27 @@ bool ProtoIME::Engine::TestKey(UINT vk) {
     // CapsLock on: English mode — pass through
     if (GetKeyState(VK_CAPITAL) & 0x0001) return false;
 
-    // Shift or Ctrl held: don't intercept (allows uppercase / shortcuts)
-    if ((GetKeyState(VK_SHIFT) & 0x8000) || (GetKeyState(VK_CONTROL) & 0x8000))
-        return false;
+    bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    bool ctrl  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+
+    // Ctrl held: don't intercept (shortcuts)
+    if (ctrl) return false;
 
     // English mode: pass through all keys
     if (!g.chinese) return false;
+
+    // Chinese punctuation with Shift (only when no pinyin buffer and no candidates)
+    if (shift && g.buf.empty() && g.pages.empty()) {
+        if (vk >= '0' && vk <= '9') return true;
+        if (vk == VK_OEM_3 || vk == VK_OEM_4 || vk == VK_OEM_5 || vk == VK_OEM_6 ||
+            vk == VK_OEM_1 || vk == VK_OEM_2 || vk == VK_OEM_7 ||
+            vk == VK_OEM_PLUS || vk == VK_OEM_MINUS ||
+            vk == VK_OEM_COMMA || vk == VK_OEM_PERIOD || vk == VK_OEM_102)
+            return true;
+    }
+
+    // Shift held (non-punctuation context): don't intercept
+    if (shift) return false;
 
     // Chinese mode: intercept pinyin keys
     if (vk >= 'A' && vk <= 'Z') return true;
@@ -223,10 +238,88 @@ bool ProtoIME::Engine::TestKey(UINT vk) {
         if (vk == VK_OEM_PLUS || vk == VK_OEM_MINUS) return true;
         if (vk == VK_DELETE) return true;
     }
+    // Chinese punctuation without Shift (only when no pinyin buffer and no candidates)
+    if (g.buf.empty() && g.pages.empty()) {
+        if (vk == VK_OEM_3 || vk == VK_OEM_4 || vk == VK_OEM_5 || vk == VK_OEM_6 ||
+            vk == VK_OEM_1 || vk == VK_OEM_2 || vk == VK_OEM_7 ||
+            vk == VK_OEM_COMMA || vk == VK_OEM_PERIOD || vk == VK_OEM_102)
+            return true;
+        // VK_OEM_PLUS/MINUS without shift: + and - → fullwidth + and -
+        if (vk == VK_OEM_PLUS || vk == VK_OEM_MINUS) return true;
+    }
     return false;
 }
 
 // ---- key action helpers ----
+
+// Chinese fullwidth punctuation mapping.
+// shift=false: unshifted symbol; shift=true: shifted symbol.
+// Returns nullptr if the key is not a punctuation key.
+static const char* punct_fullwidth(UINT vk, bool shift) {
+    // Number row (VK '0'-'9'): shifted symbols are punctuation
+    if (vk >= '0' && vk <= '9') {
+        if (!shift) return nullptr; // unshifted digits are not punctuation
+        static const char* numShift[] = {
+            u8"）",  // 0 → )
+            u8"！",  // 1 → !
+            u8"＠",  // 2 → @
+            u8"＃",  // 3 → #
+            u8"￥",  // 4 → ¥
+            u8"％",  // 5 → %
+            u8"……", // 6 → double ellipsis
+            u8"＆",  // 7 → &
+            u8"＊",  // 8 → *
+            u8"（",  // 9 → (
+        };
+        return numShift[vk - '0'];
+    }
+    // OEM keys
+    if (shift) {
+        switch (vk) {
+            case VK_OEM_3:      return u8"～";   // ~ → fullwidth tilde
+            case VK_OEM_4:      return u8"｛";   // { → fullwidth {
+            case VK_OEM_5:      return u8"｜";   // | → fullwidth |
+            case VK_OEM_6:      return u8"｝";   // } → fullwidth }
+            case VK_OEM_1:      return u8"：";   // : → ：
+            case VK_OEM_2:      return u8"？";   // ? → ？
+            case VK_OEM_7:      return u8"“”";  // " → paired double quotes
+            case VK_OEM_PLUS:   return u8"＋";   // + → fullwidth +
+            case VK_OEM_MINUS:  return u8"——";  // _ → double em-dash
+            case VK_OEM_COMMA:  return u8"《";   // < → 《
+            case VK_OEM_PERIOD: return u8"》";   // > → 》
+            case VK_OEM_102:    return u8"｜";   // | → fullwidth |
+        }
+    } else {
+        switch (vk) {
+            case VK_OEM_3:      return u8"·";    // ` → ·
+            case VK_OEM_4:      return u8"【";   // [ → 【
+            case VK_OEM_5:      return u8"、";   // \ → 、
+            case VK_OEM_6:      return u8"】";   // ] → 】
+            case VK_OEM_1:      return u8"；";   // ; → ；
+            case VK_OEM_2:      return u8"／";   // / → fullwidth /
+            case VK_OEM_7:      return u8"‘’";   // ' → paired single quotes
+            case VK_OEM_PLUS:   return u8"＝";   // = → fullwidth =
+            case VK_OEM_MINUS:  return u8"－";   // - → fullwidth -
+            case VK_OEM_COMMA:  return u8"，";   // , → ，
+            case VK_OEM_PERIOD: return u8"。";   // . → 。
+            case VK_OEM_102:    return u8"、";   // <> key → 、
+        }
+    }
+    return nullptr;
+}
+
+static bool handlePunct(UINT vk) {
+    if (!g.buf.empty() || !g.pages.empty()) return false;
+    // Numpad keys always pass through (never convert)
+    if (vk == VK_MULTIPLY || vk == VK_DIVIDE || vk == VK_ADD || vk == VK_SUBTRACT)
+        return false;
+    bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    const char* text = punct_fullwidth(vk, shift);
+    if (!text) return false;
+    send_u8(text);
+    return true;
+}
+
 static bool handleCandidateSelect(UINT vk) {
     if (g.pages.empty()) return false;
     if (vk == VK_SPACE) { send_u8(pick(g.page, 0)); return true; }
@@ -293,14 +386,26 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
         return false;  // not eaten, let system toggle CapsLock
     }
 
-    // CapsLock on, Shift/Ctrl held, or English mode: pass through
-    if ((GetKeyState(VK_CAPITAL) & 0x0001) ||
-        (GetKeyState(VK_SHIFT) & 0x8000) ||
-        (GetKeyState(VK_CONTROL) & 0x8000))
-        return false;
+    // CapsLock on: English mode — pass through
+    if (GetKeyState(VK_CAPITAL) & 0x0001) return false;
+
+    bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    bool ctrl  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+
+    // Ctrl held: pass through (shortcuts)
+    if (ctrl) return false;
+
+    // English mode: pass through all keys
     if (!g.chinese) return false;
 
+    // Chinese punctuation (Shift+symbol keys, when no pinyin buffer and no candidates)
+    if (shift) {
+        if (handlePunct(vk)) return true;
+        return false; // other Shift+key combinations pass through
+    }
+
     // priority: functional keys > pinyin input
+    if (handlePunct(vk))        return true;
     if (handleCandidateSelect(vk)) return true;
     if (handlePage(vk))           return true;
     if (handleDeleteMode(vk))     return true;
