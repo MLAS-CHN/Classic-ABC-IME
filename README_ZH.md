@@ -46,7 +46,7 @@
 ---
 
 项目结构
-
+```
 ├── build.bat                  # 一键编译脚本 (x64 + Win32)
 ├── abcime.sln                 # VS2022 解决方案 (TSF + IME)
 ├── abcime.props               # 共享 MSBuild 属性
@@ -73,11 +73,11 @@
         ├── proto_ui.cpp/.h     # GDI+ UI (候选框 + 设置栏)
         ├── TSF/                # TSF COM 前端
         └── IME/                # IMM32 前端
-
+```
 ---
 
 架构
-
+```
 应用程序 (记事本/控制台/等)
     │
     ├── TSF COM  ───→ abcime.dll
@@ -99,7 +99,7 @@
   │ 候选聚合     │
   │ 词典文件IO   │
   └──────────────┘
-
+```
 ---
 
 使用
