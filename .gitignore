@@ -12,6 +12,8 @@ output/
 *.ilk
 *.pdb
 *.res
+*.ime
+*.log
 
 # Compiled binaries
 lite-tty-ime

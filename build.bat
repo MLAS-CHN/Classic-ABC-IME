@@ -1,5 +1,10 @@
 @echo off
-set "MSBUILD=D:\VisualStudio\MSBuild\Current\Bin\MSBuild.exe"
+where msbuild >nul 2>&1
+if %errorlevel% neq 0 (
+  set "MSBUILD=D:\VisualStudio\MSBuild\Current\Bin\MSBuild.exe"
+) else (
+  set "MSBUILD=msbuild"
+)
 set "SOLUTION=%~dp0abcime.sln"
 
 echo === Building ????ABC (x64) ===
