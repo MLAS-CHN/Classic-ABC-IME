@@ -18,6 +18,10 @@ ClassicABC is a **Windows Chinese pinyin input method** with dual backend suppor
 - **9-patch skinning**: All windows use stretchable PNG skins
 - **x64 + Win32**: Ships both 64-bit and 32-bit builds
 
+## Screenshot
+
+![screenshot](img/screenshot.png)
+
 ---
 
 ## Building
