@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Globals.h"
 
 HINSTANCE g_hInst;
@@ -21,7 +21,7 @@ extern const GUID c_guidProfile = {
     0x4781,
     {0xba, 0x20, 0x1c, 0x92, 0x67, 0x52, 0x94, 0x67}};
 
-#ifdef WEASEL_USING_OLDER_TSF_SDK
+#ifdef ABC_USING_OLDER_TSF_SDK
 
 /* For Windows 8 */
 const GUID GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT = {

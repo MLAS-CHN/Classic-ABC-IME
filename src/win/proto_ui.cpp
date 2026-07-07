@@ -1,4 +1,4 @@
-// proto_ui.cpp - Candidate window UI implementation.
+﻿// proto_ui.cpp - Candidate window UI implementation.
 #include "proto_ui.h"
 #include "proto_engine.h"
 #include "proto_core.h"
@@ -21,7 +21,7 @@ static int   g_fh = 18, g_fw = 9;
 static ULONG_PTR g_gdiToken = 0;
 
 // Skin
-static const ProtoIME::UI::NinePatchSkin* g_skin = nullptr;
+static const ClassicABC::UI::NinePatchSkin* g_skin = nullptr;
 
 // Settings bar
 static const wchar_t kSettingsClass[] = L"ProtoSettingsWnd";
@@ -29,8 +29,8 @@ static HWND  g_settingsWnd = nullptr;
 static bool  g_settingsClass = false;
 static int   g_settingsX = -1, g_settingsY = -1;
 static const int kSettingsW = 127, kSettingsH = 26;
-static const ProtoIME::UI::NinePatchSkin* g_settingsSkin = nullptr;
-static const ProtoIME::UI::NinePatchSkin* g_btnSkin = nullptr;  // button.png
+static const ClassicABC::UI::NinePatchSkin* g_settingsSkin = nullptr;
+static const ClassicABC::UI::NinePatchSkin* g_btnSkin = nullptr;  // button.png
 static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
 static Gdiplus::Bitmap* g_modeIcons[3] = {}; // 0=capital 1=english 2=pinyin (for button 1)
 static Gdiplus::Bitmap* g_lockIcon = nullptr; // button 0 locked state icon (ABC_ICON_GRAY)
@@ -98,7 +98,7 @@ static void Draw9Patch(HDC dc, const RECT& rc) {
 // --- candidate nav bar ---
 static void ComputeNavBtnRects(HWND hwnd) {
     RECT rc; GetClientRect(hwnd, &rc);
-    int count = (int)ProtoIME::GetCandidateCount();
+    int count = (int)ClassicABC::GetCandidateCount();
     int navY = 6 + count * g_fh + 1;
     int winW = rc.right;
     int margin = 4;
@@ -122,7 +122,7 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0)); FillRect(dc, &rc, bg); DeleteObject(bg);
         }
 
-        const auto& s = ProtoIME::Engine::CompStr();
+        const auto& s = ClassicABC::Engine::CompStr();
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
         SetTextColor(dc, RGB(0, 0, 0));
@@ -143,7 +143,7 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
 
 // --- public ---
 
-bool ProtoIME::UI::Init(HINSTANCE hInst, int width, int height) {
+bool ClassicABC::UI::Init(HINSTANCE hInst, int width, int height) {
     g_inst = hInst; g_cw = width; g_ch = height;
 
     if (g_gdiToken == 0) {
@@ -154,7 +154,7 @@ bool ProtoIME::UI::Init(HINSTANCE hInst, int width, int height) {
     return true;
 }
 
-void ProtoIME::UI::Shutdown() {
+void ClassicABC::UI::Shutdown() {
     if (g_wnd) { DestroyWindow(g_wnd); g_wnd = nullptr; }
     if (g_candWnd) { DestroyWindow(g_candWnd); g_candWnd = nullptr; }
     if (g_settingsWnd) { DestroyWindow(g_settingsWnd); g_settingsWnd = nullptr; }
@@ -177,13 +177,13 @@ void ProtoIME::UI::Shutdown() {
     if (g_gdiToken) { Gdiplus::GdiplusShutdown(g_gdiToken); g_gdiToken = 0; }
 }
 
-void ProtoIME::UI::Show(bool visible) {
+void ClassicABC::UI::Show(bool visible) {
     if (g_wnd) ShowWindow(g_wnd, visible ? SW_SHOW : SW_HIDE);
 }
 
-void ProtoIME::UI::Update() {
+void ClassicABC::UI::Update() {
     // Read composition from engine
-    const auto& buf = ProtoIME::Engine::CompStr();
+    const auto& buf = ClassicABC::Engine::CompStr();
     if (buf.empty()) { if (g_wnd) ShowWindow(g_wnd, SW_HIDE); return; }
 
     if (!g_wnd) {
@@ -238,10 +238,10 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         }
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
-        COLORREF candColor = ProtoIME::IsDelMode() ? RGB(255, 0, 0) : RGB(128, 0, 128);
-        size_t count = ProtoIME::GetCandidateCount();
+        COLORREF candColor = ClassicABC::IsDelMode() ? RGB(255, 0, 0) : RGB(128, 0, 128);
+        size_t count = ClassicABC::GetCandidateCount();
         for (size_t i = 0; i < count; ++i) {
-            std::wstring text = ProtoIME::GetCandidateText(i);
+            std::wstring text = ClassicABC::GetCandidateText(i);
             if (text.empty()) continue;
             int n = (int)i + 1;
             if (n == 10) n = 0;
@@ -262,9 +262,9 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
                 }
             }
         }
-        size_t totalPages = ProtoIME::GetTotalPages();
+        size_t totalPages = ClassicABC::GetTotalPages();
         if (totalPages > 0) {
-            size_t curPage = ProtoIME::GetCandidatePage();
+            size_t curPage = ClassicABC::GetCandidatePage();
             wchar_t pageText[16];
             wsprintfW(pageText, L"%d/%d", (int)(curPage + 1), (int)totalPages);
             SetTextColor(dc, RGB(0, 0, 255));
@@ -282,10 +282,10 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         for (int i = 0; i < 4; ++i) {
             if (PtInRect(&g_navBtnRects[i], pt)) {
                 switch (i) {
-                    case 0: ProtoIME::GoFirstPage(); break;
-                    case 1: ProtoIME::GoLastPage(); break;
-                    case 2: ProtoIME::GoNextPage(); break;
-                    case 3: ProtoIME::GoPrevPage(); break;
+                    case 0: ClassicABC::GoFirstPage(); break;
+                    case 1: ClassicABC::GoLastPage(); break;
+                    case 2: ClassicABC::GoNextPage(); break;
+                    case 3: ClassicABC::GoPrevPage(); break;
                 }
                 break;
             }
@@ -295,7 +295,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     return DefWindowProc(hwnd, msg, w, l);
 }
 
-void ProtoIME::UI::ShowCand(bool visible) {
+void ClassicABC::UI::ShowCand(bool visible) {
     if (visible) {
         if (!g_candWnd) {
             write_log("UI: ShowCand creating candidate list window", LOG_DEBUG);
@@ -318,8 +318,8 @@ void ProtoIME::UI::ShowCand(bool visible) {
     }
 }
 
-void ProtoIME::UI::UpdateCand() {
-    size_t count = ProtoIME::GetCandidateCount();
+void ClassicABC::UI::UpdateCand() {
+    size_t count = ClassicABC::GetCandidateCount();
     if (count == 0) { ShowCand(false); return; }
     ShowCand(true);
     int h = 6 + (int)count * g_fh + kNavBtnSize + 6;
@@ -401,7 +401,7 @@ static void InitBtnRects() {
     }
 }
 
-static void DrawPatchAt(HDC dc, int x, int y, int w, int h, const ProtoIME::UI::NinePatchSkin* sk) {
+static void DrawPatchAt(HDC dc, int x, int y, int w, int h, const ClassicABC::UI::NinePatchSkin* sk) {
     if (!sk || !sk->hBmp) return;
     const auto& s = *sk;
     HDC memDC = CreateCompatibleDC(dc);
@@ -471,7 +471,7 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
                 const RECT& br = g_btnRects[i];
                 Gdiplus::Bitmap* icon = g_btnIcons[i];
                 // Button 0: lock icon when locked
-                if (i == 0 && g_lockIcon && ProtoIME::IsLocked()) {
+                if (i == 0 && g_lockIcon && ClassicABC::IsLocked()) {
                     icon = g_lockIcon;
                 }
                 // Button 1: dynamic mode icon (capital/english/pinyin)
@@ -479,14 +479,14 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
                     int mode = 2; // default pinyin
                     if (GetKeyState(VK_CAPITAL) & 0x0001)
                         mode = 0; // capital
-                    else if (!ProtoIME::Engine::IsChineseMode())
+                    else if (!ClassicABC::Engine::IsChineseMode())
                         mode = 1; // english
                     icon = g_modeIcons[mode];
                 }
                 // Button 3: sign_en icon when not Chinese mode
                 if (i == 3 && g_signEnIcon) {
                     bool notChinese = (GetKeyState(VK_CAPITAL) & 0x0001) ||
-                                      !ProtoIME::Engine::IsChineseMode();
+                                      !ClassicABC::Engine::IsChineseMode();
                     if (notChinese) icon = g_signEnIcon;
                 }
                 if (!icon) continue;
@@ -501,11 +501,11 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
         int btnIdx = HitTestBtn(pt);
         if (btnIdx >= 0) {
             if (btnIdx == 0) {
-                ProtoIME::ToggleLock();
+                ClassicABC::ToggleLock();
                 InvalidateRect(hwnd, &g_btnRects[0], TRUE);
             }
             else if (btnIdx == 1) {
-                ProtoIME::ToggleMode();
+                ClassicABC::ToggleMode();
                 InvalidateRect(hwnd, &g_btnRects[1], TRUE);
             }
             return 0;
@@ -537,7 +537,7 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
     return DefWindowProc(hwnd, msg, w, l);
 }
 
-void ProtoIME::UI::ShowSettings(bool visible) {
+void ClassicABC::UI::ShowSettings(bool visible) {
     if (visible) {
         if (!g_settingsWnd) {
             write_log("UI: ShowSettings creating settings window", LOG_DEBUG);
@@ -569,17 +569,17 @@ void ProtoIME::UI::ShowSettings(bool visible) {
     }
 }
 
-void ProtoIME::UI::SetSettingsSkin(const ProtoIME::UI::NinePatchSkin* skin) {
+void ClassicABC::UI::SetSettingsSkin(const ClassicABC::UI::NinePatchSkin* skin) {
     g_settingsSkin = skin;
 }
 
-void ProtoIME::UI::SetBtnSkin(const ProtoIME::UI::NinePatchSkin* skin) {
+void ClassicABC::UI::SetBtnSkin(const ClassicABC::UI::NinePatchSkin* skin) {
     g_btnSkin = skin;
 }
 
 // --- skin ---
 
-bool ProtoIME::UI::LoadSkin(const wchar_t* path, ProtoIME::UI::NinePatchSkin& skin,
+bool ClassicABC::UI::LoadSkin(const wchar_t* path, ClassicABC::UI::NinePatchSkin& skin,
                              int mL, int mT, int mR, int mB) {
     Gdiplus::Bitmap bmp(path);
     if (bmp.GetLastStatus() != Gdiplus::Ok) return false;
@@ -596,48 +596,48 @@ bool ProtoIME::UI::LoadSkin(const wchar_t* path, ProtoIME::UI::NinePatchSkin& sk
     return true;
 }
 
-void ProtoIME::UI::FreeSkin(ProtoIME::UI::NinePatchSkin& skin) {
+void ClassicABC::UI::FreeSkin(ClassicABC::UI::NinePatchSkin& skin) {
     if (skin.hBmp) { DeleteObject(skin.hBmp); skin.hBmp = nullptr; }
 }
 
-void ProtoIME::UI::SetSkin(const ProtoIME::UI::NinePatchSkin* skin) {
+void ClassicABC::UI::SetSkin(const ClassicABC::UI::NinePatchSkin* skin) {
     g_skin = skin;
 }
 
-bool ProtoIME::UI::SetBtnIcon(int idx, const wchar_t* path) {
+bool ClassicABC::UI::SetBtnIcon(int idx, const wchar_t* path) {
     if (idx < 0 || idx >= 5) return false;
     if (g_btnIcons[idx]) { delete g_btnIcons[idx]; g_btnIcons[idx] = nullptr; }
     g_btnIcons[idx] = new Gdiplus::Bitmap(path);
     return g_btnIcons[idx]->GetLastStatus() == Gdiplus::Ok;
 }
 
-bool ProtoIME::UI::SetModeIcon(int idx, const wchar_t* path) {
+bool ClassicABC::UI::SetModeIcon(int idx, const wchar_t* path) {
     if (idx < 0 || idx >= 3) return false;
     if (g_modeIcons[idx]) { delete g_modeIcons[idx]; g_modeIcons[idx] = nullptr; }
     g_modeIcons[idx] = new Gdiplus::Bitmap(path);
     return g_modeIcons[idx]->GetLastStatus() == Gdiplus::Ok;
 }
 
-bool ProtoIME::UI::SetLockIcon(const wchar_t* path) {
+bool ClassicABC::UI::SetLockIcon(const wchar_t* path) {
     if (g_lockIcon) { delete g_lockIcon; g_lockIcon = nullptr; }
     g_lockIcon = new Gdiplus::Bitmap(path);
     return g_lockIcon->GetLastStatus() == Gdiplus::Ok;
 }
 
-bool ProtoIME::UI::SetSignEnIcon(const wchar_t* path) {
+bool ClassicABC::UI::SetSignEnIcon(const wchar_t* path) {
     if (g_signEnIcon) { delete g_signEnIcon; g_signEnIcon = nullptr; }
     g_signEnIcon = new Gdiplus::Bitmap(path);
     return g_signEnIcon->GetLastStatus() == Gdiplus::Ok;
 }
 
-bool ProtoIME::UI::SetNavIcon(int idx, const wchar_t* path) {
+bool ClassicABC::UI::SetNavIcon(int idx, const wchar_t* path) {
     if (idx < 0 || idx >= 4) return false;
     if (g_navIcons[idx]) { delete g_navIcons[idx]; g_navIcons[idx] = nullptr; }
     g_navIcons[idx] = new Gdiplus::Bitmap(path);
     return g_navIcons[idx]->GetLastStatus() == Gdiplus::Ok;
 }
 
-void ProtoIME::UI::RefreshSettings() {
+void ClassicABC::UI::RefreshSettings() {
     if (g_settingsWnd)
         InvalidateRect(g_settingsWnd, nullptr, TRUE);
 }

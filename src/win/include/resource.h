@@ -1,4 +1,4 @@
-#define IDI_WEASEL                      100
+﻿#define IDI_ABC_ICON                      100
 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

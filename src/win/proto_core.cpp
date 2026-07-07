@@ -1,85 +1,85 @@
-// proto_core.cpp - Thin coordinator: wires Engine + UI together.
+﻿// proto_core.cpp - Thin coordinator: wires Engine + UI together.
 #include "proto_core.h"
 #include "proto_engine.h"
 #include "proto_ui.h"
 #include "../pinyin_file_io.h"
 #include "../util.h"
 
-bool ProtoIME::Initialize(HINSTANCE h) {
-    ProtoIME::Engine::Init();
-    return ProtoIME::UI::Init(h, 163, 26);
+bool ClassicABC::Initialize(HINSTANCE h) {
+    ClassicABC::Engine::Init();
+    return ClassicABC::UI::Init(h, 163, 26);
 }
 
-void ProtoIME::Shutdown() {
-    ProtoIME::UI::Shutdown();
+void ClassicABC::Shutdown() {
+    ClassicABC::UI::Shutdown();
 }
 
-void ProtoIME::SetActive(bool a) {
+void ClassicABC::SetActive(bool a) {
     write_log("ProtoCore: SetActive(" + std::string(a ? "true" : "false") + ")", LOG_DEBUG);
-    ProtoIME::Engine::SetActive(a);
+    ClassicABC::Engine::SetActive(a);
     if (!a) {
-        ProtoIME::UI::Show(false);
-        ProtoIME::UI::ShowSettings(false);
-        ProtoIME::UI::ShowCand(false);
+        ClassicABC::UI::Show(false);
+        ClassicABC::UI::ShowSettings(false);
+        ClassicABC::UI::ShowCand(false);
     }
 }
 
-bool ProtoIME::IsActive() { return ProtoIME::Engine::IsActive(); }
+bool ClassicABC::IsActive() { return ClassicABC::Engine::IsActive(); }
 
-void ProtoIME::SetFocused(bool f) {
-    write_log("ProtoCore: SetFocused(" + std::string(f ? "true" : "false") + ") active=" + std::to_string(ProtoIME::Engine::IsActive()), LOG_DEBUG);
+void ClassicABC::SetFocused(bool f) {
+    write_log("ProtoCore: SetFocused(" + std::string(f ? "true" : "false") + ") active=" + std::to_string(ClassicABC::Engine::IsActive()), LOG_DEBUG);
     if (f) {
-        if (!ProtoIME::Engine::IsActive())
-            ProtoIME::Engine::SetActive(true);
-        ProtoIME::UI::ShowSettings(true);
+        if (!ClassicABC::Engine::IsActive())
+            ClassicABC::Engine::SetActive(true);
+        ClassicABC::UI::ShowSettings(true);
     } else {
-        ProtoIME::UI::ShowSettings(false);
-        ProtoIME::Engine::SetActive(false);
-        ProtoIME::UI::Show(false);
-        ProtoIME::UI::ShowCand(false);
+        ClassicABC::UI::ShowSettings(false);
+        ClassicABC::Engine::SetActive(false);
+        ClassicABC::UI::Show(false);
+        ClassicABC::UI::ShowCand(false);
     }
 }
 
-bool ProtoIME::TestKeyDown(UINT vk) { return ProtoIME::Engine::TestKey(vk); }
+bool ClassicABC::TestKeyDown(UINT vk) { return ClassicABC::Engine::TestKey(vk); }
 
-bool ProtoIME::OnKeyDown(UINT vk) {
-    bool eaten = ProtoIME::Engine::ProcessKey(vk);
+bool ClassicABC::OnKeyDown(UINT vk) {
+    bool eaten = ClassicABC::Engine::ProcessKey(vk);
     if (eaten) {
-        ProtoIME::UI::Update();
-        ProtoIME::UI::UpdateCand();
+        ClassicABC::UI::Update();
+        ClassicABC::UI::UpdateCand();
     }
     // Also hide windows if buffer was flushed (CapsLock, etc.)
-    if (!eaten && ProtoIME::Engine::CompStr().empty())
-        { ProtoIME::UI::Show(false); ProtoIME::UI::ShowCand(false); }
-    ProtoIME::UI::RefreshSettings();
+    if (!eaten && ClassicABC::Engine::CompStr().empty())
+        { ClassicABC::UI::Show(false); ClassicABC::UI::ShowCand(false); }
+    ClassicABC::UI::RefreshSettings();
     return eaten;
 }
 
-bool ProtoIME::OnKeyUp(UINT vk) {
+bool ClassicABC::OnKeyUp(UINT vk) {
     if (vk == VK_SHIFT || vk == VK_LSHIFT || vk == VK_RSHIFT) {
-        bool eaten = ProtoIME::Engine::ProcessShiftTap();
-        ProtoIME::UI::Update();
-        ProtoIME::UI::UpdateCand();
-        ProtoIME::UI::RefreshSettings();
+        bool eaten = ClassicABC::Engine::ProcessShiftTap();
+        ClassicABC::UI::Update();
+        ClassicABC::UI::UpdateCand();
+        ClassicABC::UI::RefreshSettings();
         return eaten;
     }
     return false;
 }
 
-const std::wstring& ProtoIME::GetCompositionString() { return ProtoIME::Engine::CompStr(); }
+const std::wstring& ClassicABC::GetCompositionString() { return ClassicABC::Engine::CompStr(); }
 
-size_t      ProtoIME::GetCandidateCount()     { return ProtoIME::Engine::GetCandidateCount(); }
-std::wstring ProtoIME::GetCandidateText(size_t i) { return ProtoIME::Engine::GetCandidateText(i); }
-size_t      ProtoIME::GetCandidatePage()      { return ProtoIME::Engine::GetCandidatePage(); }
-size_t      ProtoIME::GetTotalPages()         { return ProtoIME::Engine::GetTotalPages(); }
-bool        ProtoIME::IsDelMode()            { return ProtoIME::Engine::IsDelMode(); }
+size_t      ClassicABC::GetCandidateCount()     { return ClassicABC::Engine::GetCandidateCount(); }
+std::wstring ClassicABC::GetCandidateText(size_t i) { return ClassicABC::Engine::GetCandidateText(i); }
+size_t      ClassicABC::GetCandidatePage()      { return ClassicABC::Engine::GetCandidatePage(); }
+size_t      ClassicABC::GetTotalPages()         { return ClassicABC::Engine::GetTotalPages(); }
+bool        ClassicABC::IsDelMode()            { return ClassicABC::Engine::IsDelMode(); }
 
-void ProtoIME::GoFirstPage() { ProtoIME::Engine::GoFirstPage(); ProtoIME::UI::UpdateCand(); }
-void ProtoIME::GoLastPage()  { ProtoIME::Engine::GoLastPage();  ProtoIME::UI::UpdateCand(); }
-void ProtoIME::GoNextPage()  { ProtoIME::Engine::GoNextPage();  ProtoIME::UI::UpdateCand(); }
-void ProtoIME::GoPrevPage()  { ProtoIME::Engine::GoPrevPage();  ProtoIME::UI::UpdateCand(); }
+void ClassicABC::GoFirstPage() { ClassicABC::Engine::GoFirstPage(); ClassicABC::UI::UpdateCand(); }
+void ClassicABC::GoLastPage()  { ClassicABC::Engine::GoLastPage();  ClassicABC::UI::UpdateCand(); }
+void ClassicABC::GoNextPage()  { ClassicABC::Engine::GoNextPage();  ClassicABC::UI::UpdateCand(); }
+void ClassicABC::GoPrevPage()  { ClassicABC::Engine::GoPrevPage();  ClassicABC::UI::UpdateCand(); }
 
-void ProtoIME::SetDataDir(const wchar_t* dir) {
+void ClassicABC::SetDataDir(const wchar_t* dir) {
     int n = WideCharToMultiByte(CP_UTF8, 0, dir, -1, nullptr, 0, nullptr, nullptr);
     if (n <= 0) return;
     std::string s((size_t)(n - 1), '\0');
@@ -88,71 +88,71 @@ void ProtoIME::SetDataDir(const wchar_t* dir) {
 }
 
 // --- Skin wrappers ---
-bool ProtoIME::LoadSkinFromFile(const wchar_t* path, NinePatchSkin& sk, int mL, int mT, int mR, int mB) {
-    ProtoIME::UI::NinePatchSkin ui;
-    if (!ProtoIME::UI::LoadSkin(path, ui, mL, mT, mR, mB)) return false;
+bool ClassicABC::LoadSkinFromFile(const wchar_t* path, NinePatchSkin& sk, int mL, int mT, int mR, int mB) {
+    ClassicABC::UI::NinePatchSkin ui;
+    if (!ClassicABC::UI::LoadSkin(path, ui, mL, mT, mR, mB)) return false;
     sk.hBmp = ui.hBmp; sk.srcW = ui.srcW; sk.srcH = ui.srcH;
     sk.marginL = ui.marginL; sk.marginT = ui.marginT;
     sk.marginR = ui.marginR; sk.marginB = ui.marginB;
     return true;
 }
 
-void ProtoIME::FreeSkin(NinePatchSkin& sk) {
-    ProtoIME::UI::NinePatchSkin ui; ui.hBmp = sk.hBmp;
-    ProtoIME::UI::FreeSkin(ui); sk.hBmp = nullptr;
+void ClassicABC::FreeSkin(NinePatchSkin& sk) {
+    ClassicABC::UI::NinePatchSkin ui; ui.hBmp = sk.hBmp;
+    ClassicABC::UI::FreeSkin(ui); sk.hBmp = nullptr;
 }
 
-static ProtoIME::UI::NinePatchSkin g_wrapSkin;
-static ProtoIME::UI::NinePatchSkin g_wrapSettingsSkin;
-static ProtoIME::UI::NinePatchSkin g_wrapBtnSkin;
+static ClassicABC::UI::NinePatchSkin g_wrapSkin;
+static ClassicABC::UI::NinePatchSkin g_wrapSettingsSkin;
+static ClassicABC::UI::NinePatchSkin g_wrapBtnSkin;
 
-static void copy_skin(ProtoIME::UI::NinePatchSkin& dst, const ProtoIME::NinePatchSkin& src) {
+static void copy_skin(ClassicABC::UI::NinePatchSkin& dst, const ClassicABC::NinePatchSkin& src) {
     dst.hBmp = src.hBmp; dst.srcW = src.srcW; dst.srcH = src.srcH;
     dst.marginL = src.marginL; dst.marginT = src.marginT;
     dst.marginR = src.marginR; dst.marginB = src.marginB;
 }
 
-void ProtoIME::SetSkin(const NinePatchSkin* sk) {
-    if (sk) { copy_skin(g_wrapSkin, *sk); ProtoIME::UI::SetSkin(&g_wrapSkin); }
-    else ProtoIME::UI::SetSkin(nullptr);
+void ClassicABC::SetSkin(const NinePatchSkin* sk) {
+    if (sk) { copy_skin(g_wrapSkin, *sk); ClassicABC::UI::SetSkin(&g_wrapSkin); }
+    else ClassicABC::UI::SetSkin(nullptr);
 }
 
-void ProtoIME::SetSettingsSkin(const NinePatchSkin* sk) {
-    if (sk) { copy_skin(g_wrapSettingsSkin, *sk); ProtoIME::UI::SetSettingsSkin(&g_wrapSettingsSkin); }
-    else ProtoIME::UI::SetSettingsSkin(nullptr);
+void ClassicABC::SetSettingsSkin(const NinePatchSkin* sk) {
+    if (sk) { copy_skin(g_wrapSettingsSkin, *sk); ClassicABC::UI::SetSettingsSkin(&g_wrapSettingsSkin); }
+    else ClassicABC::UI::SetSettingsSkin(nullptr);
 }
 
-void ProtoIME::SetBtnSkin(const NinePatchSkin* sk) {
-    if (sk) { copy_skin(g_wrapBtnSkin, *sk); ProtoIME::UI::SetBtnSkin(&g_wrapBtnSkin); }
-    else ProtoIME::UI::SetBtnSkin(nullptr);
+void ClassicABC::SetBtnSkin(const NinePatchSkin* sk) {
+    if (sk) { copy_skin(g_wrapBtnSkin, *sk); ClassicABC::UI::SetBtnSkin(&g_wrapBtnSkin); }
+    else ClassicABC::UI::SetBtnSkin(nullptr);
 }
 
-bool ProtoIME::SetBtnIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetBtnIcon(idx, path); }
+bool ClassicABC::SetBtnIcon(int idx, const wchar_t* path) { return ClassicABC::UI::SetBtnIcon(idx, path); }
 
-bool ProtoIME::SetModeIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetModeIcon(idx, path); }
+bool ClassicABC::SetModeIcon(int idx, const wchar_t* path) { return ClassicABC::UI::SetModeIcon(idx, path); }
 
-bool ProtoIME::SetLockIcon(const wchar_t* path) { return ProtoIME::UI::SetLockIcon(path); }
-bool ProtoIME::SetSignEnIcon(const wchar_t* path) { return ProtoIME::UI::SetSignEnIcon(path); }
-bool ProtoIME::SetNavIcon(int idx, const wchar_t* path) { return ProtoIME::UI::SetNavIcon(idx, path); }
+bool ClassicABC::SetLockIcon(const wchar_t* path) { return ClassicABC::UI::SetLockIcon(path); }
+bool ClassicABC::SetSignEnIcon(const wchar_t* path) { return ClassicABC::UI::SetSignEnIcon(path); }
+bool ClassicABC::SetNavIcon(int idx, const wchar_t* path) { return ClassicABC::UI::SetNavIcon(idx, path); }
 
-void ProtoIME::ToggleMode() {
-    ProtoIME::Engine::ToggleChineseMode();
-    ProtoIME::UI::Update();
-    ProtoIME::UI::UpdateCand();
-    ProtoIME::UI::RefreshSettings();
+void ClassicABC::ToggleMode() {
+    ClassicABC::Engine::ToggleChineseMode();
+    ClassicABC::UI::Update();
+    ClassicABC::UI::UpdateCand();
+    ClassicABC::UI::RefreshSettings();
 }
 
-void ProtoIME::ToggleLock() {
-    ProtoIME::Engine::ToggleLock();
-    ProtoIME::UI::Update();
-    ProtoIME::UI::UpdateCand();
-    ProtoIME::UI::RefreshSettings();
+void ClassicABC::ToggleLock() {
+    ClassicABC::Engine::ToggleLock();
+    ClassicABC::UI::Update();
+    ClassicABC::UI::UpdateCand();
+    ClassicABC::UI::RefreshSettings();
 }
 
-bool ProtoIME::IsLocked() { return ProtoIME::Engine::IsLocked(); }
+bool ClassicABC::IsLocked() { return ClassicABC::Engine::IsLocked(); }
 
-bool ProtoIME::FlushPendingAndHideUI() {
-    bool flushed = ProtoIME::Engine::FlushPending();
-    if (flushed) { ProtoIME::UI::Show(false); ProtoIME::UI::ShowCand(false); }
+bool ClassicABC::FlushPendingAndHideUI() {
+    bool flushed = ClassicABC::Engine::FlushPending();
+    if (flushed) { ClassicABC::UI::Show(false); ClassicABC::UI::ShowCand(false); }
     return flushed;
 }

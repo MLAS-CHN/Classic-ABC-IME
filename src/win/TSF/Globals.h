@@ -1,9 +1,9 @@
-/* Global definitions */
+﻿/* Global definitions */
 #pragma once
 
 #include "stdafx.h"
 
-#define WEASEL_CODE_NAME "SmartABC"
+#define ABC_CODE_NAME "ClassicABC"
 
 #define TEXTSERVICE_LANGID_HANT \
   MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL)
@@ -15,7 +15,7 @@
 #define TEXTSERVICE_LANGID_HANS \
   MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED)
 
-#define TEXTSERVICE_DESC_A WEASEL_CODE_NAME
+#define TEXTSERVICE_DESC_A ABC_CODE_NAME
 #define TEXTSERVICE_MODEL "Apartment"
 
 #define TEXTSERVICE_ICON_INDEX 0
@@ -35,7 +35,7 @@ extern const GUID c_guidProfile;
 
 #ifndef TF_IPP_CAPS_IMMERSIVESUPPORT
 
-#define WEASEL_USING_OLDER_TSF_SDK
+#define ABC_USING_OLDER_TSF_SDK
 
 /* for Windows 8 */
 #define TF_TMF_IMMERSIVEMODE 0x40000000

@@ -1,8 +1,8 @@
-//{{NO_DEPENDENCIES}}
+﻿//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by IME.rc
 //
-#define IDI_WEASEL                      101
+#define IDI_ABC_ICON                      101
 
 // Next default values for new objects
 // 

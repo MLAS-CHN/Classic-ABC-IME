@@ -103,7 +103,7 @@ void TSF::_InitEngine() {
     wchar_t pDataDir[MAX_PATH] = {0};
     DWORD len = GetEnvironmentVariableW(L"ProgramData", pDataDir, MAX_PATH);
     if (len > 0) {
-      std::wstring fallback = std::wstring(pDataDir) + L"\\ProtoIME";
+      std::wstring fallback = std::wstring(pDataDir) + L"\\ClassicABC";
       if (GetFileAttributesW((fallback + L"\\data").c_str()) != INVALID_FILE_ATTRIBUTES)
         _dllDir = fallback;
     }
@@ -125,50 +125,50 @@ void TSF::_InitEngine() {
 
   std::wstring dataPath = _dllDir + L"\\data";
   if (GetFileAttributesW((dataPath + L"\\pinyin_map.txt").c_str()) == INVALID_FILE_ATTRIBUTES) {
-    MessageBoxW(NULL, (L"找不到词库文件！\n请将 data 目录放在 DLL 同级目录或 %ProgramData%\\ProtoIME\\data 下。\n\nDLL 目录: " + _dllDir).c_str(),
-                L"智能ABC - 错误", MB_OK | MB_ICONERROR);
+    MessageBoxW(NULL, (L"找不到词库文件！\n请将 data 目录放在 DLL 同级目录或 %ProgramData%\\ClassicABC\\data 下。\n\nDLL 目录: " + _dllDir).c_str(),
+                L"经典ABC - 错误", MB_OK | MB_ICONERROR);
     return;
   }
 
   std::wstring skinPath = _dllDir + L"\\res\\shadow.png";
   if (GetFileAttributesW(skinPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
-    MessageBoxW(NULL, (L"找不到皮肤文件！\n请将 res 目录放在 DLL 同级目录或 %ProgramData%\\ProtoIME\\res 下。\n\nDLL 目录: " + _dllDir).c_str(),
-                L"智能ABC - 错误", MB_OK | MB_ICONERROR);
+    MessageBoxW(NULL, (L"找不到皮肤文件！\n请将 res 目录放在 DLL 同级目录或 %ProgramData%\\ClassicABC\\res 下。\n\nDLL 目录: " + _dllDir).c_str(),
+                L"经典ABC - 错误", MB_OK | MB_ICONERROR);
     return;
   }
 
-  ProtoIME::SetDataDir(dataPath.c_str());
-  ProtoIME::Initialize(g_hInst);
-  ProtoIME::SetActive(true);
-  write_log("TSF: ProtoIME initialized", LOG_INFO);
+  ClassicABC::SetDataDir(dataPath.c_str());
+  ClassicABC::Initialize(g_hInst);
+  ClassicABC::SetActive(true);
+  write_log("TSF: ClassicABC initialized", LOG_INFO);
 
-  if (ProtoIME::LoadSkinFromFile(skinPath.c_str(), _skin, 4, 4, 4, 4))
-    ProtoIME::SetSkin(&_skin);
+  if (ClassicABC::LoadSkinFromFile(skinPath.c_str(), _skin, 4, 4, 4, 4))
+    ClassicABC::SetSkin(&_skin);
   std::wstring commonPath = _dllDir + L"\\res\\common.png";
-  if (ProtoIME::LoadSkinFromFile(commonPath.c_str(), _settingsSkin, 2, 2, 2, 2))
-    ProtoIME::SetSettingsSkin(&_settingsSkin);
+  if (ClassicABC::LoadSkinFromFile(commonPath.c_str(), _settingsSkin, 2, 2, 2, 2))
+    ClassicABC::SetSettingsSkin(&_settingsSkin);
   std::wstring btnPath = _dllDir + L"\\res\\button.png";
-  if (ProtoIME::LoadSkinFromFile(btnPath.c_str(), _btnSkin, 2, 2, 2, 2))
-    ProtoIME::SetBtnSkin(&_btnSkin);
+  if (ClassicABC::LoadSkinFromFile(btnPath.c_str(), _btnSkin, 2, 2, 2, 2))
+    ClassicABC::SetBtnSkin(&_btnSkin);
 
-  ProtoIME::SetBtnIcon(0, (_dllDir + L"\\res\\ABC_ICON.png").c_str());
-  ProtoIME::SetBtnIcon(2, (_dllDir + L"\\res\\half.png").c_str());
-  ProtoIME::SetBtnIcon(3, (_dllDir + L"\\res\\sign.png").c_str());
-  ProtoIME::SetBtnIcon(4, (_dllDir + L"\\res\\keyboard.png").c_str());
-  ProtoIME::SetModeIcon(0, (_dllDir + L"\\res\\capital.png").c_str());
-  ProtoIME::SetModeIcon(1, (_dllDir + L"\\res\\english.png").c_str());
-  ProtoIME::SetModeIcon(2, (_dllDir + L"\\res\\pinyin.png").c_str());
-  ProtoIME::SetLockIcon((_dllDir + L"\\res\\ABC_ICON_GRAY.png").c_str());
-  ProtoIME::SetSignEnIcon((_dllDir + L"\\res\\sign_en.png").c_str());
+  ClassicABC::SetBtnIcon(0, (_dllDir + L"\\res\\ABC_ICON.png").c_str());
+  ClassicABC::SetBtnIcon(2, (_dllDir + L"\\res\\half.png").c_str());
+  ClassicABC::SetBtnIcon(3, (_dllDir + L"\\res\\sign.png").c_str());
+  ClassicABC::SetBtnIcon(4, (_dllDir + L"\\res\\keyboard.png").c_str());
+  ClassicABC::SetModeIcon(0, (_dllDir + L"\\res\\capital.png").c_str());
+  ClassicABC::SetModeIcon(1, (_dllDir + L"\\res\\english.png").c_str());
+  ClassicABC::SetModeIcon(2, (_dllDir + L"\\res\\pinyin.png").c_str());
+  ClassicABC::SetLockIcon((_dllDir + L"\\res\\ABC_ICON_GRAY.png").c_str());
+  ClassicABC::SetSignEnIcon((_dllDir + L"\\res\\sign_en.png").c_str());
 
-  ProtoIME::SetNavIcon(0, (_dllDir + L"\\res\\first_page.png").c_str());
-  ProtoIME::SetNavIcon(1, (_dllDir + L"\\res\\last_page.png").c_str());
-  ProtoIME::SetNavIcon(2, (_dllDir + L"\\res\\next_page.png").c_str());
-  ProtoIME::SetNavIcon(3, (_dllDir + L"\\res\\prev_page.png").c_str());
+  ClassicABC::SetNavIcon(0, (_dllDir + L"\\res\\first_page.png").c_str());
+  ClassicABC::SetNavIcon(1, (_dllDir + L"\\res\\last_page.png").c_str());
+  ClassicABC::SetNavIcon(2, (_dllDir + L"\\res\\next_page.png").c_str());
+  ClassicABC::SetNavIcon(3, (_dllDir + L"\\res\\prev_page.png").c_str());
 
   ITfDocumentMgr* pdm = nullptr;
   if (SUCCEEDED(_pThreadMgr->GetFocus(&pdm)) && pdm) {
-    ProtoIME::SetFocused(true);
+    ClassicABC::SetFocused(true);
     pdm->Release();
   }
 
@@ -177,25 +177,25 @@ void TSF::_InitEngine() {
 
 void TSF::_ShutdownEngine() {
   if (!_engineReady) return;
-  ProtoIME::SetActive(false);
-  ProtoIME::SetSkin(nullptr);
-  ProtoIME::FreeSkin(_skin);
-  ProtoIME::SetSettingsSkin(nullptr);
-  ProtoIME::FreeSkin(_settingsSkin);
-  ProtoIME::SetBtnSkin(nullptr);
-  ProtoIME::FreeSkin(_btnSkin);
-  ProtoIME::Shutdown();
+  ClassicABC::SetActive(false);
+  ClassicABC::SetSkin(nullptr);
+  ClassicABC::FreeSkin(_skin);
+  ClassicABC::SetSettingsSkin(nullptr);
+  ClassicABC::FreeSkin(_settingsSkin);
+  ClassicABC::SetBtnSkin(nullptr);
+  ClassicABC::FreeSkin(_btnSkin);
+  ClassicABC::Shutdown();
   _engineReady = false;
-  write_log("TSF: ProtoIME shutdown", LOG_INFO);
+  write_log("TSF: ClassicABC shutdown", LOG_INFO);
 }
 
 STDMETHODIMP TSF::OnSetThreadFocus() {
-  if (_engineReady) ProtoIME::SetFocused(true);
+  if (_engineReady) ClassicABC::SetFocused(true);
   return S_OK;
 }
 STDMETHODIMP TSF::OnKillThreadFocus() {
   _AbortComposition();
-  if (_engineReady) ProtoIME::SetFocused(false);
+  if (_engineReady) ClassicABC::SetFocused(false);
   return S_OK;
 }
 
@@ -227,5 +227,5 @@ STDAPI TSF::OnCompositionTerminated(TfEditCookie ecWrite,
 
 void TSF::_AbortComposition(bool clear) {
   if (_engineReady)
-    ProtoIME::FlushPendingAndHideUI();
+    ClassicABC::FlushPendingAndHideUI();
 }

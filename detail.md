@@ -1,4 +1,4 @@
-# 智能ABC拼音输入法 — 项目概览
+﻿# 经典ABC拼音输入法 — 项目概览
 
 > **版本**: 0.17.4  
 > **语言**: C++17 (MSVC v143 / VS2022)  
@@ -74,9 +74,9 @@ pinyin/
     ├── util.cpp/.h
     │
     └── win/                  # Windows 适配层
-        ├── proto_core.cpp/.h     # ProtoIME 协调器 (Engine + UI 门面)
-        ├── proto_engine.cpp/.h   # ProtoIME::Engine 引擎状态机
-        ├── proto_ui.cpp/.h       # ProtoIME::UI GDI+ 窗口绘制
+        ├── proto_core.cpp/.h     # ClassicABC 协调器 (Engine + UI 门面)
+        ├── proto_engine.cpp/.h   # ClassicABC::Engine 引擎状态机
+        ├── proto_ui.cpp/.h       # ClassicABC::UI GDI+ 窗口绘制
         ├── include/
         │   ├── KeyEvent.h        # KeyInfo 位域结构
         │   ├── ImeUtility.h      # IME 名称本地化
@@ -123,7 +123,7 @@ pinyin/
       └────────┬───────┘                      │
                ▼                               │
     ┌─────────────────────┐                   │
-    │ ProtoIME (core)     │ ← 统一门面         │
+    │ ClassicABC (core)     │ ← 统一门面         │
     │ proto_core.cpp/h    │                   │
     ├─────────┬───────────┤                   │
     ▼         ▼           ▼                   │
@@ -167,16 +167,16 @@ pinyin/
 
 | 文件 | 职责 | 关键函数/类 |
 |------|------|-------------|
-| `proto_core.cpp/h` | `ProtoIME` 命名空间门面, 连接 Engine + UI | `Initialize`, `OnKeyDown`, `SetSkin`, `ToggleMode`, `ToggleLock` |
-| `proto_engine.cpp/h` | `ProtoIME::Engine` 引擎状态机和按键处理 | `TestKey`, `ProcessKey`, `handlePunct`, `handleLetter`, `rebuild`, `send_u8` |
-| `proto_ui.cpp/h` | `ProtoIME::UI` GDI+ 候选框+设置栏窗口 | `Update`, `UpdateCand`, `ShowSettings`, `SetBtnIcon`, `Shutdown` |
+| `proto_core.cpp/h` | `ClassicABC` 命名空间门面, 连接 Engine + UI | `Initialize`, `OnKeyDown`, `SetSkin`, `ToggleMode`, `ToggleLock` |
+| `proto_engine.cpp/h` | `ClassicABC::Engine` 引擎状态机和按键处理 | `TestKey`, `ProcessKey`, `handlePunct`, `handleLetter`, `rebuild`, `send_u8` |
+| `proto_ui.cpp/h` | `ClassicABC::UI` GDI+ 候选框+设置栏窗口 | `Update`, `UpdateCand`, `ShowSettings`, `SetBtnIcon`, `Shutdown` |
 
 ### 4.3 TSF 前端 (`src/win/TSF/`)
 
 | 文件 | 职责 |
 |------|------|
 | `TSF.cpp/h` | TSF 文本服务主类, 实现 `ITfTextInputProcessorEx` 等接口, 加载皮肤/图标 |
-| `KeyEventSink.cpp` | 按键事件分发: `OnTestKeyDown`/`OnKeyDown`/`OnKeyUp`, 桥接 `ProtoIME::TestKeyDown/OnKeyDown` |
+| `KeyEventSink.cpp` | 按键事件分发: `OnTestKeyDown`/`OnKeyDown`/`OnKeyUp`, 桥接 `ClassicABC::TestKeyDown/OnKeyDown` |
 | `Server.cpp` | COM 类工厂 + DLL 导出 (`DllGetClassObject` 等) |
 | `Register.cpp/h` | COM 注册: 注册 TSF Profile/Categories/CLSID |
 | `Globals.cpp/h` | 全局 CLSID/Profile GUID, DLL 引用计数 |
@@ -231,9 +231,9 @@ pinyin/
 ```
 应用程序按键
     ↓
-TSF::OnTestKeyDown → ProtoIME::TestKeyDown(vk) → *pfEaten
+TSF::OnTestKeyDown → ClassicABC::TestKeyDown(vk) → *pfEaten
     ↓ (pfEaten=TRUE)
-TSF::OnKeyDown → ProtoIME::OnKeyDown(vk)
+TSF::OnKeyDown → ClassicABC::OnKeyDown(vk)
     → Engine::ProcessKey(vk)
         → handlePunct        (中文符号转换)
         → handleCandidateSelect (数字键选词)
@@ -250,8 +250,8 @@ TSF::OnKeyDown → ProtoIME::OnKeyDown(vk)
 
 ```
 ImeProcessKey → IME::ProcessKeyEvent
-    → ProtoIME::TestKeyDown(vk) → TRUE?
-        → ProtoIME::OnKeyDown(vk) (返回值被忽略, 始终返回 TRUE)
+    → ClassicABC::TestKeyDown(vk) → TRUE?
+        → ClassicABC::OnKeyDown(vk) (返回值被忽略, 始终返回 TRUE)
         → ImeToAsciiEx 返回 0 (不产生字符, 由 SendInput 提交)
 ```
 
@@ -389,7 +389,7 @@ rebuild() 调用:
 |------|------|
 | `proto_debug_enable.flag` | 零字节标记文件, 存在时启用 `LOG_DEBUG` 级别日志 |
 | `TEXTSERVICE_PROFILE` | 环境变量, 控制 `hans`/`hant` 注册 |
-| `%ProgramData%\ProtoIME` | 数据/资源回退目录 (DLL 目录找不到 `data\` 时使用) |
+| `%ProgramData%\ClassicABC` | 数据/资源回退目录 (DLL 目录找不到 `data\` 时使用) |
 | `abcime.log` | 日志文件, 默认 `LOG_INFO` 级别 |
 
 ## 12. 安装/卸载
@@ -403,7 +403,7 @@ cd output && uninstall.bat
 ```
 
 安装步骤:
-1. 复制 `data\` 和 `res\` 到 `%ProgramData%\ProtoIME\`
+1. 复制 `data\` 和 `res\` 到 `%ProgramData%\ClassicABC\`
 2. `regsvr32` 注册 TSF DLL (x64 原地, Win32 用 `%SYSWOW64%\regsvr32.exe`)
 3. 复制 `.ime` 到 `System32`/`SysWOW64` 命名为 `abcime_test.ime`
 4. 注册 IMM32 键盘布局 `E05E0804`

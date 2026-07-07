@@ -1,4 +1,4 @@
-// proto_engine.cpp - Pinyin engine adapter for Windows TSF.
+﻿// proto_engine.cpp - Pinyin engine adapter for Windows TSF.
 #include "proto_engine.h"
 
 // Pinyin engine core
@@ -152,12 +152,12 @@ static std::string pick(size_t pi, size_t ci) {
 }
 
 // ========== public API ==========
-void ProtoIME::Engine::Init() {
+void ClassicABC::Engine::Init() {
     init_pinyin_data();
     g = State{};
     g_comp.clear();
 }
-void ProtoIME::Engine::SetActive(bool a) {
+void ClassicABC::Engine::SetActive(bool a) {
     g.active = a;
     if (a) {
         // Reload dictionaries to pick up changes from other processes
@@ -170,9 +170,9 @@ void ProtoIME::Engine::SetActive(bool a) {
     }
     write_log("Engine: SetActive(" + std::string(a ? "true" : "false") + ") chinese=" + std::to_string(g.chinese) + " locked=" + std::to_string(g.locked), LOG_DEBUG);
 }
-bool ProtoIME::Engine::IsActive() { return g.active; }
+bool ClassicABC::Engine::IsActive() { return g.active; }
 
-void ProtoIME::Engine::ReloadDict() {
+void ClassicABC::Engine::ReloadDict() {
     static FILETIME lastWrite = {};
     WIN32_FILE_ATTRIBUTE_DATA attr;
     std::string path = get_user_dict_file_path();
@@ -187,7 +187,7 @@ void ProtoIME::Engine::ReloadDict() {
     write_log("Engine: ReloadDict reloaded (file changed)", LOG_DEBUG);
 }
 
-bool ProtoIME::Engine::TestKey(UINT vk) {
+bool ClassicABC::Engine::TestKey(UINT vk) {
     if (!g.active) return false;
 
     // Locked mode: pass through everything (gaming)
@@ -364,7 +364,7 @@ static bool handleCursorMove(UINT vk) {
     return false;
 }
 
-bool ProtoIME::Engine::ProcessKey(UINT vk) {
+bool ClassicABC::Engine::ProcessKey(UINT vk) {
     if (!g.active) return false;
 
     // Locked mode: pass through everything (gaming)
@@ -440,31 +440,31 @@ bool ProtoIME::Engine::ProcessKey(UINT vk) {
     return handleLetter(vk);
 }
 
-bool ProtoIME::Engine::ProcessShiftTap() {
+bool ClassicABC::Engine::ProcessShiftTap() {
     if (g_shift_pending) {
         g_shift_pending = false;
-        ProtoIME::Engine::ToggleChineseMode();
+        ClassicABC::Engine::ToggleChineseMode();
         return true;  // eat the key-up to prevent system handling
     }
     g_shift_pending = false;
     return false;
 }
 
-void ProtoIME::Engine::ToggleChineseMode() {
+void ClassicABC::Engine::ToggleChineseMode() {
     g.chinese = !g.chinese;
     write_log("Engine: ToggleChineseMode -> chinese=" + std::to_string(g.chinese), LOG_DEBUG);
     if (!g.chinese) FlushPending();
 }
 
-bool ProtoIME::Engine::IsLocked() { return g.locked; }
+bool ClassicABC::Engine::IsLocked() { return g.locked; }
 
-void ProtoIME::Engine::ToggleLock() {
+void ClassicABC::Engine::ToggleLock() {
     g.locked = !g.locked;
     write_log("Engine: ToggleLock -> locked=" + std::to_string(g.locked), LOG_INFO);
     if (g.locked) { FlushPending(); g.chinese = false; }
 }
 
-bool ProtoIME::Engine::FlushPending() {
+bool ClassicABC::Engine::FlushPending() {
     if (g.buf.empty()) return false;
     send_w(u8to16(g.buf));
     g.buf.clear(); g.cur = 0; g.delmode = false;
@@ -474,36 +474,36 @@ bool ProtoIME::Engine::FlushPending() {
     return true;
 }
 
-const std::wstring& ProtoIME::Engine::CompStr() { return g_comp; }
-bool ProtoIME::Engine::HasText() { return !g.buf.empty(); }
+const std::wstring& ClassicABC::Engine::CompStr() { return g_comp; }
+bool ClassicABC::Engine::HasText() { return !g.buf.empty(); }
 
-size_t ProtoIME::Engine::GetCandidateCount() {
+size_t ClassicABC::Engine::GetCandidateCount() {
     if (g.pages.empty() || g.page >= g.pages.size()) return 0;
     return g.pages[g.page].size();
 }
-std::wstring ProtoIME::Engine::GetCandidateText(size_t i) {
+std::wstring ClassicABC::Engine::GetCandidateText(size_t i) {
     if (g.pages.empty() || g.page >= g.pages.size()) return L"";
     const auto& pg = g.pages[g.page];
     return i < pg.size() ? u8to16(pg[i].getText()) : L"";
 }
-size_t ProtoIME::Engine::GetCandidatePage()  { return g.page; }
-size_t ProtoIME::Engine::GetTotalPages()     { return g.pages.size(); }
-bool   ProtoIME::Engine::IsChineseMode()     { return g.chinese; }
-bool   ProtoIME::Engine::IsDelMode()         { return g.delmode; }
+size_t ClassicABC::Engine::GetCandidatePage()  { return g.page; }
+size_t ClassicABC::Engine::GetTotalPages()     { return g.pages.size(); }
+bool   ClassicABC::Engine::IsChineseMode()     { return g.chinese; }
+bool   ClassicABC::Engine::IsDelMode()         { return g.delmode; }
 
-void ProtoIME::Engine::GoFirstPage() {
+void ClassicABC::Engine::GoFirstPage() {
     if (g.pages.empty()) return;
     g.page = 0; rebuild();
 }
-void ProtoIME::Engine::GoLastPage() {
+void ClassicABC::Engine::GoLastPage() {
     if (g.pages.empty()) return;
     g.page = g.pages.size() - 1; rebuild();
 }
-void ProtoIME::Engine::GoNextPage() {
+void ClassicABC::Engine::GoNextPage() {
     if (g.pages.empty()) return;
     if (g.page + 1 < g.pages.size()) { g.page++; rebuild(); }
 }
-void ProtoIME::Engine::GoPrevPage() {
+void ClassicABC::Engine::GoPrevPage() {
     if (g.pages.empty()) return;
     if (g.page > 0) { g.page--; rebuild(); }
 }

@@ -63,7 +63,7 @@ class IME {
 
   std::wstring _dllDir;
   bool _engineReady = false;
-  ProtoIME::NinePatchSkin _skin;
-  ProtoIME::NinePatchSkin _settingsSkin;
-  ProtoIME::NinePatchSkin _btnSkin;
+  ClassicABC::NinePatchSkin _skin;
+  ClassicABC::NinePatchSkin _settingsSkin;
+  ClassicABC::NinePatchSkin _btnSkin;
 };

@@ -9,8 +9,8 @@ inline std::wstring get_ime_name() {
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_HONGKONG) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SINGAPORE) ||
       langId == MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_MACAU)) {
-    return L"\u667A\u80FDABC";
+    return L"\u7ECF\u5178ABC";
   } else {
-    return L"SmartABC";
+    return L"ClassicABC";
   }
 }

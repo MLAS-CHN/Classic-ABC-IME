@@ -1,9 +1,9 @@
-// proto_ui.h - Candidate window UI + Settings bar: GDI/GDI+, 9-patch, font, positioning.
+﻿// proto_ui.h - Candidate window UI + Settings bar: GDI/GDI+, 9-patch, font, positioning.
 // Reads composition string from Engine::CompStr() for painting.
 #pragma once
 #include <windows.h>
 
-namespace ProtoIME {
+namespace ClassicABC {
 namespace UI {
 
 struct NinePatchSkin {
@@ -43,4 +43,4 @@ bool LoadSkin(const wchar_t* path, NinePatchSkin& skin,
 void FreeSkin(NinePatchSkin& skin);
 
 } // UI
-} // ProtoIME
+} // ClassicABC

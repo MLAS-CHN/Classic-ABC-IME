@@ -36,14 +36,14 @@ void TSF::_ProcessKeyEvent(WPARAM wParam, LPARAM lParam, BOOL* pfEaten) {
   }
 
   UINT vKey = static_cast<UINT>(wParam);
-  bool claimed = ProtoIME::TestKeyDown(vKey);
+  bool claimed = ClassicABC::TestKeyDown(vKey);
   *pfEaten = claimed ? TRUE : FALSE;
   write_log("TSF: _ProcessKeyEvent vk=" + vk_name(vKey) + " claimed=" + (claimed ? "YES" : "no"), LOG_DEBUG);
 }
 
 STDAPI TSF::OnSetFocus(BOOL fForeground) {
   if (_engineReady)
-    ProtoIME::SetFocused(fForeground != FALSE);
+    ClassicABC::SetFocused(fForeground != FALSE);
   if (!fForeground)
     _AbortComposition();
   return S_OK;
@@ -74,7 +74,7 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
     *pfEaten = TRUE;
     if (_engineReady) {
       UINT vKey = static_cast<UINT>(wParam);
-      bool eaten = ProtoIME::OnKeyDown(vKey);
+      bool eaten = ClassicABC::OnKeyDown(vKey);
       *pfEaten = eaten ? TRUE : FALSE;
       write_log("TSF: OnKeyDown vk=" + vk_name(vKey) + " eaten=" + (eaten ? "YES" : "no"), LOG_DEBUG);
     }
@@ -82,7 +82,7 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
     _ProcessKeyEvent(wParam, lParam, pfEaten);
     if (*pfEaten && _engineReady) {
       UINT vKey = static_cast<UINT>(wParam);
-      bool eaten = ProtoIME::OnKeyDown(vKey);
+      bool eaten = ClassicABC::OnKeyDown(vKey);
       *pfEaten = eaten ? TRUE : FALSE;
       write_log("TSF: OnKeyDown(fallback) vk=" + vk_name(vKey) + " eaten=" + (eaten ? "YES" : "no"), LOG_DEBUG);
     }
@@ -122,7 +122,7 @@ STDAPI TSF::OnKeyUp(ITfContext* pContext,
       _fTestKeyUpPending = TRUE;
     }
     if (_engineReady) {
-      bool eaten = ProtoIME::OnKeyUp(vKey);
+      bool eaten = ClassicABC::OnKeyUp(vKey);
       *pfEaten = eaten ? TRUE : FALSE;
     } else {
       *pfEaten = FALSE;

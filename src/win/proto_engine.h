@@ -1,10 +1,10 @@
-// proto_engine.h - Real pinyin engine for Windows TSF.
+﻿// proto_engine.h - Real pinyin engine for Windows TSF.
 #pragma once
 #include <windows.h>
 #include <string>
 #include <vector>
 
-namespace ProtoIME {
+namespace ClassicABC {
 namespace Engine {
 
 struct Candidate { std::wstring text; int weight; };
@@ -39,4 +39,4 @@ void GoNextPage();
 void GoPrevPage();
 
 } // Engine
-} // ProtoIME
+} // ClassicABC

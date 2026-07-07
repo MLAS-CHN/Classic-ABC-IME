@@ -1,9 +1,9 @@
-// proto_core.h - Thin coordinator: Engine + UI. Public API for TSF adapter.
+﻿// proto_core.h - Thin coordinator: Engine + UI. Public API for TSF adapter.
 #pragma once
 #include <windows.h>
 #include <string>
 
-namespace ProtoIME {
+namespace ClassicABC {
 
 struct NinePatchSkin {
     HBITMAP hBmp = nullptr;
@@ -54,4 +54,4 @@ void ToggleLock();
 bool IsLocked();
 bool FlushPendingAndHideUI();
 
-} // namespace ProtoIME
+} // namespace ClassicABC
