@@ -77,28 +77,22 @@
 ---
 
 架构
-```
-应用程序 (记事本/控制台/等)
-    │
-    ├── TSF COM  ───→ abcime.dll
-    └── IMM32    ───→ abcime.ime
-            │
-            ▼
-    ┌───────────────┐
-    │  ClassicABC    │  ← 统一门面
-    ├───────┬───────┤
-    ▼       ▼       ▼
-  UI    Engine  Keys
-  GDI+  状态机  按键分发
-        │
-        ▼
-  ┌──────────────┐
-  │ 拼音引擎库    │
-  │ 音节切分     │
-  │ 字词匹配     │
-  │ 候选聚合     │
-  │ 词典文件IO   │
-  └──────────────┘
+```mermaid
+graph TD
+    App[应用程序 记事本/控制台等] --> TSF[Tsf COM]
+    App --> IMM32[IMM32]
+    TSF --> DLL[abcime.dll]
+    IMM32 --> IME[abcime.ime]
+    DLL --> Facade[ClassicABC 统一门面]
+    IME --> Facade
+    Facade --> UI[UI GDI+]
+    Facade --> Engine[Engine 状态机]
+    Facade --> Keys[Keys 按键分发]
+    Engine --> Lib[拼音引擎库]
+    Lib --> S1[音节切分]
+    Lib --> S2[字词匹配]
+    Lib --> S3[候选聚合]
+    Lib --> S4[词典文件IO]
 ```
 ---
 
@@ -184,7 +178,7 @@ uninstall.bat
 技术细节
 
 - 线程安全：TSF/IMM32 为 STA 单线程模型，引擎状态无需加锁
-- 字典缓存：init_pinyin_data() 预解析全部词典到内存，g_char_freq_lookup 实现 O(1) 字频查找
+- 字典缓存：init_pinyin_data() 预解析全部词典到内存，g_user_dict_lookup 实现 O(1) 查找
 - 原子写入：persist_lines_to_file 使用临时文件 + std::filesystem::rename 避免崩溃时词库损坏
 - UTF-8：源码 /utf-8 编译，内部 UTF-8 ↔ UTF-16 转换
 

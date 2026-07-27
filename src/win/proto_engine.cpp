@@ -1,4 +1,4 @@
-﻿// proto_engine.cpp - Pinyin engine adapter for Windows TSF.
+// proto_engine.cpp - Pinyin engine adapter for Windows TSF.
 #include "proto_engine.h"
 
 // Pinyin engine core
@@ -11,6 +11,7 @@
 #include "../util.h"
 #include <vector>
 #include <algorithm>
+#include <ctime>
 
 static const size_t kPageSize = 10;
 
@@ -75,6 +76,98 @@ static void send_w(const std::wstring& w) {
     SendInput((UINT)in.size(), in.data(), sizeof(INPUT));
 }
 
+static std::string utf16_to_utf8(const std::wstring& w) {
+    return u16to8(w);
+}
+
+static void clear_composition_state() {
+    g.buf.clear();
+    g.cur = 0;
+    g.delmode = false;
+    g.pages.clear();
+    g.page = 0;
+    g.cont.clear();
+    g.contmode = false;
+    g_comp.clear();
+}
+
+static bool has_active_candidates() {
+    return !g.pages.empty() && g.page < g.pages.size() && !g.pages[g.page].empty();
+}
+
+static bool is_digit_key(UINT vk) {
+    return (vk >= '0' && vk <= '9') || (vk >= VK_NUMPAD0 && vk <= VK_NUMPAD9);
+}
+
+static bool is_illegal_symbol_key(UINT vk, bool shift) {
+    if (vk == VK_OEM_7 && !shift) return false; // 英文单引号允许进入拼音框
+    if (vk == VK_SPACE || vk == VK_TAB) return false;
+    if (vk >= 'A' && vk <= 'Z') return false;
+
+    if (vk >= '0' && vk <= '9') return shift;
+    switch (vk) {
+        case VK_OEM_1:
+        case VK_OEM_2:
+        case VK_OEM_3:
+        case VK_OEM_4:
+        case VK_OEM_5:
+        case VK_OEM_6:
+        case VK_OEM_7:
+        case VK_OEM_PLUS:
+        case VK_OEM_MINUS:
+        case VK_OEM_COMMA:
+        case VK_OEM_PERIOD:
+        case VK_OEM_102:
+        case VK_DECIMAL:
+        case VK_DIVIDE:
+        case VK_MULTIPLY:
+        case VK_SUBTRACT:
+        case VK_ADD:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool should_flush_buffer_on_space(UINT vk) {
+    return !g.buf.empty() && !has_active_candidates() && vk == VK_SPACE;
+}
+
+static bool should_flush_buffer_on_digit(UINT vk) {
+    return !g.buf.empty() && !has_active_candidates() && is_digit_key(vk);
+}
+
+static bool should_flush_buffer_on_symbol(UINT vk, bool shift) {
+    return !g.buf.empty() && is_illegal_symbol_key(vk, shift);
+}
+
+static std::string key_to_utf8(UINT vk) {
+    BYTE key_state[256] = {};
+    if (!GetKeyboardState(key_state)) return "";
+
+    HKL hkl = GetKeyboardLayout(0);
+    wchar_t buffer[8] = {};
+    UINT scan = MapVirtualKeyW(vk, MAPVK_VK_TO_VSC);
+    int rc = ToUnicodeEx(vk, scan, key_state, buffer, 8, 0, hkl);
+    if (rc <= 0) return "";
+    return utf16_to_utf8(std::wstring(buffer, buffer + rc));
+}
+
+static bool flush_and_send_symbol(UINT vk) {
+    std::string symbol = key_to_utf8(vk);
+    if (symbol.empty()) return false;
+    ClassicABC::Engine::FlushPending();
+    send_u8(symbol);
+    return true;
+}
+
+static bool commit_raw_buffer() {
+    if (g.buf.empty()) return false;
+    send_w(u8to16(g.buf));
+    clear_composition_state();
+    return true;
+}
+
 // ---- rebuild display and candidates ----
 static void rebuild() {
     if (g.buf.empty()) { g.pages.clear(); g.page = 0; g_comp.clear(); return; }
@@ -100,13 +193,19 @@ static void consume_buf(std::vector<std::string> parts, std::string& buf) {
 
 // ---- persist weight ----
 static void persist(const CandidateItem& ci) {
-    auto tf = ci.getPinyinParts().size() == 1 ? WeightTargetFile::CharFreq : WeightTargetFile::UserDict;
+    bool single = ci.getPinyinParts().size() == 1;
+    DictTargetFile tf = single ? DictTargetFile::CharFreq : DictTargetFile::UserDict;
     int ln = ci.findSourceLineNumber();
-    if (ln > 0) { increment_weight_by_line(tf, ln); return; }
-    if (tf == WeightTargetFile::CharFreq)
-        write_and_update_index(get_char_freq_file_path(), ci, g_char_freq_lines, g_char_freq_index);
+    if (ln > 0) { update_timestamp_by_line(tf, ln); return; }
+    CandidateItem new_ci = ci;
+    if (new_ci.getTimestamp() == 0) {
+        new_ci.setTimestamp((long long)time(nullptr));
+        new_ci.setCount(1);
+    }
+    if (single)
+        write_and_update_index(get_char_freq_file_path(), new_ci, g_char_freq_lines, g_char_freq_index);
     else
-        write_and_update_index(get_user_dict_file_path(), ci, g_user_dict_lines, g_user_dict_index);
+        write_and_update_index(get_user_dict_file_path(), new_ci, g_user_dict_lines, g_user_dict_index);
 }
 
 // ---- select candidate ----
@@ -138,8 +237,13 @@ static std::string pick(size_t pi, size_t ci) {
         if (g.contmode) {
             g.cont.push_back(sel);
             auto m = CandidateItem::mergeCandidateItems(g.cont);
-            if (!m.getText().empty() && !m.getPinyinParts().empty())
-                write_and_update_index(get_user_dict_file_path(), m, g_user_dict_lines, g_user_dict_index);
+            if (!m.getText().empty() && !m.getPinyinParts().empty()) {
+                int ln = m.findSourceLineNumber();
+                if (ln > 0)
+                    update_timestamp_by_line(DictTargetFile::UserDict, ln);
+                else
+                    write_and_update_index(get_user_dict_file_path(), m, g_user_dict_lines, g_user_dict_index);
+            }
             g.cont.clear(); g.contmode = false;
         }
         g_comp.clear();
@@ -221,6 +325,15 @@ bool ClassicABC::Engine::TestKey(UINT vk) {
             return true;
     }
 
+    // Shift+字母允许直接进入缓冲区，便于录入大写英文。
+    if (shift && vk >= 'A' && vk <= 'Z') return true;
+
+    // 无候选时，数字和空格都不进拼音框。
+    if (should_flush_buffer_on_digit(vk) || should_flush_buffer_on_space(vk)) return true;
+
+    // 除英文单引号外，非法符号不进拼音框；若当前有缓冲，则改为“先上屏缓冲，再输出符号”。
+    if (should_flush_buffer_on_symbol(vk, shift)) return true;
+
     // Shift held (non-punctuation context): don't intercept
     if (shift) return false;
 
@@ -232,7 +345,7 @@ bool ClassicABC::Engine::TestKey(UINT vk) {
         if (vk == VK_LEFT || vk == VK_RIGHT) return true;
         if (vk == VK_RETURN || vk == VK_ESCAPE) return true;
     }
-    if (!g.pages.empty()) {
+    if (has_active_candidates()) {
         if (vk == VK_SPACE) return true;
         if (vk >= '0' && vk <= '9') return true;
         if (vk == VK_OEM_PLUS || vk == VK_OEM_MINUS) return true;
@@ -343,9 +456,9 @@ static bool handlePage(UINT vk) {
     return false;
 }
 
-static bool handleLetter(UINT vk) {
+static bool handleLetter(UINT vk, bool uppercase = false) {
     if (vk < 'A' || vk > 'Z') return false;
-    char c = (char)(vk - 'A' + 'a');
+    char c = (char)(uppercase ? vk : (vk - 'A' + 'a'));
     insert_at_virtual_cursor(g.buf, g.cur, c);
     if (g.buf.size() == 1) reset_virtual_cursor_to_end(g.buf, g.cur);
     rebuild();
@@ -400,7 +513,9 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
 
     // Chinese punctuation (Shift+symbol keys, when no pinyin buffer and no candidates)
     if (shift) {
+        if (should_flush_buffer_on_symbol(vk, true)) return flush_and_send_symbol(vk);
         if (handlePunct(vk)) return true;
+        if (handleLetter(vk, true)) return true;
         return false; // other Shift+key combinations pass through
     }
 
@@ -410,6 +525,11 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
     if (handlePage(vk))           return true;
     if (handleDeleteMode(vk))     return true;
     if (handleCursorMove(vk))     return true;
+    if (should_flush_buffer_on_space(vk)) return ClassicABC::Engine::FlushPending();
+    if (should_flush_buffer_on_digit(vk)) return flush_and_send_symbol(vk);
+    if (should_flush_buffer_on_symbol(vk, false)) {
+        return flush_and_send_symbol(vk);
+    }
 
     // editing keys
     if (vk == VK_BACK && !g.buf.empty()) {
@@ -417,15 +537,11 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
         return true;
     }
     if (vk == VK_ESCAPE && !g.buf.empty()) {
-        g.buf.clear(); g.cur = 0; g.delmode = false;
-        g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
-        g_comp.clear(); return true;
+        clear_composition_state();
+        return true;
     }
     if (vk == VK_RETURN && !g.buf.empty()) {
-        send_w(u8to16(g.buf));
-        g.buf.clear(); g.cur = 0; g.delmode = false;
-        g.pages.clear(); g.page = 0; g_comp.clear();
-        return true;
+        return commit_raw_buffer();
     }
 
     // word separator '
@@ -465,13 +581,9 @@ void ClassicABC::Engine::ToggleLock() {
 }
 
 bool ClassicABC::Engine::FlushPending() {
-    if (g.buf.empty()) return false;
-    send_w(u8to16(g.buf));
-    g.buf.clear(); g.cur = 0; g.delmode = false;
-    g.pages.clear(); g.page = 0; g.cont.clear(); g.contmode = false;
-    g_comp.clear();
-    write_log("Engine: FlushPending flushed buffer", LOG_DEBUG);
-    return true;
+    bool flushed = commit_raw_buffer();
+    if (flushed) write_log("Engine: FlushPending flushed buffer", LOG_DEBUG);
+    return flushed;
 }
 
 const std::wstring& ClassicABC::Engine::CompStr() { return g_comp; }

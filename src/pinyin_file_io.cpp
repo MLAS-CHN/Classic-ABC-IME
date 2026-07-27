@@ -1,8 +1,3 @@
-/**
- * pinyin_file_io.cpp
- * 拼音数据文件读写实现文件。
- * 负责加载字库/词库文本、构建首字母索引，并在写入后刷新缓存。
- */
 #include "pinyin_file_io.h"
 #include "candidate_item.h"
 #include "util.h"
@@ -13,6 +8,8 @@
 #include <cstdlib>
 #include <filesystem>
 #include <cctype>
+#include <ctime>
+
 static std::string g_data_dir = "";
 
 static std::string join_path(const std::string& dir, const std::string& file) {
@@ -163,10 +160,18 @@ static void build_user_dict_cache() {
         g_user_dict_segcount_map[parts.size()].push_back(i + 1);
 
         std::istringstream iss(line);
-        std::string py, text;
+        std::string py, text, ts_str, count_str;
         if (iss >> py >> text) {
             std::string key = py + " " + text;
-            g_user_dict_lookup[key] = i + 1;
+            long long timestamp = 0;
+            int count = 1;
+            if (iss >> ts_str && is_all_digits(ts_str)) {
+                timestamp = std::stoll(ts_str);
+            }
+            if (iss >> count_str && is_all_digits(count_str)) {
+                count = std::stoi(count_str);
+            }
+            g_user_dict_lookup[key] = {i + 1, timestamp, count};
         }
     }
 }
@@ -176,14 +181,18 @@ static void build_char_freq_cache() {
     for (int i = 0; i < (int)g_char_freq_lines.size(); ++i) {
         const std::string& line = g_char_freq_lines[i];
         std::istringstream iss(line);
-        std::string py, text, weight_str;
+        std::string py, text, ts_str, count_str;
         if (!(iss >> py >> text)) continue;
-        int weight = 1;
-        if (iss >> weight_str && is_all_digits(weight_str)) {
-            weight = std::stoi(weight_str);
+        long long timestamp = 0;
+        int count = 1;
+        if (iss >> ts_str && is_all_digits(ts_str)) {
+            timestamp = std::stoll(ts_str);
+        }
+        if (iss >> count_str && is_all_digits(count_str)) {
+            count = std::stoi(count_str);
         }
         std::string key = py + " " + text;
-        g_char_freq_lookup[key] = {i + 1, weight};
+        g_char_freq_lookup[key] = {i + 1, timestamp, count};
     }
 }
 
@@ -235,12 +244,6 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
     if (&lines == &g_char_freq_lines) build_char_freq_cache();
 }
 
-/**
- * 初始化拼音相关数据缓存。
- * 启动时一次性加载：
- * - 单字库及其首字母索引；
- * - 用户词库及其首字母索引。
- */
 void init_pinyin_data() {
     load_file_and_build_index(get_pinyin_map_file_path(), g_pinyin_map_lines, g_pinyin_map_index);
     load_file_and_build_index(get_user_dict_file_path(), g_user_dict_lines, g_user_dict_index);
@@ -270,9 +273,9 @@ void load_file_and_build_index(const std::string& file_path,
     build_index_from_lines(lines, index);
 }
 
-void write_and_update_index(const std::string& file_path, 
+void write_and_update_index(const std::string& file_path,
                             const std::string& content,
-                            std::vector<std::string>& lines, 
+                            std::vector<std::string>& lines,
                             std::vector<PinyinIndexItem>& index) {
     insert_line_keep_ascii_sorted(file_path, content, lines, index);
 }
@@ -296,66 +299,39 @@ bool delete_user_dict_line(int line_number) {
     return true;
 }
 
-int get_weight_by_line(WeightTargetFile target_file, int line_number) {
-    if (line_number <= 0) return 0;
-    const std::vector<std::string>* lines = (target_file == WeightTargetFile::CharFreq) ? &g_char_freq_lines
-                                                                                        : &g_user_dict_lines;
-    int idx = line_number - 1;
-    if (idx < 0 || idx >= (int)lines->size()) return 0;
-
-    const std::string& raw_line = (*lines)[idx];
-    std::istringstream iss(raw_line);
-    std::vector<std::string> parts;
-    std::string token;
-    while (iss >> token) {
-        parts.push_back(token);
-    }
-    if (parts.size() < 2) return 0;
-
-    if (parts.size() >= 3 && is_all_digits(parts.back())) {
-        return std::stoi(parts.back());
-    }
-    return 1;
-}
-
-void increment_weight_by_line(WeightTargetFile target_file, int line_number) {
+void update_timestamp_by_line(DictTargetFile target_file, int line_number) {
     if (line_number <= 0) return;
-    std::string file_path = (target_file == WeightTargetFile::CharFreq) ? get_char_freq_file_path()
-                                                                        : get_user_dict_file_path();
-    std::vector<std::string>* lines = (target_file == WeightTargetFile::CharFreq) ? &g_char_freq_lines
-                                                                                  : &g_user_dict_lines;
-    std::vector<PinyinIndexItem>* index = (target_file == WeightTargetFile::CharFreq) ? &g_char_freq_index
-                                                                                      : &g_user_dict_index;
+    std::string file_path = (target_file == DictTargetFile::CharFreq) ? get_char_freq_file_path()
+                                                                      : get_user_dict_file_path();
+    std::vector<std::string>* lines = (target_file == DictTargetFile::CharFreq) ? &g_char_freq_lines
+                                                                                : &g_user_dict_lines;
+    std::vector<PinyinIndexItem>* index = (target_file == DictTargetFile::CharFreq) ? &g_char_freq_index
+                                                                                    : &g_user_dict_index;
 
     int idx = line_number - 1;
     if (idx < 0 || idx >= (int)lines->size()) return;
 
+    long long now = (long long)time(nullptr);
+
     const std::string& raw_line = (*lines)[idx];
     std::istringstream iss(raw_line);
-    std::vector<std::string> parts;
-    std::string token;
-    while (iss >> token) {
-        parts.push_back(token);
-    }
-    if (parts.size() < 2) return;
+    std::string py, text, ts_str, count_str;
+    if (!(iss >> py >> text)) return;
 
-    std::string new_line;
-    if (parts.size() >= 3 && is_all_digits(parts.back())) {
-        int weight = std::stoi(parts.back());
-        weight += 1;
-        for (size_t i = 0; i + 1 < parts.size(); ++i) {
-            if (!new_line.empty()) new_line += " ";
-            new_line += parts[i];
+    int count = 1;
+    if (iss >> ts_str && is_all_digits(ts_str)) {
+        if (iss >> count_str && is_all_digits(count_str)) {
+            count = std::stoi(count_str) + 1;
+        } else {
+            count = 2;
         }
-        new_line += " " + std::to_string(weight);
-    } else {
-        new_line = raw_line + " 1";
     }
+
+    std::string new_line = py + " " + text + " " + std::to_string(now) + " " + std::to_string(count);
 
     (*lines)[idx] = new_line;
-
     persist_lines_to_file(file_path, *lines);
     build_index_from_lines(*lines, *index);
-    if (target_file == WeightTargetFile::UserDict) build_user_dict_cache();
-    if (target_file == WeightTargetFile::CharFreq) build_char_freq_cache();
+    if (target_file == DictTargetFile::UserDict) build_user_dict_cache();
+    if (target_file == DictTargetFile::CharFreq) build_char_freq_cache();
 }

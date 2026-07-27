@@ -11,10 +11,9 @@
 #include "pinyin_data.h"
 #include "pinyin_file_io.h"
 #include <algorithm>
+#include <unordered_map>
 #include <sstream>
-
-static const int kStatusBarPrefixLen = 4;
-static const int kCursorLen = 1;
+#include <ctime>
 
 /**
  * 获取智能拼接短语候选（预留接口）。
@@ -26,6 +25,108 @@ static std::vector<CandidateItem> getSmartPhraseCandidateElements(
     const std::vector<std::vector<std::string>>& split_options) {
     (void)split_options;
     return {};
+}
+
+static bool is_lowercase_token(const std::string& token) {
+    if (token.empty()) return false;
+    return std::all_of(token.begin(), token.end(), [](unsigned char ch) {
+        return ch >= 'a' && ch <= 'z';
+    });
+}
+
+static bool is_literal_token(const std::string& token) {
+    return !token.empty() && !is_lowercase_token(token);
+}
+
+static std::vector<std::string> get_leading_literal_parts(const std::vector<std::string>& parts) {
+    std::vector<std::string> prefix;
+    for (const auto& part : parts) {
+        if (!is_literal_token(part)) break;
+        prefix.push_back(part);
+    }
+    return prefix;
+}
+
+static std::string join_literal_parts(const std::vector<std::string>& parts) {
+    std::string prefix;
+    for (const auto& part : parts) prefix += part;
+    return prefix;
+}
+
+struct SplitContext {
+    std::vector<std::string> literal_prefix_parts;
+    std::vector<std::vector<std::string>> active_options;
+
+    bool has_literal_prefix() const {
+        return !literal_prefix_parts.empty();
+    }
+};
+
+static std::vector<std::vector<std::string>> strip_leading_literal_parts(
+    const std::vector<std::vector<std::string>>& split_options) {
+    std::vector<std::vector<std::string>> stripped;
+    stripped.reserve(split_options.size());
+    for (const auto& option : split_options) {
+        size_t start = 0;
+        while (start < option.size() && is_literal_token(option[start])) ++start;
+        if (start < option.size()) {
+            stripped.emplace_back(option.begin() + static_cast<std::ptrdiff_t>(start), option.end());
+        }
+    }
+    return stripped;
+}
+
+static SplitContext build_split_context(const std::vector<std::vector<std::string>>& split_options) {
+    SplitContext context;
+    if (split_options.empty()) return context;
+
+    context.literal_prefix_parts = get_leading_literal_parts(split_options[0]);
+    if (context.has_literal_prefix()) {
+        context.active_options = strip_leading_literal_parts(split_options);
+    } else {
+        context.active_options = split_options;
+    }
+    return context;
+}
+
+static CandidateItem prefix_candidate(const CandidateItem& item, const std::vector<std::string>& literal_parts) {
+    if (literal_parts.empty()) return item;
+    std::vector<std::string> merged_parts = literal_parts;
+    const auto& base_parts = item.getPinyinParts();
+    merged_parts.insert(merged_parts.end(), base_parts.begin(), base_parts.end());
+    return CandidateItem(merged_parts,
+                         join_literal_parts(literal_parts) + item.getText(),
+                         item.getTimestamp(),
+                         item.getCount());
+}
+
+static std::vector<CandidateItem> prefix_candidates(const std::vector<CandidateItem>& items,
+                                                    const std::vector<std::string>& literal_parts) {
+    if (literal_parts.empty()) return items;
+    std::vector<CandidateItem> prefixed;
+    prefixed.reserve(items.size());
+    for (const auto& item : items) {
+        prefixed.push_back(prefix_candidate(item, literal_parts));
+    }
+    return prefixed;
+}
+
+static std::vector<CandidateItem> dedupe_candidates(const std::vector<CandidateItem>& candidates) {
+    std::vector<CandidateItem> deduped;
+    deduped.reserve(candidates.size());
+    std::unordered_map<std::string, size_t> seen;
+    long long now = (long long)time(nullptr);
+    for (const auto& item : candidates) {
+        std::string key = join_csv(item.getPinyinParts()) + "||" + item.getText();
+        auto it = seen.find(key);
+        if (it == seen.end()) {
+            seen[key] = deduped.size();
+            deduped.push_back(item);
+        } else if (item.computeScore(now) > deduped[it->second].computeScore(now)) {
+            deduped[it->second] = item;
+        }
+    }
+    return deduped;
 }
 
 /**
@@ -78,13 +179,15 @@ static std::vector<CandidateItem> getAllSuitableCharElements(
 
                     std::string single_char = chars_part.substr(i, step);
                     
-                    int weight = 1;
+                    long long timestamp = 0;
+                    int count = 1;
                     std::string freq_key = pinyin_part + " " + single_char;
                     auto freq_it = g_char_freq_lookup.find(freq_key);
                     if (freq_it != g_char_freq_lookup.end()) {
-                        weight = freq_it->second.weight;
+                        timestamp = freq_it->second.timestamp;
+                        count = freq_it->second.count;
                     }
-                    CandidateItem item({pinyin_part}, single_char, weight);
+                    CandidateItem item({pinyin_part}, single_char, timestamp, count);
                     candidates.push_back(item);
                     
                     i += step;
@@ -93,9 +196,13 @@ static std::vector<CandidateItem> getAllSuitableCharElements(
         }
     }
 
+    long long now = (long long)time(nullptr);
     std::stable_sort(candidates.begin(), candidates.end(),
-                     [](const CandidateItem& a, const CandidateItem& b) {
-                         return a.getWeight() > b.getWeight();
+                     [now](const CandidateItem& a, const CandidateItem& b) {
+                         long long sa = a.computeScore(now);
+                         long long sb = b.computeScore(now);
+                         if (sa != sb) return sa > sb;
+                         return a.getTimestamp() > b.getTimestamp();
                      });
     return candidates;
 }
@@ -143,15 +250,29 @@ static size_t get_utf8_char_count(const std::string& str) {
 std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     const std::vector<std::vector<std::string>>& split_options,
     size_t candidate_page_size) {
+    SplitContext context = build_split_context(split_options);
+
     std::vector<CandidateItem> smart_phrase_candidates =
         getSmartPhraseCandidateElements(split_options);
     std::vector<CandidateItem> suitable_word_candidates =
         getAllSuitableWords(split_options);
     std::vector<CandidateItem> suitable_char_candidates =
-        getAllSuitableCharElements(split_options);
+        getAllSuitableCharElements(context.active_options);
+
+    std::vector<CandidateItem> supplemental_candidates;
+    if (context.has_literal_prefix()) {
+        std::vector<CandidateItem> prefixed_word_candidates =
+            prefix_candidates(getAllSuitableWords(context.active_options), context.literal_prefix_parts);
+        std::vector<CandidateItem> prefixed_char_candidates =
+            prefix_candidates(suitable_char_candidates, context.literal_prefix_parts);
+        supplemental_candidates = concatCandidateElementArrays(
+            {prefixed_word_candidates, prefixed_char_candidates});
+    }
 
     std::vector<CandidateItem> flat_candidates = concatCandidateElementArrays(
-        {smart_phrase_candidates, suitable_word_candidates, suitable_char_candidates});
+        {smart_phrase_candidates, suitable_word_candidates, supplemental_candidates,
+         context.has_literal_prefix() ? std::vector<CandidateItem>{} : suitable_char_candidates});
+    flat_candidates = dedupe_candidates(flat_candidates);
 
     std::vector<std::vector<CandidateItem>> paged_candidates;
     if (flat_candidates.empty() || candidate_page_size == 0) {

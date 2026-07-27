@@ -8,9 +8,55 @@
 #include "pinyin_matcher.h"
 #include "util.h"
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <unordered_set>
+
+static bool is_lowercase_pinyin_segment(const std::string& input) {
+    if (input.empty()) return false;
+    return std::all_of(input.begin(), input.end(), [](unsigned char ch) {
+        return ch >= 'a' && ch <= 'z';
+    });
+}
+
+std::string aggressivePinyinSplit(const std::string& input);
+std::string conservativePinyinSplit(const std::string& input);
+
+static bool is_uppercase_literal_char(unsigned char ch) {
+    return ch >= 'A' && ch <= 'Z';
+}
+
+static std::vector<std::string> split_mixed_segment(const std::string& segment, bool aggressive) {
+    std::vector<std::string> tokens;
+    if (segment.empty()) return tokens;
+
+    size_t i = 0;
+    while (i < segment.size()) {
+        size_t j = i;
+        if (is_lowercase_pinyin_segment(std::string(1, segment[i]))) {
+            while (j < segment.size() && segment[j] >= 'a' && segment[j] <= 'z') ++j;
+            std::string lowercase_run = segment.substr(i, j - i);
+            std::string split = aggressive ? aggressivePinyinSplit(lowercase_run)
+                                           : conservativePinyinSplit(lowercase_run);
+            std::vector<std::string> parts = split_csv(split);
+            tokens.insert(tokens.end(), parts.begin(), parts.end());
+        } else if (is_uppercase_literal_char((unsigned char)segment[i])) {
+            while (j < segment.size() && is_uppercase_literal_char((unsigned char)segment[j])) ++j;
+            tokens.push_back(segment.substr(i, j - i));
+        } else {
+            while (j < segment.size() &&
+                   !(segment[j] >= 'a' && segment[j] <= 'z') &&
+                   !is_uppercase_literal_char((unsigned char)segment[j])) {
+                ++j;
+            }
+            tokens.push_back(segment.substr(i, j - i));
+        }
+        i = j;
+    }
+
+    return tokens;
+}
 
 // =============================================================================
 // 2. 数据结构：SimpleStack (栈)
@@ -183,7 +229,7 @@ std::string aggressivePinyinSplitMain(const std::string& raw) {
     bool first = true;
     while (std::getline(ss, segment, '\'')) {
         if (!first) result += "'";
-        result += aggressivePinyinSplit(segment);
+        result += join_csv(split_mixed_segment(segment, true));
         first = false;
     }
     return result;
@@ -265,7 +311,7 @@ std::string conservativePinyinSplitMain(const std::string& raw) {
     bool first = true;
     while (std::getline(ss, segment, '\'')) {
         if (!first) result += "'";
-        result += conservativePinyinSplit(segment);
+        result += join_csv(split_mixed_segment(segment, false));
         first = false;
     }
     return result;

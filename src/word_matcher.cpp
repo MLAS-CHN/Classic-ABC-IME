@@ -6,7 +6,8 @@
 #include "pinyin_matcher.h"
 #include "util.h"
 #include <algorithm>
-#include <unordered_set>
+#include <unordered_map>
+#include <ctime>
 
 /**
  * 获取一套拼音分段对应的候选词数组。
@@ -34,8 +35,6 @@ static std::string candidate_key(const CandidateItem& item) {
     std::string key = join_csv(item.getPinyinParts());
     key += "||";
     key += item.getText();
-    key += "||";
-    key += std::to_string(item.getWeight());
     return key;
 }
 
@@ -54,18 +53,30 @@ std::vector<CandidateItem> getAllSuitableWords(
 
     std::vector<CandidateItem> deduped;
     deduped.reserve(all.size());
-    std::unordered_set<std::string> seen;
+    std::unordered_map<std::string, size_t> seen;
     for (const auto& item : all) {
-        if (seen.insert(candidate_key(item)).second) {
+        std::string key = candidate_key(item);
+        auto it = seen.find(key);
+        if (it == seen.end()) {
+            seen[key] = deduped.size();
             deduped.push_back(item);
+        } else {
+            long long now = (long long)time(nullptr);
+            if (item.computeScore(now) > deduped[it->second].computeScore(now)) {
+                deduped[it->second] = item;
+            }
         }
     }
 
+    long long now = (long long)time(nullptr);
     std::sort(deduped.begin(), deduped.end(),
-        [](const CandidateItem& a, const CandidateItem& b) {
+        [now](const CandidateItem& a, const CandidateItem& b) {
             if (a.getPinyinLength() != b.getPinyinLength())
                 return a.getPinyinLength() > b.getPinyinLength();
-            return a.getWeight() > b.getWeight();
+            long long sa = a.computeScore(now);
+            long long sb = b.computeScore(now);
+            if (sa != sb) return sa > sb;
+            return a.getTimestamp() > b.getTimestamp();
         });
 
     return deduped;

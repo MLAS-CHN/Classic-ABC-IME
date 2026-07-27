@@ -1,7 +1,3 @@
-/**
- * candidate_item.cpp
- * 候选元素构建逻辑实现文件。
- */
 #include "candidate_item.h"
 #include "pinyin_data.h"
 #include "pinyin_file_io.h"
@@ -11,12 +7,11 @@
 #include <algorithm>
 #include <cstdlib>
 #include <utility>
-
-
+#include <ctime>
 
 std::string CandidateItem::toString() const {
     std::string pinyin_csv = join_csv(pinyin_parts_);
-    return pinyin_csv + " " + text_ + " " + std::to_string(weight_);
+    return pinyin_csv + " " + text_ + " " + std::to_string(timestamp_) + " " + std::to_string(count_);
 }
 
 std::string CandidateItem::getSourceFileName() const {
@@ -36,12 +31,11 @@ int CandidateItem::findSourceLineNumber() const {
         return -1;
     }
     auto it = g_user_dict_lookup.find(key);
-    if (it != g_user_dict_lookup.end()) return it->second;
+    if (it != g_user_dict_lookup.end()) return it->second.line_number;
     return -1;
 }
 
 CandidateItem CandidateItem::fromCharDictLineNumber(int line_number) {
-    // 预留：后续按字库格式解析并构建。
     (void)line_number;
     return CandidateItem();
 }
@@ -56,23 +50,24 @@ CandidateItem CandidateItem::fromWordDictLineNumber(int line_number) {
 
     std::string pinyin_csv;
     std::string text;
-    std::string weight_str;
-    int weight = 1;
+    std::string ts_str;
+    std::string count_str;
+    long long timestamp = 0;
+    int count = 1;
 
     if (!(iss >> pinyin_csv >> text)) {
         return CandidateItem();
     }
 
-    if (iss >> weight_str) {
-        char* end_ptr = nullptr;
-        long parsed = std::strtol(weight_str.c_str(), &end_ptr, 10);
-        if (end_ptr != weight_str.c_str() && *end_ptr == '\0') {
-            weight = (int)parsed;
-        }
+    if (iss >> ts_str) {
+        try { timestamp = std::stoll(ts_str); } catch (...) { timestamp = 0; }
+    }
+    if (iss >> count_str) {
+        try { count = std::stoi(count_str); } catch (...) { count = 1; }
     }
 
     std::vector<std::string> pinyin_parts = split_csv(pinyin_csv);
-    return CandidateItem(pinyin_parts, text, weight);
+    return CandidateItem(pinyin_parts, text, timestamp, count);
 }
 
 CandidateItem CandidateItem::mergeCandidateItems(const std::vector<CandidateItem>& items) {
@@ -87,12 +82,13 @@ CandidateItem CandidateItem::mergeCandidateItems(const std::vector<CandidateItem
     }
 
     if (merged_pinyin_parts.empty() || merged_text.empty()) return CandidateItem();
-    return CandidateItem(merged_pinyin_parts, merged_text, 1);
+    long long now = (long long)time(nullptr);
+    return CandidateItem(merged_pinyin_parts, merged_text, now, 1);
 }
 
-void CandidateItem::quickSortByWeightDesc(std::vector<CandidateItem>& candidates) {
+void CandidateItem::quickSortByTimestampDesc(std::vector<CandidateItem>& candidates) {
     std::sort(candidates.begin(), candidates.end(),
               [](const CandidateItem& a, const CandidateItem& b) {
-                  return a.getWeight() > b.getWeight();
+                  return a.getTimestamp() > b.getTimestamp();
               });
 }

@@ -1,4 +1,4 @@
-﻿// proto_ui.cpp - Candidate window UI implementation.
+// proto_ui.cpp - Candidate window UI implementation.
 #include "proto_ui.h"
 #include "proto_engine.h"
 #include "proto_core.h"
@@ -184,7 +184,16 @@ void ClassicABC::UI::Show(bool visible) {
 void ClassicABC::UI::Update() {
     // Read composition from engine
     const auto& buf = ClassicABC::Engine::CompStr();
-    if (buf.empty()) { if (g_wnd) ShowWindow(g_wnd, SW_HIDE); return; }
+    if (buf.empty()) {
+        if (g_wnd) ShowWindow(g_wnd, SW_HIDE);
+        ShowCand(false);
+        return;
+    }
+
+    // 候选数为 0 时，强制隐藏候选框，避免残留显示。
+    if (ClassicABC::GetCandidateCount() == 0) {
+        ShowCand(false);
+    }
 
     if (!g_wnd) {
         write_log("UI: Update creating candidate input window", LOG_DEBUG);
@@ -297,6 +306,10 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
 
 void ClassicABC::UI::ShowCand(bool visible) {
     if (visible) {
+        if (ClassicABC::GetCandidateCount() == 0) {
+            if (g_candWnd) ShowWindow(g_candWnd, SW_HIDE);
+            return;
+        }
         if (!g_candWnd) {
             write_log("UI: ShowCand creating candidate list window", LOG_DEBUG);
             if (!g_candClassRegistered) {

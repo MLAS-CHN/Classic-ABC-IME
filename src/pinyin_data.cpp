@@ -1,8 +1,3 @@
-/**
- * pinyin_data.cpp
- * 拼音数据全局缓存定义文件。
- * 定义字库/词库的行缓存与首字母索引全局变量。
- */
 #include "pinyin_data.h"
 
 std::vector<PinyinIndexItem> g_pinyin_map_index;
@@ -15,6 +10,6 @@ std::vector<std::string> g_char_freq_lines;
 
 std::vector<std::vector<std::string>> g_user_dict_parts;
 std::unordered_map<size_t, std::vector<int>> g_user_dict_segcount_map;
-std::unordered_map<std::string, int> g_user_dict_lookup;
+std::unordered_map<std::string, UserDictLookupEntry> g_user_dict_lookup;
 
 std::unordered_map<std::string, CharFreqLookupEntry> g_char_freq_lookup;
