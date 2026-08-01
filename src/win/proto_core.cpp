@@ -1,4 +1,4 @@
-﻿// proto_core.cpp - Thin coordinator: wires Engine + UI together.
+// proto_core.cpp - Thin coordinator: wires Engine + UI together.
 #include "proto_core.h"
 #include "proto_engine.h"
 #include "proto_ui.h"
@@ -88,6 +88,27 @@ void ClassicABC::SetDataDir(const wchar_t* dir) {
 }
 
 // --- Skin wrappers ---
+static ClassicABC::UI::BuiltinSkinId to_ui_skin_id(ClassicABC::BuiltinSkinId skin_id) {
+    switch (skin_id) {
+        case ClassicABC::BuiltinSkinId::Candidate:
+            return ClassicABC::UI::BuiltinSkinId::Candidate;
+        case ClassicABC::BuiltinSkinId::Settings:
+            return ClassicABC::UI::BuiltinSkinId::Settings;
+        case ClassicABC::BuiltinSkinId::Button:
+            return ClassicABC::UI::BuiltinSkinId::Button;
+    }
+    return ClassicABC::UI::BuiltinSkinId::Candidate;
+}
+
+bool ClassicABC::LoadBuiltinSkin(BuiltinSkinId skin_id, NinePatchSkin& sk) {
+    ClassicABC::UI::NinePatchSkin ui;
+    if (!ClassicABC::UI::LoadBuiltinSkin(to_ui_skin_id(skin_id), ui)) return false;
+    sk.hBmp = ui.hBmp; sk.srcW = ui.srcW; sk.srcH = ui.srcH;
+    sk.marginL = ui.marginL; sk.marginT = ui.marginT;
+    sk.marginR = ui.marginR; sk.marginB = ui.marginB;
+    return true;
+}
+
 bool ClassicABC::LoadSkinFromFile(const wchar_t* path, NinePatchSkin& sk, int mL, int mT, int mR, int mB) {
     ClassicABC::UI::NinePatchSkin ui;
     if (!ClassicABC::UI::LoadSkin(path, ui, mL, mT, mR, mB)) return false;

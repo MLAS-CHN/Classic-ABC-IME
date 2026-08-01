@@ -4,7 +4,86 @@
 #include "proto_core.h"
 #include "../util.h"
 #include <gdiplus.h>
+#include <cstring>
+#include <cstdint>
 #pragma comment(lib, "gdiplus.lib")
+
+namespace {
+
+struct BuiltinSkinSpec {
+    const uint32_t* pixels;
+    int width;
+    int height;
+    int marginL;
+    int marginT;
+    int marginR;
+    int marginB;
+};
+
+static const uint32_t kButtonSkinPixels[] = {
+    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000,
+    0xFFFFFFFF, 0xFFC0C0C0, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFFFFFFF, 0xFFC0C0C0, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFFFFFFF, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF000000,
+    0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000
+};
+
+static const uint32_t kCommonSkinPixels[] = {
+    0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF000000,
+    0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000
+};
+
+static const uint32_t kShadowSkinPixels[] = {
+    0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFF808080, 0xFF808080, 0xFFFFFFFF, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFF808080, 0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFFFFFFFF, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFFC0C0C0, 0xFF808080, 0xFF000000,
+    0xFFC0C0C0, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF808080, 0xFF000000,
+    0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000
+};
+
+static HBITMAP create_bitmap_from_argb_pixels(const uint32_t* pixels, int width, int height) {
+    if (!pixels || width <= 0 || height <= 0) return nullptr;
+
+    BITMAPINFO bi = {};
+    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bi.bmiHeader.biWidth = width;
+    bi.bmiHeader.biHeight = -height;  // top-down
+    bi.bmiHeader.biPlanes = 1;
+    bi.bmiHeader.biBitCount = 32;
+    bi.bmiHeader.biCompression = BI_RGB;
+
+    void* bits = nullptr;
+    HBITMAP bmp = CreateDIBSection(nullptr, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    if (!bmp || !bits) {
+        if (bmp) DeleteObject(bmp);
+        return nullptr;
+    }
+
+    std::memcpy(bits, pixels, static_cast<size_t>(width) * static_cast<size_t>(height) * sizeof(uint32_t));
+    return bmp;
+}
+
+static bool fill_skin_from_spec(ClassicABC::UI::NinePatchSkin& skin, const BuiltinSkinSpec& spec) {
+    HBITMAP hBmp = create_bitmap_from_argb_pixels(spec.pixels, spec.width, spec.height);
+    if (!hBmp) return false;
+    skin.hBmp = hBmp;
+    skin.srcW = spec.width;
+    skin.srcH = spec.height;
+    skin.marginL = spec.marginL;
+    skin.marginT = spec.marginT;
+    skin.marginR = spec.marginR;
+    skin.marginB = spec.marginB;
+    return true;
+}
+
+}  // namespace
 
 // --- state ---
 static HINSTANCE g_inst = nullptr;
@@ -48,11 +127,22 @@ static bool  g_candClassRegistered;
 static int   g_candW = 120, g_candH = 200;
 
 // --- font ---
+static HFONT create_candidate_font() {
+    return CreateFontW(
+        12, 0, 0, 0,
+        FW_NORMAL,
+        FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        L"System");
+}
+
 static void init_font() {
     if (g_font) return;
-    g_font = CreateFontW(12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                          DEFAULT_QUALITY, FIXED_PITCH | FF_MODERN, L"System");
+    g_font = create_candidate_font();
     HDC dc = GetDC(nullptr);
     if (dc && g_font) { HFONT old = (HFONT)SelectObject(dc, g_font); TEXTMETRICW tm = {}; GetTextMetricsW(dc, &tm);
                         g_fh = tm.tmHeight + tm.tmExternalLeading; g_fw = tm.tmAveCharWidth; SelectObject(dc, old); }
@@ -607,6 +697,18 @@ bool ClassicABC::UI::LoadSkin(const wchar_t* path, ClassicABC::UI::NinePatchSkin
     skin.marginR = mR;
     skin.marginB = mB;
     return true;
+}
+
+bool ClassicABC::UI::LoadBuiltinSkin(BuiltinSkinId skin_id, ClassicABC::UI::NinePatchSkin& skin) {
+    switch (skin_id) {
+        case BuiltinSkinId::Candidate:
+            return fill_skin_from_spec(skin, {kShadowSkinPixels, 9, 9, 4, 4, 4, 4});
+        case BuiltinSkinId::Settings:
+            return fill_skin_from_spec(skin, {kCommonSkinPixels, 5, 5, 2, 2, 2, 2});
+        case BuiltinSkinId::Button:
+            return fill_skin_from_spec(skin, {kButtonSkinPixels, 5, 5, 2, 2, 2, 2});
+    }
+    return false;
 }
 
 void ClassicABC::UI::FreeSkin(ClassicABC::UI::NinePatchSkin& skin) {

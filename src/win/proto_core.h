@@ -1,9 +1,15 @@
-﻿// proto_core.h - Thin coordinator: Engine + UI. Public API for TSF adapter.
+// proto_core.h - Thin coordinator: Engine + UI. Public API for TSF adapter.
 #pragma once
 #include <windows.h>
 #include <string>
 
 namespace ClassicABC {
+
+enum class BuiltinSkinId {
+    Candidate,
+    Settings,
+    Button
+};
 
 struct NinePatchSkin {
     HBITMAP hBmp = nullptr;
@@ -39,6 +45,7 @@ void GoPrevPage();
 void SetDataDir(const wchar_t* dir);
 
 // Skin
+bool LoadBuiltinSkin(BuiltinSkinId skin_id, NinePatchSkin& skin);
 bool LoadSkinFromFile(const wchar_t* path, NinePatchSkin& skin, int mL, int mT, int mR, int mB);
 void FreeSkin(NinePatchSkin& skin);
 void SetSkin(const NinePatchSkin* skin);

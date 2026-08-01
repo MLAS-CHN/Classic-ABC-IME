@@ -196,7 +196,16 @@ static void persist(const CandidateItem& ci) {
     bool single = ci.getPinyinParts().size() == 1;
     DictTargetFile tf = single ? DictTargetFile::CharFreq : DictTargetFile::UserDict;
     int ln = ci.findSourceLineNumber();
-    if (ln > 0) { update_timestamp_by_line(tf, ln); return; }
+    if (ln > 0) {
+        write_log("persist: update " + std::string(single ? "char_freq" : "user_dict") + " line=" + std::to_string(ln) +
+                  " text=[" + ci.getText() + "] pinyin=[" + join_csv(ci.getPinyinParts()) + "]",
+                  LOG_DEBUG);
+        update_timestamp_by_line(tf, ln);
+        return;
+    }
+    write_log("persist: insert new " + std::string(single ? "char_freq" : "user_dict") +
+              " text=[" + ci.getText() + "] pinyin=[" + join_csv(ci.getPinyinParts()) + "]",
+              LOG_DEBUG);
     CandidateItem new_ci = ci;
     if (new_ci.getTimestamp() == 0) {
         new_ci.setTimestamp((long long)time(nullptr));
@@ -214,6 +223,13 @@ static std::string pick(size_t pi, size_t ci) {
     const auto& pg = g.pages[pi];
     if (ci >= pg.size()) return {};
     CandidateItem sel = pg[ci];
+
+    write_log("pick: page=" + std::to_string(pi) + " idx=" + std::to_string(ci) +
+              " text=[" + sel.getText() + "] pinyin=[" + join_csv(sel.getPinyinParts()) +
+              "] ts=" + std::to_string(sel.getTimestamp()) +
+              " count=" + std::to_string(sel.getCount()) +
+              " src_line=" + std::to_string(sel.findSourceLineNumber()),
+              LOG_DEBUG);
 
     if (g.delmode) {
         if (sel.getPinyinParts().size() > 1) {
@@ -239,6 +255,9 @@ static std::string pick(size_t pi, size_t ci) {
             auto m = CandidateItem::mergeCandidateItems(g.cont);
             if (!m.getText().empty() && !m.getPinyinParts().empty()) {
                 int ln = m.findSourceLineNumber();
+                write_log("pick: contmode merge text=[" + m.getText() + "] pinyin=[" +
+                              join_csv(m.getPinyinParts()) + "] found_line=" + std::to_string(ln),
+                          LOG_DEBUG);
                 if (ln > 0)
                     update_timestamp_by_line(DictTargetFile::UserDict, ln);
                 else

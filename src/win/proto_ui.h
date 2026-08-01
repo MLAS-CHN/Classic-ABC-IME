@@ -1,10 +1,16 @@
-﻿// proto_ui.h - Candidate window UI + Settings bar: GDI/GDI+, 9-patch, font, positioning.
+// proto_ui.h - Candidate window UI + Settings bar: GDI/GDI+, 9-patch, font, positioning.
 // Reads composition string from Engine::CompStr() for painting.
 #pragma once
 #include <windows.h>
 
 namespace ClassicABC {
 namespace UI {
+
+enum class BuiltinSkinId {
+    Candidate,
+    Settings,
+    Button
+};
 
 struct NinePatchSkin {
     HBITMAP hBmp = nullptr;
@@ -38,6 +44,7 @@ bool SetNavIcon(int idx, const wchar_t* path);  // idx 0=first 1=last 2=next 3=p
 
 // Skin helpers
 void SetSkin(const NinePatchSkin* skin);
+bool LoadBuiltinSkin(BuiltinSkinId skin_id, NinePatchSkin& skin);
 bool LoadSkin(const wchar_t* path, NinePatchSkin& skin,
               int mL, int mT, int mR, int mB);
 void FreeSkin(NinePatchSkin& skin);

@@ -1,4 +1,4 @@
-﻿// IME.cpp : Defines the exported functions for the DLL application.
+// IME.cpp : Defines the exported functions for the DLL application.
 //
 
 #include "stdafx.h"
@@ -212,24 +212,15 @@ void IME::_InitEngine() {
     return;
   }
 
-  std::wstring skinPath = _dllDir + L"\\res\\shadow.png";
-  if (GetFileAttributesW(skinPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
-    MessageBoxW(NULL, (L"找不到皮肤文件！\n请将 res 目录放在 DLL 同级目录或 %ProgramData%\\ClassicABC\\res 下。\n\nDLL 目录: " + _dllDir).c_str(),
-                L"经典ABC - 错误", MB_OK | MB_ICONERROR);
-    return;
-  }
-
   ClassicABC::SetDataDir(dataPath.c_str());
   ClassicABC::Initialize(s_hModule);
   ClassicABC::SetActive(true);
 
-  if (ClassicABC::LoadSkinFromFile(skinPath.c_str(), _skin, 4, 4, 4, 4))
+  if (ClassicABC::LoadBuiltinSkin(ClassicABC::BuiltinSkinId::Candidate, _skin))
     ClassicABC::SetSkin(&_skin);
-  std::wstring commonPath = _dllDir + L"\\res\\common.png";
-  if (ClassicABC::LoadSkinFromFile(commonPath.c_str(), _settingsSkin, 2, 2, 2, 2))
+  if (ClassicABC::LoadBuiltinSkin(ClassicABC::BuiltinSkinId::Settings, _settingsSkin))
     ClassicABC::SetSettingsSkin(&_settingsSkin);
-  std::wstring btnPath = _dllDir + L"\\res\\button.png";
-  if (ClassicABC::LoadSkinFromFile(btnPath.c_str(), _btnSkin, 2, 2, 2, 2))
+  if (ClassicABC::LoadBuiltinSkin(ClassicABC::BuiltinSkinId::Button, _btnSkin))
     ClassicABC::SetBtnSkin(&_btnSkin);
 
   ClassicABC::SetBtnIcon(0, (_dllDir + L"\\res\\ABC_ICON.png").c_str());

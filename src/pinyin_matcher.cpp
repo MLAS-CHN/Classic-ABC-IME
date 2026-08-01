@@ -131,6 +131,10 @@ std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pin
     exact_match_flags.reserve(pinyin_parts.size());
 
     for (const auto& part : pinyin_parts) {
+        if (part.size() == 1) {
+            exact_match_flags.push_back(0);
+            continue;
+        }
         int match_result = find_exact_match_char(part, false);
         exact_match_flags.push_back(match_result > 0 ? 1 : 0);
     }
