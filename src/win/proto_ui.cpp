@@ -595,7 +595,7 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
                 // Button 1: dynamic mode icon (capital/english/pinyin)
                 if (i == 1) {
                     int mode = 2; // default pinyin
-                    if (GetKeyState(VK_CAPITAL) & 0x0001)
+                    if (ClassicABC::IsCapsLockActive())
                         mode = 0; // capital
                     else if (!ClassicABC::IsChineseMode())
                         mode = 1; // english
@@ -603,7 +603,7 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
                 }
                 // Button 3: sign_en icon when not Chinese mode
                 if (i == 3 && g_signEnIcon) {
-                    bool notChinese = (GetKeyState(VK_CAPITAL) & 0x0001) ||
+                    bool notChinese = ClassicABC::IsCapsLockActive() ||
                                       !ClassicABC::IsChineseMode();
                     if (notChinese) icon = g_signEnIcon;
                 }

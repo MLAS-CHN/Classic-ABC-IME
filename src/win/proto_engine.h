@@ -34,6 +34,7 @@ size_t GetCandidatePage();
 size_t GetTotalPages();
 bool IsChineseMode();
 bool IsDelMode();
+bool IsCapsLockActive();  // CapsLock toggled English/caps mode is on
 
 void GoFirstPage();
 void GoLastPage();

@@ -36,6 +36,7 @@ void CommitText(const wchar_t* text, size_t len);
 
 const std::wstring& GetCompositionString();
 bool IsChineseMode();
+bool IsCapsLockActive();
 
 // Candidate access
 size_t GetCandidateCount();

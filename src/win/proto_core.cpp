@@ -101,6 +101,7 @@ void ClassicABC::CommitText(const wchar_t* text, size_t len) {
 
 const std::wstring& ClassicABC::GetCompositionString() { return ClassicABC::Engine::CompStr(); }
 bool ClassicABC::IsChineseMode() { return ClassicABC::Engine::IsChineseMode(); }
+bool ClassicABC::IsCapsLockActive() { return ClassicABC::Engine::IsCapsLockActive(); }
 
 size_t      ClassicABC::GetCandidateCount()     { return ClassicABC::Engine::GetCandidateCount(); }
 std::wstring ClassicABC::GetCandidateText(size_t i) { return ClassicABC::Engine::GetCandidateText(i); }

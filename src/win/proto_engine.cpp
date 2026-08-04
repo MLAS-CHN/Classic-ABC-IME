@@ -34,6 +34,7 @@ struct State {
 static State g;
 static std::wstring g_comp;
 static bool g_shift_pending = false;  // true when Shift was pressed alone (potential tap)
+static bool g_capslock_was_on = false;  // CapsLock forced English mode; restore Chinese on release
 
 // ---- UTF helpers ----
 static std::wstring u8to16(const std::string& s) {
@@ -282,6 +283,8 @@ void ClassicABC::Engine::Init() {
     init_pinyin_data_async();
     refresh_user_dict_baseline();
     g = State{};
+    g.chinese = true;
+    g_capslock_was_on = false;
     g_comp.clear();
 }
 // ---- reload dictionaries only when the file changed externally ----
@@ -325,6 +328,9 @@ static void refresh_user_dict_baseline() {
 void ClassicABC::Engine::SetActive(bool a) {
     g.active = a;
     if (a) {
+        // Sync CapsLock baseline from the OS (reliable outside keydown events).
+        g_capslock_was_on = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+        g.chinese = !g_capslock_was_on;
         // Reload dictionaries only if changed by another process; avoids the
         // multi-second full reload of the large dictionary on every switch.
         if (user_dict_changed_since_load())
@@ -332,6 +338,7 @@ void ClassicABC::Engine::SetActive(bool a) {
     } else {
         flush_dirty_dicts();
         refresh_user_dict_baseline();
+        g_capslock_was_on = false;
         bool wasChinese = g.chinese;
         g = State{};
         g.chinese = wasChinese;
@@ -366,7 +373,7 @@ bool ClassicABC::Engine::TestKey(UINT vk) {
     g_shift_pending = false;
 
     // CapsLock on: English mode — pass through
-    if (GetKeyState(VK_CAPITAL) & 0x0001) return false;
+    if (g_capslock_was_on) return false;
 
     bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
     bool ctrl  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
@@ -554,15 +561,21 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
     // Any non-Shift key clears pending tap
     g_shift_pending = false;
 
-    // CapsLock press: force English mode, flush + reset pinyin state
+    // CapsLock press: each press toggles the OS CapsLock state exactly once,
+    // so track it ourselves instead of reading GetKeyState (whose value during
+    // the keydown event is unreliable — it may reflect pre- or post-toggle).
     if (vk == VK_CAPITAL) {
         FlushPending();
-        g.chinese = false;
+        g_capslock_was_on = !g_capslock_was_on;
+        g.chinese = !g_capslock_was_on;
+        write_log("Engine: CapsLock toggled was_on=" + std::to_string(g_capslock_was_on) +
+                      " chinese=" + std::to_string(g.chinese),
+                  LOG_DEBUG);
         return false;  // not eaten, let system toggle CapsLock
     }
 
     // CapsLock on: English mode — pass through
-    if (GetKeyState(VK_CAPITAL) & 0x0001) return false;
+    if (g_capslock_was_on) return false;
 
     bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
     bool ctrl  = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
@@ -663,6 +676,7 @@ size_t ClassicABC::Engine::GetCandidatePage()  { return g.page; }
 size_t ClassicABC::Engine::GetTotalPages()     { return g.pages.size(); }
 bool   ClassicABC::Engine::IsChineseMode()     { return g.chinese; }
 bool   ClassicABC::Engine::IsDelMode()         { return g.delmode; }
+bool   ClassicABC::Engine::IsCapsLockActive()  { return g_capslock_was_on; }
 
 void ClassicABC::Engine::GoFirstPage() {
     if (g.pages.empty()) return;
