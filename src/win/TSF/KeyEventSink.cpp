@@ -69,6 +69,7 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
                             LPARAM lParam,
                             BOOL* pfEaten) {
   _fTestKeyUpPending = FALSE;
+  _SetActiveContext(pContext);
   if (_fTestKeyDownPending) {
     _fTestKeyDownPending = FALSE;
     *pfEaten = TRUE;

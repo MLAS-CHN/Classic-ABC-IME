@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "TSF.h"
 #include "../util.h"
+#include "../proto_engine.h"
 
 TSF::TSF() {
   _cRef = 1;
@@ -59,6 +60,7 @@ STDAPI TSF::Activate(ITfThreadMgr* pThreadMgr, TfClientId tfClientId) {
 }
 
 STDAPI TSF::Deactivate() {
+  ClassicABC::ClearCommitTextFn();
   _ShutdownEngine();
   _InitTextEditSink(com_ptr<ITfDocumentMgr>());
   _UninitThreadMgrEventSink();
@@ -67,6 +69,7 @@ STDAPI TSF::Deactivate() {
   _UninitThreadFocusSink();
   _pThreadMgr = NULL;
   _tfClientId = TF_CLIENTID_NULL;
+  _pActiveContext = NULL;
   return S_OK;
 }
 
@@ -83,11 +86,40 @@ STDAPI TSF::ActivateEx(ITfThreadMgr* pThreadMgr, TfClientId tfClientId, DWORD dw
   if (!_InitCompartment()) goto ExitError;
   if (!_InitThreadFocusSink()) goto ExitError;
   _InitEngine();
+  ClassicABC::SetCommitTextFn(&TSF::_CommitTextCallback, this);
   return S_OK;
 
 ExitError:
   Deactivate();
   return E_FAIL;
+}
+
+void TSF::_SetActiveContext(ITfContext* pContext) {
+  _pActiveContext = pContext;
+}
+
+void TSF::_CommitTextCallback(const wchar_t* text, size_t len, void* userdata) {
+  if (text == nullptr || userdata == nullptr) return;
+  TSF* self = static_cast<TSF*>(userdata);
+  self->_CommitText(text, len);
+}
+
+void TSF::_CommitText(const wchar_t* text, size_t len) {
+  if (text == nullptr || len == 0 || _pActiveContext == nullptr) return;
+
+  _commit_text.assign(text, len);
+  _commit_pending = true;
+
+  HRESULT hr = E_FAIL;
+  _pActiveContext->RequestEditSession(_tfClientId, (ITfEditSession*)this,
+                                      TF_ES_SYNC | TF_ES_READWRITE, &hr);
+  if (FAILED(hr)) {
+    // Edit session could not run synchronously (or SetText failed): feed the
+    // text through the SendInput path so nothing is lost.
+    _commit_pending = false;
+    _commit_text.clear();
+    ClassicABC::Engine::SendTextFallback(text, len);
+  }
 }
 
 void TSF::_InitEngine() {
@@ -208,7 +240,31 @@ STDMETHODIMP TSF::OnActivated(REFCLSID clsid, REFGUID guidProfile, BOOL isActiva
 }
 
 STDAPI TSF::DoEditSession(TfEditCookie ec) {
-  return S_OK;
+  if (!_commit_pending || _pActiveContext == nullptr) return E_FAIL;
+  _commit_pending = false;
+  if (_commit_text.empty()) return S_OK;
+
+  TF_SELECTION sel;
+  ULONG cFetched = 0;
+  HRESULT hr = _pActiveContext->GetSelection(ec, TF_DEFAULT_SELECTION, 1, &sel, &cFetched);
+  if (FAILED(hr) || cFetched == 0) {
+    _commit_text.clear();
+    return E_FAIL;
+  }
+
+  com_ptr<ITfRange> pRange = sel.range;
+  hr = pRange->SetText(ec, 0, _commit_text.c_str(), (LONG)_commit_text.size());
+  if (SUCCEEDED(hr)) {
+    TF_SELECTION newSel;
+    newSel.range = pRange;
+    newSel.style.ase = TF_AE_END;
+    newSel.style.fInterimChar = FALSE;
+    hr = _pActiveContext->SetSelection(ec, 1, &newSel);
+  }
+  sel.range->Release();
+
+  _commit_text.clear();
+  return hr;
 }
 
 STDAPI TSF::OnCompositionTerminated(TfEditCookie ecWrite,

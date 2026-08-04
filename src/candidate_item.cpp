@@ -22,6 +22,7 @@ std::string CandidateItem::getSourceFileName() const {
 }
 
 int CandidateItem::findSourceLineNumber() const {
+    if (!is_dict_cache_ready()) return -1;
     std::string pinyin_csv = join_csv(pinyin_parts_);
     std::string key = pinyin_csv + " " + text_;
 

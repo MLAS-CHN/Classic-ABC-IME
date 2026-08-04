@@ -1,6 +1,5 @@
 // proto_ui.cpp - Candidate window UI implementation.
 #include "proto_ui.h"
-#include "proto_engine.h"
 #include "proto_core.h"
 #include "../util.h"
 #include <gdiplus.h>
@@ -212,7 +211,7 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             HBRUSH bg = CreateSolidBrush(RGB(0xFF, 0xFB, 0xF0)); FillRect(dc, &rc, bg); DeleteObject(bg);
         }
 
-        const auto& s = ClassicABC::Engine::CompStr();
+        const auto& s = ClassicABC::GetCompositionString();
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
         SetTextColor(dc, RGB(0, 0, 0));
@@ -227,6 +226,11 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         }
 
         SelectObject(dc, old); EndPaint(hwnd, &ps); return 0;
+    }
+    if (msg == WM_USER + 5) {
+        // Dictionary cache finished building on the background thread.
+        ClassicABC::RefreshCandidates();
+        return 0;
     }
     return DefWindowProc(hwnd, msg, w, l);
 }
@@ -273,7 +277,7 @@ void ClassicABC::UI::Show(bool visible) {
 
 void ClassicABC::UI::Update() {
     // Read composition from engine
-    const auto& buf = ClassicABC::Engine::CompStr();
+    const auto& buf = ClassicABC::GetCompositionString();
     if (buf.empty()) {
         if (g_wnd) ShowWindow(g_wnd, SW_HIDE);
         ShowCand(false);
@@ -391,7 +395,18 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         }
         return 0;
     }
+    if (msg == WM_USER + 5) {
+        // Dictionary cache finished building on the background thread:
+        // rebuild the candidate list so words appear without user input.
+        ClassicABC::RefreshCandidates();
+        return 0;
+    }
     return DefWindowProc(hwnd, msg, w, l);
+}
+
+HWND ClassicABC::UI::GetCandidateWindow() {
+    // Prefer the candidate list window; fall back to the pinyin bar window.
+    return g_candWnd ? g_candWnd : g_wnd;
 }
 
 void ClassicABC::UI::ShowCand(bool visible) {
@@ -582,14 +597,14 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
                     int mode = 2; // default pinyin
                     if (GetKeyState(VK_CAPITAL) & 0x0001)
                         mode = 0; // capital
-                    else if (!ClassicABC::Engine::IsChineseMode())
+                    else if (!ClassicABC::IsChineseMode())
                         mode = 1; // english
                     icon = g_modeIcons[mode];
                 }
                 // Button 3: sign_en icon when not Chinese mode
                 if (i == 3 && g_signEnIcon) {
                     bool notChinese = (GetKeyState(VK_CAPITAL) & 0x0001) ||
-                                      !ClassicABC::Engine::IsChineseMode();
+                                      !ClassicABC::IsChineseMode();
                     if (notChinese) icon = g_signEnIcon;
                 }
                 if (!icon) continue;

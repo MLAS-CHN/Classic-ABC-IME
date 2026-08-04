@@ -62,6 +62,11 @@ class TSF : public ITfTextInputProcessorEx,
   HRESULT _SetKeyboardOpen(BOOL fOpen);
   void _AbortComposition(bool clear = true);
 
+  // Commit text via TSF edit session (replaces SendInput fallback).
+  void _CommitText(const wchar_t* text, size_t len);
+  static void _CommitTextCallback(const wchar_t* text, size_t len, void* userdata);
+  void _SetActiveContext(ITfContext* pContext);
+
  private:
   BOOL _InitThreadMgrEventSink();
   void _UninitThreadMgrEventSink();
@@ -88,6 +93,10 @@ class TSF : public ITfTextInputProcessorEx,
   com_ptr<ITfContext> _pTextEditSinkContext;
   DWORD _dwTextEditSinkCookie, _dwTextLayoutSinkCookie;
   BOOL _fTestKeyDownPending, _fTestKeyUpPending;
+
+  com_ptr<ITfContext> _pActiveContext;
+  std::wstring _commit_text;
+  bool _commit_pending = false;
 
   LONG _cRef;
 

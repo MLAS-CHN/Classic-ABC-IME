@@ -181,11 +181,13 @@ static std::vector<CandidateItem> getAllSuitableCharElements(
                     
                     long long timestamp = 0;
                     int count = 1;
-                    std::string freq_key = pinyin_part + " " + single_char;
-                    auto freq_it = g_char_freq_lookup.find(freq_key);
-                    if (freq_it != g_char_freq_lookup.end()) {
-                        timestamp = freq_it->second.timestamp;
-                        count = freq_it->second.count;
+                    if (is_dict_cache_ready()) {
+                        std::string freq_key = pinyin_part + " " + single_char;
+                        auto freq_it = g_char_freq_lookup.find(freq_key);
+                        if (freq_it != g_char_freq_lookup.end()) {
+                            timestamp = freq_it->second.timestamp;
+                            count = freq_it->second.count;
+                        }
                     }
                     CandidateItem item({pinyin_part}, single_char, timestamp, count);
                     candidates.push_back(item);

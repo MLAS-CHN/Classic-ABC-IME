@@ -27,7 +27,15 @@ bool TestKeyDown(UINT vk);
 bool OnKeyDown(UINT vk);
 bool OnKeyUp(UINT vk);
 
+// Text commit sink: called instead of SendInput when a TSF adapter is
+// available. Set to nullptr to fall back to SendInput (IMM32 path).
+using CommitTextFn = void (*)(const wchar_t* text, size_t len, void* userdata);
+void SetCommitTextFn(CommitTextFn fn, void* userdata);
+void ClearCommitTextFn();
+void CommitText(const wchar_t* text, size_t len);
+
 const std::wstring& GetCompositionString();
+bool IsChineseMode();
 
 // Candidate access
 size_t GetCandidateCount();
@@ -35,6 +43,7 @@ std::wstring GetCandidateText(size_t i);
 size_t GetCandidatePage();
 size_t GetTotalPages();
 bool IsDelMode();
+void RefreshCandidates();  // recompute candidate list for current buffer
 
 void GoFirstPage();
 void GoLastPage();

@@ -5,12 +5,15 @@
 #include "../pinyin_file_io.h"
 #include "../util.h"
 
+static void on_dict_ready();
+
 bool ClassicABC::Initialize(HINSTANCE h) {
     ClassicABC::Engine::Init();
+    set_dict_ready_callback(&on_dict_ready);
     return ClassicABC::UI::Init(h, 163, 26);
 }
-
 void ClassicABC::Shutdown() {
+    wait_dict_cache_ready();  // ensure background cache build has finished
     ClassicABC::UI::Shutdown();
 }
 
@@ -66,7 +69,38 @@ bool ClassicABC::OnKeyUp(UINT vk) {
     return false;
 }
 
+// ---- text commit sink (TSF adapter) ----
+static ClassicABC::CommitTextFn g_commit_fn = nullptr;
+static void* g_commit_userdata = nullptr;
+
+// Dictionary cache finished building on a background thread: notify the UI
+// thread (candidate window) so the current candidate list can be refreshed.
+static void on_dict_ready() {
+    HWND hwnd = ClassicABC::UI::GetCandidateWindow();
+    write_log("ProtoCore: on_dict_ready hwnd=" + std::to_string((uintptr_t)hwnd), LOG_INFO);
+    if (hwnd) PostMessageW(hwnd, WM_USER + 5, 0, 0);
+}
+
+void ClassicABC::SetCommitTextFn(CommitTextFn fn, void* userdata) {
+    g_commit_fn = fn;
+    g_commit_userdata = userdata;
+}
+
+void ClassicABC::ClearCommitTextFn() {
+    g_commit_fn = nullptr;
+    g_commit_userdata = nullptr;
+}
+
+void ClassicABC::CommitText(const wchar_t* text, size_t len) {
+    if (g_commit_fn) {
+        g_commit_fn(text, len, g_commit_userdata);
+        return;
+    }
+    ClassicABC::Engine::SendTextFallback(text, len);
+}
+
 const std::wstring& ClassicABC::GetCompositionString() { return ClassicABC::Engine::CompStr(); }
+bool ClassicABC::IsChineseMode() { return ClassicABC::Engine::IsChineseMode(); }
 
 size_t      ClassicABC::GetCandidateCount()     { return ClassicABC::Engine::GetCandidateCount(); }
 std::wstring ClassicABC::GetCandidateText(size_t i) { return ClassicABC::Engine::GetCandidateText(i); }
@@ -78,6 +112,10 @@ void ClassicABC::GoFirstPage() { ClassicABC::Engine::GoFirstPage(); ClassicABC::
 void ClassicABC::GoLastPage()  { ClassicABC::Engine::GoLastPage();  ClassicABC::UI::UpdateCand(); }
 void ClassicABC::GoNextPage()  { ClassicABC::Engine::GoNextPage();  ClassicABC::UI::UpdateCand(); }
 void ClassicABC::GoPrevPage()  { ClassicABC::Engine::GoPrevPage();  ClassicABC::UI::UpdateCand(); }
+void ClassicABC::RefreshCandidates() {
+    ClassicABC::Engine::RebuildCandidates();
+    ClassicABC::UI::UpdateCand();
+}
 
 void ClassicABC::SetDataDir(const wchar_t* dir) {
     int n = WideCharToMultiByte(CP_UTF8, 0, dir, -1, nullptr, 0, nullptr, nullptr);

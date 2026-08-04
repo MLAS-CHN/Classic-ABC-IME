@@ -5,6 +5,7 @@
  */
 #include "pinyin_matcher.h"
 #include "pinyin_data.h"
+#include "pinyin_file_io.h"
 #include "util.h"
 #include <algorithm>
 
@@ -126,6 +127,7 @@ std::vector<int> find_prefix_match_char(const std::string& pinyin) {
 
 std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pinyin_parts) {
     if (pinyin_parts.empty() || pinyin_parts[0].empty()) return {};
+    if (!is_dict_cache_ready()) return {};
 
     std::vector<int> exact_match_flags;
     exact_match_flags.reserve(pinyin_parts.size());

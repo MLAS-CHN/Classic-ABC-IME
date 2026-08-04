@@ -33,6 +33,7 @@ void SetBtnSkin(const NinePatchSkin* skin);  // button.png for settings bar butt
 // Candidate list (test: shows 10 hardcoded rows when composition length > 1)
 void ShowCand(bool visible);
 void UpdateCand();  // reposition below input window + repaint
+HWND GetCandidateWindow();  // for cross-thread refresh notifications
 
 // Settings bar button icons (PNG with alpha, drawn over button 9-patch)
 bool SetBtnIcon(int idx, const wchar_t* path);  // idx 0~4

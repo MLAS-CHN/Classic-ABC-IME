@@ -21,6 +21,8 @@ void ToggleChineseMode();
 bool IsLocked();
 void ToggleLock();
 bool FlushPending();  // flush buffer text + hide UI; returns true if flushed
+void SendTextFallback(const wchar_t* text, size_t len);  // SendInput fallback for IMM32
+void RebuildCandidates();  // recompute candidate list for current buffer (e.g. after dict load)
 
 const std::wstring& CompStr();
 bool HasText();

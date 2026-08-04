@@ -1,5 +1,6 @@
 // proto_engine.cpp - Pinyin engine adapter for Windows TSF.
 #include "proto_engine.h"
+#include "proto_core.h"
 
 // Pinyin engine core
 #include "../candidate_item.h"
@@ -58,19 +59,19 @@ static void send_u8(const std::string& u8) {
     if (u8.empty()) return;
     std::wstring w = u8to16(u8);
     if (w.empty()) return;
-    std::vector<INPUT> in; in.reserve(w.size() * 2);
-    for (wchar_t ch : w) {
-        INPUT d = {}; d.type = INPUT_KEYBOARD; d.ki.wScan = ch; d.ki.dwFlags = KEYEVENTF_UNICODE; in.push_back(d);
-        INPUT u = d;   u.ki.dwFlags |= KEYEVENTF_KEYUP;           in.push_back(u);
-    }
-    SendInput((UINT)in.size(), in.data(), sizeof(INPUT));
+    ClassicABC::CommitText(w.c_str(), w.size());
 }
 
 static void send_w(const std::wstring& w) {
     if (w.empty()) return;
-    std::vector<INPUT> in; in.reserve(w.size() * 2);
-    for (wchar_t ch : w) {
-        INPUT d = {}; d.type = INPUT_KEYBOARD; d.ki.wScan = ch; d.ki.dwFlags = KEYEVENTF_UNICODE; in.push_back(d);
+    ClassicABC::CommitText(w.c_str(), w.size());
+}
+
+void ClassicABC::Engine::SendTextFallback(const wchar_t* text, size_t len) {
+    if (text == nullptr || len == 0) return;
+    std::vector<INPUT> in; in.reserve(len * 2);
+    for (size_t i = 0; i < len; ++i) {
+        INPUT d = {}; d.type = INPUT_KEYBOARD; d.ki.wScan = text[i]; d.ki.dwFlags = KEYEVENTF_UNICODE; in.push_back(d);
         INPUT u = d;   u.ki.dwFlags |= KEYEVENTF_KEYUP;           in.push_back(u);
     }
     SendInput((UINT)in.size(), in.data(), sizeof(INPUT));
@@ -193,6 +194,7 @@ static void consume_buf(std::vector<std::string> parts, std::string& buf) {
 
 // ---- persist weight ----
 static void persist(const CandidateItem& ci) {
+    if (!is_dict_cache_ready()) return;  // background build in progress
     bool single = ci.getPinyinParts().size() == 1;
     DictTargetFile tf = single ? DictTargetFile::CharFreq : DictTargetFile::UserDict;
     int ln = ci.findSourceLineNumber();
@@ -232,7 +234,7 @@ static std::string pick(size_t pi, size_t ci) {
               LOG_DEBUG);
 
     if (g.delmode) {
-        if (sel.getPinyinParts().size() > 1) {
+        if (sel.getPinyinParts().size() > 1 && is_dict_cache_ready()) {
             int ln = sel.findSourceLineNumber();
             if (ln > 0) delete_user_dict_line(ln);
             consume_buf(sel.getPinyinParts(), g.buf);
@@ -253,7 +255,7 @@ static std::string pick(size_t pi, size_t ci) {
         if (g.contmode) {
             g.cont.push_back(sel);
             auto m = CandidateItem::mergeCandidateItems(g.cont);
-            if (!m.getText().empty() && !m.getPinyinParts().empty()) {
+            if (!m.getText().empty() && !m.getPinyinParts().empty() && is_dict_cache_ready()) {
                 int ln = m.findSourceLineNumber();
                 write_log("pick: contmode merge text=[" + m.getText() + "] pinyin=[" +
                               join_csv(m.getPinyinParts()) + "] found_line=" + std::to_string(ln),
@@ -275,17 +277,61 @@ static std::string pick(size_t pi, size_t ci) {
 }
 
 // ========== public API ==========
+static void refresh_user_dict_baseline();
 void ClassicABC::Engine::Init() {
-    init_pinyin_data();
+    init_pinyin_data_async();
+    refresh_user_dict_baseline();
     g = State{};
     g_comp.clear();
 }
+// ---- reload dictionaries only when the file changed externally ----
+static FILETIME g_user_dict_last_write = {};
+static bool g_user_dict_last_initialized = false;
+
+static bool user_dict_changed_since_load() {
+    WIN32_FILE_ATTRIBUTE_DATA attr;
+    std::string path = get_user_dict_file_path();
+    int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
+    if (n <= 0) return false;
+    std::wstring wpath((size_t)(n - 1), L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, &wpath[0], n);
+    if (!GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &attr)) return false;
+    if (!g_user_dict_last_initialized) {
+        g_user_dict_last_write = attr.ftLastWriteTime;
+        g_user_dict_last_initialized = true;
+        return false;
+    }
+    bool changed = memcmp(&attr.ftLastWriteTime, &g_user_dict_last_write, sizeof(FILETIME)) != 0;
+    if (changed) g_user_dict_last_write = attr.ftLastWriteTime;
+    return changed;
+}
+
+// Called after our own flush so the baseline timestamp matches the file we
+// just wrote; otherwise the next activation would falsely detect an external
+// change and trigger a full multi-second reload.
+static void refresh_user_dict_baseline() {
+    WIN32_FILE_ATTRIBUTE_DATA attr;
+    std::string path = get_user_dict_file_path();
+    int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
+    if (n <= 0) return;
+    std::wstring wpath((size_t)(n - 1), L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, &wpath[0], n);
+    if (GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &attr)) {
+        g_user_dict_last_write = attr.ftLastWriteTime;
+        g_user_dict_last_initialized = true;
+    }
+}
+
 void ClassicABC::Engine::SetActive(bool a) {
     g.active = a;
     if (a) {
-        // Reload dictionaries to pick up changes from other processes
-        init_pinyin_data();
+        // Reload dictionaries only if changed by another process; avoids the
+        // multi-second full reload of the large dictionary on every switch.
+        if (user_dict_changed_since_load())
+            init_pinyin_data_async();
     } else {
+        flush_dirty_dicts();
+        refresh_user_dict_baseline();
         bool wasChinese = g.chinese;
         g = State{};
         g.chinese = wasChinese;
@@ -295,19 +341,16 @@ void ClassicABC::Engine::SetActive(bool a) {
 }
 bool ClassicABC::Engine::IsActive() { return g.active; }
 
+void ClassicABC::Engine::RebuildCandidates() {
+    if (g.buf.empty()) return;
+    rebuild();
+}
+
 void ClassicABC::Engine::ReloadDict() {
-    static FILETIME lastWrite = {};
-    WIN32_FILE_ATTRIBUTE_DATA attr;
-    std::string path = get_user_dict_file_path();
-    int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
-    if (n <= 0) return;
-    std::wstring wpath((size_t)(n - 1), L'\0');
-    MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, &wpath[0], n);
-    if (!GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &attr)) return;
-    if (memcmp(&attr.ftLastWriteTime, &lastWrite, sizeof(FILETIME)) == 0) return;  // unchanged
-    lastWrite = attr.ftLastWriteTime;
-    init_pinyin_data();
-    write_log("Engine: ReloadDict reloaded (file changed)", LOG_DEBUG);
+    if (user_dict_changed_since_load()) {
+        init_pinyin_data_async();
+        write_log("Engine: ReloadDict reloaded (file changed)", LOG_DEBUG);
+    }
 }
 
 bool ClassicABC::Engine::TestKey(UINT vk) {
@@ -604,7 +647,6 @@ bool ClassicABC::Engine::FlushPending() {
     if (flushed) write_log("Engine: FlushPending flushed buffer", LOG_DEBUG);
     return flushed;
 }
-
 const std::wstring& ClassicABC::Engine::CompStr() { return g_comp; }
 bool ClassicABC::Engine::HasText() { return !g.buf.empty(); }
 
