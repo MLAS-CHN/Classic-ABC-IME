@@ -5,6 +5,7 @@
 #include <gdiplus.h>
 #include <cstring>
 #include <cstdint>
+#include <algorithm>
 #pragma comment(lib, "gdiplus.lib")
 
 namespace {
@@ -442,6 +443,35 @@ void ClassicABC::UI::UpdateCand() {
     ShowCand(true);
     int h = 6 + (int)count * g_fh + kNavBtnSize + 6;
     if (h < 30) h = 30;
+
+    // 自适应宽度：至少 120px，随最长候选文本扩展（汉字按 g_fw 宽计）。
+    int max_text_w = 0;
+    HDC meas_dc = GetDC(g_candWnd ? g_candWnd : nullptr);
+    HFONT old_font = nullptr;
+    if (meas_dc) old_font = (HFONT)SelectObject(meas_dc, g_font);
+    for (size_t i = 0; i < count; ++i) {
+        std::wstring text = ClassicABC::GetCandidateText(i);
+        int tw = 0;
+        if (meas_dc) {
+            SIZE sz;
+            if (GetTextExtentPoint32W(meas_dc, text.c_str(), (int)text.size(), &sz))
+                tw = sz.cx;
+            else
+                tw = (int)text.size() * g_fw;
+        } else {
+            tw = (int)text.size() * g_fw;
+        }
+        if (tw > max_text_w) max_text_w = tw;
+    }
+    if (meas_dc) {
+        if (old_font) SelectObject(meas_dc, old_font);
+        ReleaseDC(g_candWnd ? g_candWnd : nullptr, meas_dc);
+    }
+    int wantW = 4 + g_fw * 2 + max_text_w + 4;   // 左边距 + 序号 + 文本 + 右边距
+    g_candW = (wantW > 120) ? wantW : 120;
+    write_log("UI: UpdateCand count=" + std::to_string(count) + " max_text_w=" + std::to_string(max_text_w) +
+                  " wantW=" + std::to_string(wantW) + " g_candW=" + std::to_string(g_candW) + " g_fw=" + std::to_string(g_fw),
+              LOG_INFO);
 
     // Position: default to the RIGHT of the input window.
     // If no room on right, go LEFT. Then, try below the caret; if no room, go above.
