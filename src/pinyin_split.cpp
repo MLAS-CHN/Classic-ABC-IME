@@ -406,6 +406,17 @@ std::vector<std::vector<std::string>> splitConservativePinyin(const std::string&
         return s;
     };
 
+    // 激进原始拆分（未做相邻合并），供"相邻段可拼成合法音节但仍按
+    // 未合并方式匹配"的场景使用（如 xi,an 不打撇号也能候选到 西安）。
+    std::vector<std::string> aggrRaw;
+    {
+        std::stringstream ss(aggr);
+        std::string p;
+        while (std::getline(ss, p, ',')) {
+            if (!p.empty()) aggrRaw.push_back(p);
+        }
+    }
+
     bool equal = (aggrMerged.size() == consArray.size());
     if (equal) {
         for (size_t i = 0; i < aggrMerged.size(); i++) {
@@ -415,11 +426,33 @@ std::vector<std::vector<std::string>> splitConservativePinyin(const std::string&
             }
         }
     }
-    
+
+    // 三套方案：激进合并 / 激进原始 / 保守。相同者归一，避免重复方案。
     std::vector<std::vector<std::string>> finalResults;
     finalResults.push_back(aggrMerged);
+    finalResults.push_back(aggrRaw);
     if (!equal) {
         finalResults.push_back(consArray);
+    }
+    {
+        std::vector<std::vector<std::string>> deduped;
+        for (const auto& opt : finalResults) {
+            bool dup = false;
+            for (const auto& existing : deduped) {
+                if (existing.size() == opt.size()) {
+                    bool same = true;
+                    for (size_t i = 0; i < opt.size(); i++) {
+                        if (normalize_token(existing[i]) != normalize_token(opt[i])) {
+                            same = false;
+                            break;
+                        }
+                    }
+                    if (same) { dup = true; break; }
+                }
+            }
+            if (!dup) deduped.push_back(opt);
+        }
+        finalResults.swap(deduped);
     }
 
     // 先归一化最终方案（逗号统一为单引号并按单引号拆分重组）

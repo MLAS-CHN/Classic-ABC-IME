@@ -13,6 +13,13 @@
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <chrono>
+
+static long long now_ms() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now().time_since_epoch())
+        .count();
+}
 
 static const size_t kPageSize = 10;
 
@@ -172,6 +179,7 @@ static bool commit_raw_buffer() {
 
 // ---- rebuild display and candidates ----
 static void rebuild() {
+    long long t0 = now_ms();
     if (g.buf.empty()) { g.pages.clear(); g.page = 0; g_comp.clear(); return; }
     if (g.page >= g.pages.size() && !g.pages.empty()) g.page = g.pages.size() - 1;
     if (g.pages.empty()) g.page = 0;
@@ -181,6 +189,10 @@ static void rebuild() {
     if (pos == std::string::npos) pos = d.find(u8"\u00B2");
     if (pos == std::string::npos) pos = d.find(u8"\u2070");
     g_comp = u8to16(pos != std::string::npos ? d.substr(0, pos) : d);
+    size_t cand_count = (g.page < g.pages.size()) ? g.pages[g.page].size() : 0;
+    write_log("Engine: rebuild buf=[" + g.buf + "] candidates=" + std::to_string(cand_count) +
+                  " took " + std::to_string(now_ms() - t0) + " ms",
+              LOG_INFO);
 }
 
 // ---- consume pinyin buffer prefix ----
