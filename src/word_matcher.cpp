@@ -39,10 +39,9 @@ static std::string candidate_key(const CandidateItem& item) {
 }
 
 /**
- * 获取所有合适的词语。
- * 流程：收集 → 去重 → 按(拼音长度降序, 权重降序)排序 → 返回。
+ * 收集并去重一组拆分方案产生的候选词。
  */
-std::vector<CandidateItem> getAllSuitableWords(
+static std::vector<CandidateItem> collectAndDedupeWords(
     const std::vector<std::vector<std::string>>& split_options) {
 
     std::vector<CandidateItem> all;
@@ -54,6 +53,7 @@ std::vector<CandidateItem> getAllSuitableWords(
     std::vector<CandidateItem> deduped;
     deduped.reserve(all.size());
     std::unordered_map<std::string, size_t> seen;
+    long long now = (long long)time(nullptr);
     for (const auto& item : all) {
         std::string key = candidate_key(item);
         auto it = seen.find(key);
@@ -61,12 +61,22 @@ std::vector<CandidateItem> getAllSuitableWords(
             seen[key] = deduped.size();
             deduped.push_back(item);
         } else {
-            long long now = (long long)time(nullptr);
             if (item.computeScore(now) > deduped[it->second].computeScore(now)) {
                 deduped[it->second] = item;
             }
         }
     }
+    return deduped;
+}
+
+/**
+ * 获取所有合适的词语。
+ * 流程：收集 → 去重 → 按(拼音长度降序, 权重降序)排序 → 返回。
+ */
+std::vector<CandidateItem> getAllSuitableWords(
+    const std::vector<std::vector<std::string>>& split_options) {
+
+    std::vector<CandidateItem> deduped = collectAndDedupeWords(split_options);
 
     long long now = (long long)time(nullptr);
     std::sort(deduped.begin(), deduped.end(),

@@ -428,6 +428,8 @@ std::vector<std::vector<std::string>> splitConservativePinyin(const std::string&
     }
 
     // 三套方案：激进合并 / 激进原始 / 保守。相同者归一，避免重复方案。
+    // 注意：激进原始(aggrRaw)固定在 index 1 不参与去重——即使与其它方案
+    // 相同也保留，供上层将"原始激进"候选单独拎出做字词混排。
     std::vector<std::vector<std::string>> finalResults;
     finalResults.push_back(aggrMerged);
     finalResults.push_back(aggrRaw);
@@ -436,7 +438,10 @@ std::vector<std::vector<std::string>> splitConservativePinyin(const std::string&
     }
     {
         std::vector<std::vector<std::string>> deduped;
-        for (const auto& opt : finalResults) {
+        deduped.push_back(aggrMerged);
+        deduped.push_back(aggrRaw);
+        for (size_t idx = 2; idx < finalResults.size(); ++idx) {
+            const auto& opt = finalResults[idx];
             bool dup = false;
             for (const auto& existing : deduped) {
                 if (existing.size() == opt.size()) {

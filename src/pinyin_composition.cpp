@@ -254,12 +254,77 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     size_t candidate_page_size) {
     SplitContext context = build_split_context(split_options);
 
+    // 原始激进拆分方案（不做相邻合并）的候选单独拎出，与单字候选按分数
+    // 混排——缩写词（如 xianz -> 现在）不再被"长度优先"规则压到后面。
+    // 注意：index 与 active_options 对应（literal prefix 已剥离后仍保持顺序）。
+    const size_t kRawAggressiveIndex = 1;
+    std::vector<std::vector<std::string>> non_raw_options;
+    std::vector<std::vector<std::string>> raw_options;
+    for (size_t i = 0; i < context.active_options.size(); ++i) {
+        if (i == kRawAggressiveIndex)
+            raw_options.push_back(context.active_options[i]);
+        else
+            non_raw_options.push_back(context.active_options[i]);
+    }
+
     std::vector<CandidateItem> smart_phrase_candidates =
         getSmartPhraseCandidateElements(split_options);
     std::vector<CandidateItem> suitable_word_candidates =
-        getAllSuitableWords(split_options);
+        getAllSuitableWords(non_raw_options);
+    std::vector<CandidateItem> raw_word_candidates =
+        getAllSuitableWords(raw_options);
     std::vector<CandidateItem> suitable_char_candidates =
         getAllSuitableCharElements(context.active_options);
+
+    // 原始激进方案（index 1，不做相邻合并）的词候选去向：
+    // - 若普通方案（激进合并+保守）有候选词：激进原始的词进"词堆"排序，
+    //   但其有效字数按 min(实际字数, 普通词最大字数) 计算——字多不压普通词，
+    //   只与同字数层的普通词按权重竞争；
+    // - 若普通方案只有单字候选：激进原始的词进"字堆"，与单字按分数混排。
+    std::vector<CandidateItem> word_pool;      // 词堆（普通词 + 激进词，按规则排序）
+    std::vector<CandidateItem> char_pool;      // 字堆（单字 + 激进词，按分数混排）
+    {
+        size_t max_ordinary_len = 0;
+        if (!suitable_word_candidates.empty()) {
+            max_ordinary_len = suitable_word_candidates.front().getPinyinLength();
+            word_pool = suitable_word_candidates;
+            for (auto& w : raw_word_candidates) word_pool.push_back(w);
+            long long now = (long long)time(nullptr);
+            std::stable_sort(word_pool.begin(), word_pool.end(),
+                [now, max_ordinary_len](const CandidateItem& a, const CandidateItem& b) {
+                    size_t la = a.getPinyinLength();
+                    size_t lb = b.getPinyinLength();
+                    // 激进词的有效字数被钳制到普通词最大字数以内。
+                    size_t ea = (la > max_ordinary_len) ? max_ordinary_len : la;
+                    size_t eb = (lb > max_ordinary_len) ? max_ordinary_len : lb;
+                    if (ea != eb) return ea > eb;
+                    long long sa = a.computeScore(now);
+                    long long sb = b.computeScore(now);
+                    if (sa != sb) return sa > sb;
+                    return a.getTimestamp() > b.getTimestamp();
+                });
+        } else {
+            // 普通方案无词：激进词与单字按分数混排。
+            if (!context.has_literal_prefix()) {
+                char_pool = concatCandidateElementArrays({raw_word_candidates, suitable_char_candidates});
+                long long now = (long long)time(nullptr);
+                std::stable_sort(char_pool.begin(), char_pool.end(),
+                    [now](const CandidateItem& a, const CandidateItem& b) {
+                        long long sa = a.computeScore(now);
+                        long long sb = b.computeScore(now);
+                        if (sa != sb) return sa > sb;
+                        return a.getTimestamp() > b.getTimestamp();
+                    });
+            } else {
+                char_pool = raw_word_candidates;
+            }
+        }
+    }
+
+    // 普通方案有词时，单字候选仍排在词堆之后（不参与混排）。
+    if (!word_pool.empty() && char_pool.empty() && !context.has_literal_prefix()) {
+        char_pool = suitable_char_candidates;
+    }
 
     std::vector<CandidateItem> supplemental_candidates;
     if (context.has_literal_prefix()) {
@@ -272,8 +337,7 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     }
 
     std::vector<CandidateItem> flat_candidates = concatCandidateElementArrays(
-        {smart_phrase_candidates, suitable_word_candidates, supplemental_candidates,
-         context.has_literal_prefix() ? std::vector<CandidateItem>{} : suitable_char_candidates});
+        {smart_phrase_candidates, word_pool, char_pool, supplemental_candidates});
     flat_candidates = dedupe_candidates(flat_candidates);
 
     std::vector<std::vector<CandidateItem>> paged_candidates;
