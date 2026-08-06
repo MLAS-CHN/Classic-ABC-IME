@@ -31,3 +31,6 @@ Thumbs.db
 
 # Archives
 *.zip
+
+# Runtime cache (generated, machine-specific)
+data/cache/

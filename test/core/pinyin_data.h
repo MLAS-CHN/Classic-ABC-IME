@@ -19,16 +19,6 @@ extern std::vector<std::string> g_pinyin_map_lines;
 extern std::vector<std::string> g_user_dict_lines;
 extern std::vector<std::string> g_char_freq_lines;
 
-extern std::vector<std::vector<std::string>> g_user_dict_parts;
-extern std::unordered_map<size_t, std::vector<int>> g_user_dict_segcount_map;
-
-struct UserDictLookupEntry {
-    int line_number;
-    long long timestamp;
-    int count;
-};
-extern std::unordered_map<std::string, UserDictLookupEntry> g_user_dict_lookup;
-
 struct CharFreqLookupEntry {
     int line_number;
     long long timestamp;

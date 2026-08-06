@@ -8,11 +8,18 @@
 #include <cstdlib>
 #include <filesystem>
 #include <cctype>
+#include <cstdint>
 #include <ctime>
 #include <chrono>
 #include <thread>
 #include <atomic>
 #include <mutex>
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 static long long now_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -210,46 +217,226 @@ void flush_dirty_dicts() {
 
 static void build_user_dict_cache() {
     long long t0 = now_ms();
-    g_user_dict_parts.clear();
-    g_user_dict_segcount_map.clear();
-    g_user_dict_lookup.clear();
-
-    g_user_dict_parts.reserve(g_user_dict_lines.size());
-    g_user_dict_segcount_map.reserve(g_user_dict_lines.size() / 16);
-    g_user_dict_lookup.reserve(g_user_dict_lines.size());
-    for (int i = 0; i < (int)g_user_dict_lines.size(); ++i) {
-        const std::string& line = g_user_dict_lines[i];
-        std::string pinyin_csv = get_pinyin_from_line(line);
-        std::vector<std::string> parts = split_csv(pinyin_csv);
-        g_user_dict_parts.push_back(parts);
-        g_user_dict_segcount_map[parts.size()].push_back(i + 1);
-
-        // Manual field split (avoids istringstream per line).
-        size_t sp1 = line.find(' ');
-        if (sp1 == std::string::npos) continue;
-        std::string py = line.substr(0, sp1);
-        size_t sp2 = line.find(' ', sp1 + 1);
-        if (sp2 == std::string::npos) continue;
-        std::string text = line.substr(sp1 + 1, sp2 - sp1 - 1);
-
-        long long timestamp = 0;
-        int count = 1;
-        size_t sp3 = line.find(' ', sp2 + 1);
-        if (sp3 != std::string::npos) {
-            std::string ts_str = line.substr(sp2 + 1, sp3 - sp2 - 1);
-            if (is_all_digits(ts_str)) timestamp = std::stoll(ts_str);
-            size_t sp4 = line.find(' ', sp3 + 1);
-            if (sp4 != std::string::npos) {
-                std::string count_str = line.substr(sp3 + 1, sp4 - sp3 - 1);
-                if (is_all_digits(count_str)) count = std::stoi(count_str);
-            }
-        }
-
-        g_user_dict_lookup[py + " " + text] = {i + 1, timestamp, count};
-    }
+    // 内存缓存已全部移除：匹配用 mmap 的 parts 硬盘缓存，
+    // findSourceLineNumber 用二分。此函数构建 parts 缓存。
+    build_parts_cache();
     write_log("FileIO: build_user_dict_cache (" + std::to_string(g_user_dict_lines.size()) + " lines) took " +
                   std::to_string(now_ms() - t0) + " ms",
               LOG_INFO);
+}
+
+// ---- 词库 parts 硬盘缓存（mmap）----
+// 二进制格式：
+//   [u32 magic=0x50415943][u32 line_count]
+//   [offset 表: line_count × u32]      每行数据区起始偏移
+//   [数据区: 逐行]  u8 seg_count, 每段: u8 seg_len + seg_len 字节
+static const uint32_t kPartsMagic = 0x50415943;  // "PYAC"
+
+static HANDLE g_parts_file = INVALID_HANDLE_VALUE;
+static HANDLE g_parts_mapping = nullptr;
+static const uint8_t* g_parts_base = nullptr;
+static uint32_t g_parts_line_count = 0;
+
+std::string get_parts_cache_path() {
+    return join_path(join_path(get_pinyin_data_dir(), "cache"), "user_dict_parts.bin");
+}
+
+// 逐段遍历拼音 CSV（如 "a,bc,d" → 依次回调 "a","bc","d"）。
+template <typename F>
+static void for_each_segment(const std::string& pinyin_csv, F&& fn) {
+    size_t pos = 0;
+    while (pos <= pinyin_csv.size()) {
+        size_t next = pinyin_csv.find(',', pos);
+        size_t end = (next == std::string::npos) ? pinyin_csv.size() : next;
+        size_t len = end - pos;
+        if (len > 0) fn(pinyin_csv.data() + pos, len);
+        if (next == std::string::npos) break;
+        pos = next + 1;
+    }
+}
+
+// 生成 parts cache 文件（词库变化时重建）。返回文件路径。
+static std::string generate_parts_cache_file() {
+    std::string path = get_parts_cache_path();
+    std::string cache_dir = join_path(get_pinyin_data_dir(), "cache");
+    std::filesystem::create_directories(cache_dir);
+
+    // 每行数据字节数 = 段数(1) + Σ(长度(1) + 内容)。
+    auto row_bytes = [](const std::string& line) {
+        std::string py = get_pinyin_from_line(line);
+        uint64_t size = 1;  // 段数
+        for_each_segment(py, [&size](const char* s, size_t n) { size += 1 + n; });
+        return size;
+    };
+    uint64_t exact_size = 0;
+    for (const auto& line : g_user_dict_lines) exact_size += row_bytes(line);
+
+    uint64_t header_size = 8 + (uint64_t)g_user_dict_lines.size() * 4;
+
+    // 写入临时文件。
+    std::string tmp = path + ".tmp";
+    {
+        std::ofstream f(tmp, std::ios::binary | std::ios::trunc);
+        if (!f.is_open()) return path;
+
+        uint32_t magic = kPartsMagic;
+        uint32_t count = (uint32_t)g_user_dict_lines.size();
+        f.write((const char*)&magic, 4);
+        f.write((const char*)&count, 4);
+
+        // 先写完整 offset 表（占位），再写数据区。
+        uint32_t cur_offset = (uint32_t)header_size;
+        for (uint32_t i = 0; i < count; ++i) {
+            f.write((const char*)&cur_offset, 4);
+            cur_offset += (uint32_t)row_bytes(g_user_dict_lines[i]);
+        }
+
+        // 写数据区。
+        for (uint32_t i = 0; i < count; ++i) {
+            const std::string& line = g_user_dict_lines[i];
+            std::string py = get_pinyin_from_line(line);
+            uint8_t seg_count = 0;
+            for_each_segment(py, [&seg_count](const char*, size_t) { ++seg_count; });
+            f.write((const char*)&seg_count, 1);
+            for_each_segment(py, [&f](const char* s, size_t n) {
+                uint8_t slen = (uint8_t)n;
+                f.write((const char*)&slen, 1);
+                f.write(s, (std::streamsize)n);
+            });
+        }
+        f.close();
+    }
+    std::error_code ec;
+    std::filesystem::rename(tmp, path, ec);
+    return path;
+}
+
+// mmap 映射 parts cache 文件；返回是否成功。
+static bool map_parts_cache() {
+    std::string path = get_parts_cache_path();
+    int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
+    if (n <= 0) return false;
+    std::wstring wpath((size_t)(n - 1), L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, &wpath[0], n);
+
+    g_parts_file = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ,
+                               nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (g_parts_file == INVALID_HANDLE_VALUE) return false;
+
+    LARGE_INTEGER size;
+    if (!GetFileSizeEx(g_parts_file, &size) || size.QuadPart <= 0) {
+        CloseHandle(g_parts_file);
+        g_parts_file = INVALID_HANDLE_VALUE;
+        return false;
+    }
+
+    g_parts_mapping = CreateFileMappingW(g_parts_file, nullptr, PAGE_READONLY, 0, 0, nullptr);
+    if (!g_parts_mapping) {
+        CloseHandle(g_parts_file);
+        g_parts_file = INVALID_HANDLE_VALUE;
+        return false;
+    }
+
+    g_parts_base = (const uint8_t*)MapViewOfFile(g_parts_mapping, FILE_MAP_READ, 0, 0, 0);
+    if (!g_parts_base) {
+        CloseHandle(g_parts_mapping);
+        CloseHandle(g_parts_file);
+        g_parts_mapping = nullptr;
+        g_parts_file = INVALID_HANDLE_VALUE;
+        return false;
+    }
+
+    // 校验头。
+    if (size.QuadPart >= 8) {
+        uint32_t magic = *(const uint32_t*)g_parts_base;
+        g_parts_line_count = *(const uint32_t*)(g_parts_base + 4);
+        if (magic != kPartsMagic || g_parts_line_count != g_user_dict_lines.size()) {
+            UnmapViewOfFile((LPVOID)g_parts_base);
+            CloseHandle(g_parts_mapping);
+            CloseHandle(g_parts_file);
+            g_parts_base = nullptr;
+            g_parts_mapping = nullptr;
+            g_parts_file = INVALID_HANDLE_VALUE;
+            return false;
+        }
+        return true;
+    }
+    UnmapViewOfFile((LPVOID)g_parts_base);
+    CloseHandle(g_parts_mapping);
+    CloseHandle(g_parts_file);
+    g_parts_base = nullptr;
+    g_parts_mapping = nullptr;
+    g_parts_file = INVALID_HANDLE_VALUE;
+    return false;
+}
+
+void build_parts_cache() {
+    long long t0 = now_ms();
+    std::string path = get_parts_cache_path();
+
+    // 检查现有 cache 是否有效（文件存在 + 行数匹配）。不匹配则重建。
+    bool need_rebuild = true;
+    {
+        std::ifstream f(path, std::ios::binary);
+        if (f.is_open()) {
+            uint32_t magic = 0, count = 0;
+            f.read((char*)&magic, 4);
+            f.read((char*)&count, 4);
+            if (magic == kPartsMagic && count == (uint32_t)g_user_dict_lines.size()) {
+                need_rebuild = false;
+            }
+        }
+    }
+    if (need_rebuild) {
+        path = generate_parts_cache_file();
+    }
+
+    bool ok = map_parts_cache();
+    write_log("FileIO: build_parts_cache (" + std::to_string(g_parts_line_count) + " lines, mmap=" +
+                  (ok ? "OK" : "FAIL") + ") took " + std::to_string(now_ms() - t0) + " ms",
+              LOG_INFO);
+}
+
+void invalidate_parts_cache() {
+    if (g_parts_base) {
+        UnmapViewOfFile((LPVOID)g_parts_base);
+        g_parts_base = nullptr;
+    }
+    if (g_parts_mapping) {
+        CloseHandle(g_parts_mapping);
+        g_parts_mapping = nullptr;
+    }
+    if (g_parts_file != INVALID_HANDLE_VALUE) {
+        CloseHandle(g_parts_file);
+        g_parts_file = INVALID_HANDLE_VALUE;
+    }
+    g_parts_line_count = 0;
+    // cache 失效后，匹配回退按需 split；下次 init_pinyin_data 重建。
+}
+
+const char* get_parts_cached_line(int line_index) {
+    if (!g_parts_base || line_index < 0 || line_index >= (int)g_parts_line_count) return nullptr;
+    const uint32_t* offsets = (const uint32_t*)(g_parts_base + 8);
+    return (const char*)(g_parts_base + offsets[line_index]);
+}
+
+uint8_t get_parts_cached_seg_count(const char* p) {
+    if (!p) return 0;
+    return (uint8_t)*p;
+}
+
+const char* get_parts_cached_seg(const char* p, int seg_index, int& seg_len) {
+    if (!p) { seg_len = 0; return nullptr; }
+    uint8_t count = (uint8_t)*p;
+    if (seg_index < 0 || seg_index >= (int)count) { seg_len = 0; return nullptr; }
+    const uint8_t* cur = (const uint8_t*)p + 1;  // 跳过段数
+    for (int i = 0; i < seg_index; ++i) {
+        uint8_t len = *cur++;
+        cur += len;
+    }
+    uint8_t len = *cur++;
+    seg_len = (int)len;
+    return (const char*)cur;
 }
 
 static void build_char_freq_cache() {
@@ -289,21 +476,9 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
         lines.push_back(new_line);
         write_log("Insert line into " + file_path + " at line 1: " + new_line, LOG_INFO);
         mark_dict_dirty(&lines == &g_user_dict_lines ? DictTargetFile::UserDict : DictTargetFile::CharFreq);
+        if (&lines == &g_user_dict_lines) invalidate_parts_cache();
         build_index_from_lines(lines, index);
-        if (&lines == &g_user_dict_lines) {
-            std::istringstream iss(new_line);
-            std::string py, text, ts_str, count_str;
-            if (iss >> py >> text) {
-                std::vector<std::string> parts = split_csv(py);
-                g_user_dict_parts.push_back(parts);
-                g_user_dict_segcount_map[parts.size()].push_back(1);
-                long long timestamp = 0;
-                int count = 1;
-                if (iss >> ts_str && is_all_digits(ts_str)) timestamp = std::stoll(ts_str);
-                if (iss >> count_str && is_all_digits(count_str)) count = std::stoi(count_str);
-                g_user_dict_lookup[py + " " + text] = {1, timestamp, count};
-            }
-        } else if (&lines == &g_char_freq_lines) {
+        if (&lines == &g_char_freq_lines) {
             std::istringstream iss(new_line);
             std::string py, text, ts_str, count_str;
             if (iss >> py >> text) {
@@ -347,34 +522,9 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
     write_log("Insert line into " + file_path + " at line " + std::to_string(insert_pos + 1) + ": " + new_line,
               LOG_INFO);
     mark_dict_dirty(&lines == &g_user_dict_lines ? DictTargetFile::UserDict : DictTargetFile::CharFreq);
+    if (&lines == &g_user_dict_lines) invalidate_parts_cache();
     build_index_from_lines(lines, index);
-    if (&lines == &g_user_dict_lines) {
-        // Incremental cache update: insert into parts/segcount/lookup and
-        // bump line numbers of entries after the insertion point.
-        std::istringstream iss(new_line);
-        std::string py, text, ts_str, count_str;
-        long long timestamp = 0;
-        int count = 1;
-        if (iss >> py >> text) {
-            if (iss >> ts_str && is_all_digits(ts_str)) timestamp = std::stoll(ts_str);
-            if (iss >> count_str && is_all_digits(count_str)) count = std::stoi(count_str);
-            std::vector<std::string> parts = split_csv(py);
-            size_t pos = insert_pos;
-            if (pos > g_user_dict_parts.size()) pos = g_user_dict_parts.size();
-            g_user_dict_parts.insert(g_user_dict_parts.begin() + (std::ptrdiff_t)pos, parts);
-            size_t seg_count = parts.size();
-            // All line numbers after the insertion point shift by one in every
-            // segment-count group (not just the new entry's group).
-            for (auto& kv : g_user_dict_segcount_map) {
-                for (auto& ln : kv.second)
-                    if (ln > (int)insert_pos) ++ln;
-            }
-            g_user_dict_segcount_map[seg_count].push_back((int)insert_pos + 1);
-            for (auto& kv : g_user_dict_lookup)
-                if (kv.second.line_number > (int)insert_pos) ++kv.second.line_number;
-            g_user_dict_lookup[py + " " + text] = {(int)insert_pos + 1, timestamp, count};
-        }
-    } else if (&lines == &g_char_freq_lines) {
+    if (&lines == &g_char_freq_lines) {
         std::istringstream iss(new_line);
         std::string py, text, ts_str, count_str;
         long long timestamp = 0;
@@ -496,30 +646,9 @@ bool delete_user_dict_line(int line_number) {
     std::string removed = g_user_dict_lines[idx];
     g_user_dict_lines.erase(g_user_dict_lines.begin() + idx);
     mark_dict_dirty(DictTargetFile::UserDict);
+    invalidate_parts_cache();
     build_index_from_lines(g_user_dict_lines, g_user_dict_index);
-
-    // Incremental cache update: remove the entry, bump line numbers after it.
-    std::istringstream iss(removed);
-    std::string py, text, ts_str, count_str;
-    if (iss >> py >> text) {
-        g_user_dict_lookup.erase(py + " " + text);
-    }
-    for (auto it = g_user_dict_segcount_map.begin(); it != g_user_dict_segcount_map.end(); ++it) {
-        auto& v = it->second;
-        for (auto vit = v.begin(); vit != v.end();) {
-            if (*vit == line_number) {
-                vit = v.erase(vit);
-            } else {
-                if (*vit > line_number) --(*vit);
-                ++vit;
-            }
-        }
-    }
-    if (idx < (int)g_user_dict_parts.size()) {
-        g_user_dict_parts.erase(g_user_dict_parts.begin() + idx);
-    }
-    for (auto& kv : g_user_dict_lookup)
-        if (kv.second.line_number > line_number) --kv.second.line_number;
+    // UserDict 无内存查找表（findSourceLineNumber 用二分），无需增量更新。
     write_log("FileIO: delete line " + std::to_string(line_number) + " took " + std::to_string(now_ms() - t0) + " ms",
               LOG_INFO);
     return true;
@@ -556,15 +685,8 @@ void update_timestamp_by_line(DictTargetFile target_file, int line_number) {
     mark_dict_dirty(target_file);
     // No index rebuild needed: line content (ts/count) changed but the
     // leading pinyin character (the only thing the index keys on) is intact.
-    if (target_file == DictTargetFile::UserDict) {
-        // Incremental cache update: only touch the affected lookup entry.
-        std::string key = py + " " + text;
-        auto it = g_user_dict_lookup.find(key);
-        if (it != g_user_dict_lookup.end()) {
-            it->second.timestamp = now;
-            it->second.count = count;
-        }
-    } else {
+    // UserDict 无内存查找表（findSourceLineNumber 用二分），无需增量更新。
+    if (target_file == DictTargetFile::CharFreq) {
         // CharFreq lookup is keyed the same way; update it in place.
         std::string key = py + " " + text;
         auto it = g_char_freq_lookup.find(key);

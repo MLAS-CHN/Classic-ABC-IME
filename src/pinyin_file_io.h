@@ -57,4 +57,15 @@ void update_timestamp_by_line(DictTargetFile target_file, int line_number);
 void mark_dict_dirty(DictTargetFile target_file);
 void flush_dirty_dicts();
 
+// ---- 词库 parts 硬盘缓存（mmap）----
+// 二进制格式：词库每行的拼音段数组序列化到 cache 文件，mmap 映射按需加载，
+// 避免把 328MB 的 vector<vector<string>> 常驻内存，同时省去匹配时按需 split。
+// 构建：async 构建 cache 时生成（词库文件变化则重建）。
+// 访问：match 时用 get_parts_cached_line() 读某行段数据。
+void build_parts_cache();                 // 生成 cache 文件并 mmap
+const char* get_parts_cached_line(int line_index);  // 返回第 line_index 行(0-based)的数据指针
+uint8_t get_parts_cached_seg_count(const char* p);  // 读段数
+const char* get_parts_cached_seg(const char* p, int seg_index, int& seg_len);  // 读第 seg 段
+void invalidate_parts_cache();            // 插入/删除后调用：unmap，匹配回退按需 split
+
 #endif // PINYIN_FILE_IO_H

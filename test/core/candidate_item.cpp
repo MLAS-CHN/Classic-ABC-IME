@@ -31,8 +31,15 @@ int CandidateItem::findSourceLineNumber() const {
         if (it != g_char_freq_lookup.end()) return it->second.line_number;
         return -1;
     }
-    auto it = g_user_dict_lookup.find(key);
-    if (it != g_user_dict_lookup.end()) return it->second.line_number;
+
+    // 词库按整行排序（拼音 文本 ts count），用二分查找"拼音 文本"前缀。
+    // 命中条件：lower_bound(key) 找到的行以 "key " 开头。
+    auto it = std::lower_bound(g_user_dict_lines.begin(), g_user_dict_lines.end(), key);
+    if (it != g_user_dict_lines.end() &&
+        it->compare(0, key.size(), key) == 0 &&
+        (it->size() == key.size() || (*it)[key.size()] == ' ')) {
+        return (int)std::distance(g_user_dict_lines.begin(), it) + 1;
+    }
     return -1;
 }
 

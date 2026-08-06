@@ -8,6 +8,7 @@
 #include "pinyin_file_io.h"
 #include "util.h"
 #include <algorithm>
+#include <cstring>
 
 /**
  * 拼音匹配模块实现
@@ -144,17 +145,43 @@ ScanResult scan_in_range(const std::vector<std::string>& pinyin_parts,
         exact_match_flags.push_back(match_result > 0 ? 1 : 0);
     }
 
-    if (range_hi > (int)g_user_dict_parts.size()) range_hi = (int)g_user_dict_parts.size();
+    if (range_hi > (int)g_user_dict_lines.size()) range_hi = (int)g_user_dict_lines.size();
     for (int line_num = range_lo; line_num <= range_hi; ++line_num) {
         int idx = line_num - 1;
         if (idx < 0) continue;
-        const std::vector<std::string>& target = g_user_dict_parts[idx];
+
+        // 行拼音段访问统一入口：优先 mmap cache（快），cache 失效时按需 split。
+        // get_seg(i, len)：返回第 i 段的字符串视图（空串表示不存在）。
+        const char* p = get_parts_cached_line(idx);
+        std::vector<std::string> split_target;
+        auto get_seg = [&](int i, size_t& len) -> const char* {
+            if (p) {
+                int l = 0;
+                const char* s = get_parts_cached_seg(p, i, l);
+                len = (l > 0) ? (size_t)l : 0;
+                return s;
+            }
+            if (i >= (int)split_target.size()) { len = 0; return nullptr; }
+            len = split_target[i].size();
+            return split_target[i].data();
+        };
+        uint8_t seg_count = 0;
+        if (p) {
+            seg_count = get_parts_cached_seg_count(p);
+        } else {
+            split_target = split_csv(get_pinyin_from_line(g_user_dict_lines[idx]));
+            seg_count = (uint8_t)split_target.size();
+        }
 
         // 宽松：逐段前缀（不限段数），记录本段精确范围。
-        if (target.size() >= len) {
+        if (seg_count >= len) {
             bool loose = true;
             for (size_t i = 0; i < len; ++i) {
-                if (target[i].compare(0, pinyin_parts[i].size(), pinyin_parts[i]) != 0) {
+                size_t tlen = 0;
+                const char* tseg = get_seg((int)i, tlen);
+                const std::string& src = pinyin_parts[i];
+                if (!tseg || tlen < src.size() ||
+                    memcmp(tseg, src.data(), src.size()) != 0) {
                     loose = false;
                     break;
                 }
@@ -165,7 +192,14 @@ ScanResult scan_in_range(const std::vector<std::string>& pinyin_parts,
             }
         }
         // 严格：段数恰好相等 + 精确规则。
-        if (target.size() == len) {
+        if (seg_count == len) {
+            std::vector<std::string> target;
+            target.reserve(len);
+            for (size_t i = 0; i < len; ++i) {
+                size_t tlen = 0;
+                const char* tseg = get_seg((int)i, tlen);
+                target.emplace_back(tseg ? tseg : "", tseg ? tlen : 0);
+            }
             if (minimal_smart_match(pinyin_parts, exact_match_flags, target)) {
                 r.strict_lines.push_back(line_num);
             }
@@ -175,7 +209,7 @@ ScanResult scan_in_range(const std::vector<std::string>& pinyin_parts,
 }
 
 std::pair<int, int> initial_range(const std::string& first_segment) {
-    if (first_segment.empty()) return {1, (int)g_user_dict_parts.size()};
+    if (first_segment.empty()) return {1, (int)g_user_dict_lines.size()};
 
     // 首字母索引：按行首字符分块，找 first_segment[0] 对应的块。
     char first_char = first_segment[0];
@@ -185,5 +219,5 @@ std::pair<int, int> initial_range(const std::string& first_segment) {
         }
     }
     // 找不到（如非字母开头）：全库兜底。
-    return {1, (int)g_user_dict_parts.size()};
+    return {1, (int)g_user_dict_lines.size()};
 }

@@ -8,6 +8,9 @@
 #include <SDKDDKVer.h>
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#ifndef NOMINMAX
+#define NOMINMAX                        // avoid min/max macros clashing with std::min/std::max
+#endif
 // Windows Header Files:
 #include <Windows.h>
 #include <Ole2.h>
