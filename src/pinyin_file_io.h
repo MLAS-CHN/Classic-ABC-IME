@@ -67,5 +67,6 @@ const char* get_parts_cached_line(int line_index);  // 返回第 line_index 行(
 uint8_t get_parts_cached_seg_count(const char* p);  // 读段数
 const char* get_parts_cached_seg(const char* p, int seg_index, int& seg_len);  // 读第 seg 段
 void invalidate_parts_cache();            // 插入/删除后调用：unmap，匹配回退按需 split
+void release_dict_memory();               // 窗口失焦：释放全部词库内存（lines/index/parts cache）
 
 #endif // PINYIN_FILE_IO_H

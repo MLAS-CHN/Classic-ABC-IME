@@ -340,16 +340,17 @@ static void refresh_user_dict_baseline() {
 void ClassicABC::Engine::SetActive(bool a) {
     g.active = a;
     if (a) {
+        // 重新聚焦：全后台重载词库（load + mmap），主线程不卡，完成后自动刷新候选。
+        // 失焦已释放全部内存，此处必须重载（无需判断文件是否变化）。
+        init_pinyin_data_async();
         // Sync CapsLock baseline from the OS (reliable outside keydown events).
         g_capslock_was_on = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
         g.chinese = !g_capslock_was_on;
-        // Reload dictionaries only if changed by another process; avoids the
-        // multi-second full reload of the large dictionary on every switch.
-        if (user_dict_changed_since_load())
-            init_pinyin_data_async();
     } else {
         flush_dirty_dicts();
         refresh_user_dict_baseline();
+        // 窗口失焦：释放词库全部内存（lines/index/parts cache），文件保留。
+        release_dict_memory();
         g_capslock_was_on = false;
         bool wasChinese = g.chinese;
         g = State{};

@@ -311,6 +311,23 @@ static std::string generate_parts_cache_file() {
     return path;
 }
 
+// unmap 并关闭句柄（不删文件）。
+static void unmap_parts_cache() {
+    if (g_parts_base) {
+        UnmapViewOfFile((LPVOID)g_parts_base);
+        g_parts_base = nullptr;
+    }
+    if (g_parts_mapping) {
+        CloseHandle(g_parts_mapping);
+        g_parts_mapping = nullptr;
+    }
+    if (g_parts_file != INVALID_HANDLE_VALUE) {
+        CloseHandle(g_parts_file);
+        g_parts_file = INVALID_HANDLE_VALUE;
+    }
+    g_parts_line_count = 0;
+}
+
 // mmap 映射 parts cache 文件；返回是否成功。
 static bool map_parts_cache() {
     std::string path = get_parts_cache_path();
@@ -351,22 +368,12 @@ static bool map_parts_cache() {
         uint32_t magic = *(const uint32_t*)g_parts_base;
         g_parts_line_count = *(const uint32_t*)(g_parts_base + 4);
         if (magic != kPartsMagic || g_parts_line_count != g_user_dict_lines.size()) {
-            UnmapViewOfFile((LPVOID)g_parts_base);
-            CloseHandle(g_parts_mapping);
-            CloseHandle(g_parts_file);
-            g_parts_base = nullptr;
-            g_parts_mapping = nullptr;
-            g_parts_file = INVALID_HANDLE_VALUE;
+            unmap_parts_cache();
             return false;
         }
         return true;
     }
-    UnmapViewOfFile((LPVOID)g_parts_base);
-    CloseHandle(g_parts_mapping);
-    CloseHandle(g_parts_file);
-    g_parts_base = nullptr;
-    g_parts_mapping = nullptr;
-    g_parts_file = INVALID_HANDLE_VALUE;
+    unmap_parts_cache();
     return false;
 }
 
@@ -398,19 +405,7 @@ void build_parts_cache() {
 }
 
 void invalidate_parts_cache() {
-    if (g_parts_base) {
-        UnmapViewOfFile((LPVOID)g_parts_base);
-        g_parts_base = nullptr;
-    }
-    if (g_parts_mapping) {
-        CloseHandle(g_parts_mapping);
-        g_parts_mapping = nullptr;
-    }
-    if (g_parts_file != INVALID_HANDLE_VALUE) {
-        CloseHandle(g_parts_file);
-        g_parts_file = INVALID_HANDLE_VALUE;
-    }
-    g_parts_line_count = 0;
+    unmap_parts_cache();
     // cache 失效后，匹配回退按需 split；下次 init_pinyin_data 重建。
 }
 
@@ -563,6 +558,21 @@ void init_pinyin_data() {
     write_log("FileIO: init_pinyin_data total took " + std::to_string(now_ms() - t0) + " ms", LOG_INFO);
 }
 
+void release_dict_memory() {
+    // 窗口失焦：释放词库全部内存（lines/index/parts mmap），文件保留。
+    unmap_parts_cache();
+    g_user_dict_lines.clear();
+    g_user_dict_lines.shrink_to_fit();
+    g_user_dict_index.clear();
+    g_pinyin_map_lines.clear();
+    g_pinyin_map_lines.shrink_to_fit();
+    g_pinyin_map_index.clear();
+    g_char_freq_lines.clear();
+    g_char_freq_lookup.clear();
+    g_cache_ready = false;
+    write_log("FileIO: release_dict_memory (dict memory freed)", LOG_INFO);
+}
+
 void init_pinyin_data_async() {
     std::lock_guard<std::mutex> lock(g_cache_mutex);
     if (g_cache_thread.joinable()) {
@@ -571,11 +581,12 @@ void init_pinyin_data_async() {
         if (g_cache_thread.get_id() != std::this_thread::get_id())
             g_cache_thread.join();
     }
-    load_file_and_build_index(get_pinyin_map_file_path(), g_pinyin_map_lines, g_pinyin_map_index);
-    load_file_and_build_index(get_user_dict_file_path(), g_user_dict_lines, g_user_dict_index);
-    load_file_and_build_index(get_char_freq_file_path(), g_char_freq_lines, g_char_freq_index);
     g_cache_ready = false;
+    // 全后台：load 文件 + 构建缓存都在后台线程，聚焦时主线程不卡。
     g_cache_thread = std::thread([]() {
+        load_file_and_build_index(get_pinyin_map_file_path(), g_pinyin_map_lines, g_pinyin_map_index);
+        load_file_and_build_index(get_user_dict_file_path(), g_user_dict_lines, g_user_dict_index);
+        load_file_and_build_index(get_char_freq_file_path(), g_char_freq_lines, g_char_freq_index);
         build_user_dict_cache();
         build_char_freq_cache();
         g_cache_ready = true;
