@@ -227,10 +227,15 @@ static void build_user_dict_cache() {
 
 // ---- 词库 parts 硬盘缓存（mmap）----
 // 二进制格式：
-//   [u32 magic=0x50415943][u32 line_count]
+//   [u32 magic=0x50415944][u32 line_count]
+//   [u64 user_dict mtime][u64 user_dict size]
 //   [offset 表: line_count × u32]      每行数据区起始偏移
 //   [数据区: 逐行]  u8 seg_count, 每段: u8 seg_len + seg_len 字节
-static const uint32_t kPartsMagic = 0x50415943;  // "PYAC"
+//
+// 头里带词库文件的 mtime+size 指纹：行数相同不代表内容相同（外部修改、
+// 恢复备份等），仅校验行数会复用陈旧 cache，导致拼音段与文本按行错位
+// （表现为输入 dyx 匹配出超长词）。指纹一致才允许复用。
+static const uint32_t kPartsMagic = 0x50415944;  // "PYAD"
 
 static HANDLE g_parts_file = INVALID_HANDLE_VALUE;
 static HANDLE g_parts_mapping = nullptr;
@@ -239,6 +244,18 @@ static uint32_t g_parts_line_count = 0;
 
 std::string get_parts_cache_path() {
     return join_path(join_path(get_pinyin_data_dir(), "cache"), "user_dict_parts.bin");
+}
+
+// 词库文件指纹：修改时间 + 文件大小（64 位）。失败返回 false。
+static bool user_dict_file_fingerprint(uint64_t& mtime, uint64_t& size) {
+    std::error_code ec;
+    auto ft = std::filesystem::last_write_time(get_user_dict_file_path(), ec);
+    if (ec) return false;
+    uint64_t sz = (uint64_t)std::filesystem::file_size(get_user_dict_file_path(), ec);
+    if (ec) return false;
+    mtime = (uint64_t)ft.time_since_epoch().count();
+    size = sz;
+    return true;
 }
 
 // 逐段遍历拼音 CSV（如 "a,bc,d" → 依次回调 "a","bc","d"）。
@@ -271,7 +288,7 @@ static std::string generate_parts_cache_file() {
     uint64_t exact_size = 0;
     for (const auto& line : g_user_dict_lines) exact_size += row_bytes(line);
 
-    uint64_t header_size = 8 + (uint64_t)g_user_dict_lines.size() * 4;
+    uint64_t header_size = 8 + 8 + 8 + (uint64_t)g_user_dict_lines.size() * 4;
 
     // 写入临时文件。
     std::string tmp = path + ".tmp";
@@ -281,8 +298,15 @@ static std::string generate_parts_cache_file() {
 
         uint32_t magic = kPartsMagic;
         uint32_t count = (uint32_t)g_user_dict_lines.size();
+        uint64_t src_mtime = 0, src_size = 0;
+        if (!user_dict_file_fingerprint(src_mtime, src_size)) {
+            src_mtime = 0;
+            src_size = 0;
+        }
         f.write((const char*)&magic, 4);
         f.write((const char*)&count, 4);
+        f.write((const char*)&src_mtime, 8);
+        f.write((const char*)&src_size, 8);
 
         // 先写完整 offset 表（占位），再写数据区。
         uint32_t cur_offset = (uint32_t)header_size;
@@ -364,7 +388,7 @@ static bool map_parts_cache() {
     }
 
     // 校验头。
-    if (size.QuadPart >= 8) {
+    if (size.QuadPart >= 24) {
         uint32_t magic = *(const uint32_t*)g_parts_base;
         g_parts_line_count = *(const uint32_t*)(g_parts_base + 4);
         if (magic != kPartsMagic || g_parts_line_count != g_user_dict_lines.size()) {
@@ -381,15 +405,23 @@ void build_parts_cache() {
     long long t0 = now_ms();
     std::string path = get_parts_cache_path();
 
-    // 检查现有 cache 是否有效（文件存在 + 行数匹配）。不匹配则重建。
+    // 检查现有 cache 是否有效（文件存在 + 行数匹配 + 词库指纹一致）。
+    // 只比行数不够：外部修改词库（行数不变）会复用陈旧 cache，导致
+    // 拼音段与文本按行错位，匹配出与输入无关的超长词条。
     bool need_rebuild = true;
     {
         std::ifstream f(path, std::ios::binary);
         if (f.is_open()) {
             uint32_t magic = 0, count = 0;
+            uint64_t cached_mtime = 0, cached_size = 0, cur_mtime = 0, cur_size = 0;
             f.read((char*)&magic, 4);
             f.read((char*)&count, 4);
-            if (magic == kPartsMagic && count == (uint32_t)g_user_dict_lines.size()) {
+            f.read((char*)&cached_mtime, 8);
+            f.read((char*)&cached_size, 8);
+            bool fp_ok = user_dict_file_fingerprint(cur_mtime, cur_size);
+            if (magic == kPartsMagic && count == (uint32_t)g_user_dict_lines.size() &&
+                (!fp_ok ||
+                 (cached_mtime == cur_mtime && cached_size == cur_size))) {
                 need_rebuild = false;
             }
         }
@@ -411,7 +443,7 @@ void invalidate_parts_cache() {
 
 const char* get_parts_cached_line(int line_index) {
     if (!g_parts_base || line_index < 0 || line_index >= (int)g_parts_line_count) return nullptr;
-    const uint32_t* offsets = (const uint32_t*)(g_parts_base + 8);
+    const uint32_t* offsets = (const uint32_t*)(g_parts_base + 24);
     return (const char*)(g_parts_base + offsets[line_index]);
 }
 
