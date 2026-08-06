@@ -34,17 +34,26 @@ std::vector<int> find_prefix_match_char(const std::string& pinyin);
 // --- 词语匹配 (Word Matching) ---
 
 /**
- * 智能词语拼音匹配。
- * 接收一套拼音分段，返回符合该分段的词语所在行号数组。
+ * 区间扫描结果：宽松匹配范围 + 严格命中行。
  */
-std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pinyin_parts);
+struct ScanResult {
+    int loose_lo = -1, loose_hi = -1;  // 本段在检索范围内的精确宽松范围（1-based）
+    std::vector<int> strict_lines;     // 段数恰好相等 + 精确规则命中的行号
+};
 
 /**
- * 计算一段拼音段组合在词库中的宽松匹配行号范围 [lo, hi]（1-based）。
- * 段级前缀：每段 target 以 source 开头（如 c 匹配 ci/cha/...）。
- * 找不到任何前缀匹配时返回 {-1, -1}。
- * 用于"从少到多"匹配的剪枝：范围为空 ⇒ 更长段组合必然也不存在。
+ * 在 [range_lo, range_hi] 区间内对一段拼音做单次扫描：
+ * - 宽松：逐段前缀（如 c 匹配 ci/cha/...，不限段数），记录本段精确范围；
+ * - 严格：段数恰好相等 + 逐段精确/前缀，收集候选行号。
+ * 宽松范围为空（loose_lo == -1）⇒ 更长段组合必然也不存在（前缀剪枝）。
  */
-std::pair<int, int> word_prefix_range(const std::vector<std::string>& pinyin_parts);
+ScanResult scan_in_range(const std::vector<std::string>& pinyin_parts,
+                         int range_lo, int range_hi);
+
+/**
+ * 首字母索引兜底：根据首段的首字符返回其在词库中的行号块 [lo, hi]（1-based）。
+ * 找不到对应字母块时返回全库范围 {1, 总行数}。
+ */
+std::pair<int, int> initial_range(const std::string& first_segment);
 
 #endif // PINYIN_MATCHER_H

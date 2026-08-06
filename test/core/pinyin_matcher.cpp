@@ -159,31 +159,65 @@ std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pin
     return matched_lines;
 }
 
-std::pair<int, int> word_prefix_range(const std::vector<std::string>& pinyin_parts) {
-    if (pinyin_parts.empty() || !is_dict_cache_ready()) return {-1, -1};
+ScanResult scan_in_range(const std::vector<std::string>& pinyin_parts,
+                         int range_lo, int range_hi) {
+    ScanResult r;
+    if (pinyin_parts.empty() || !is_dict_cache_ready()) return r;
 
-    // 遍历所有段数 >= len 的词条组，逐段前缀判断，记录最小/最大行号。
     size_t len = pinyin_parts.size();
-    int lo = -1, hi = -1;
-    for (size_t seg_count = len; seg_count <= g_user_dict_parts.size(); ++seg_count) {
-        auto it = g_user_dict_segcount_map.find(seg_count);
-        if (it == g_user_dict_segcount_map.end()) continue;
-        for (int line_num : it->second) {
-            int idx = line_num - 1;
-            if (idx < 0 || idx >= (int)g_user_dict_parts.size()) continue;
-            const std::vector<std::string>& target = g_user_dict_parts[idx];
-            bool ok = true;
+
+    // 严格匹配 flag（沿用原逻辑）。
+    std::vector<int> exact_match_flags;
+    exact_match_flags.reserve(len);
+    for (const auto& part : pinyin_parts) {
+        if (part.size() == 1) {
+            exact_match_flags.push_back(0);
+            continue;
+        }
+        int match_result = find_exact_match_char(part, false);
+        exact_match_flags.push_back(match_result > 0 ? 1 : 0);
+    }
+
+    if (range_hi > (int)g_user_dict_parts.size()) range_hi = (int)g_user_dict_parts.size();
+    for (int line_num = range_lo; line_num <= range_hi; ++line_num) {
+        int idx = line_num - 1;
+        if (idx < 0) continue;
+        const std::vector<std::string>& target = g_user_dict_parts[idx];
+
+        // 宽松：逐段前缀（不限段数），记录本段精确范围。
+        if (target.size() >= len) {
+            bool loose = true;
             for (size_t i = 0; i < len; ++i) {
                 if (target[i].compare(0, pinyin_parts[i].size(), pinyin_parts[i]) != 0) {
-                    ok = false;
+                    loose = false;
                     break;
                 }
             }
-            if (ok) {
-                if (lo == -1) lo = line_num;
-                hi = line_num;
+            if (loose) {
+                if (r.loose_lo == -1) r.loose_lo = line_num;
+                r.loose_hi = line_num;
+            }
+        }
+        // 严格：段数恰好相等 + 精确规则。
+        if (target.size() == len) {
+            if (minimal_smart_match(pinyin_parts, exact_match_flags, target)) {
+                r.strict_lines.push_back(line_num);
             }
         }
     }
-    return {lo, hi};
+    return r;
+}
+
+std::pair<int, int> initial_range(const std::string& first_segment) {
+    if (first_segment.empty()) return {1, (int)g_user_dict_parts.size()};
+
+    // 首字母索引：按行首字符分块，找 first_segment[0] 对应的块。
+    char first_char = first_segment[0];
+    for (const auto& item : g_user_dict_index) {
+        if (item.start_char == (int)first_char) {
+            return {item.start_line, item.end_line};
+        }
+    }
+    // 找不到（如非字母开头）：全库兜底。
+    return {1, (int)g_user_dict_parts.size()};
 }

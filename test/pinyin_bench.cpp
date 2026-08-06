@@ -69,13 +69,13 @@ static void run_one(const std::string& input, bool show_header) {
         std::cout << "  [" << i << "] " << join_csv(split.options[i]) << std::endl;
     }
 
-    // 4. 显示候选：单行空格分隔，最多 30 个
+    // 4. 显示候选：单行空格分隔，最多 30 个（带拼音段数便于排查顺序）
     std::cout << "候选 (" << pages.size() << " 页): ";
     size_t shown = 0;
     for (size_t p = 0; p < pages.size() && shown < 30; ++p) {
         for (const auto& item : pages[p]) {
             if (shown >= 30) break;
-            std::cout << item.getText();
+            std::cout << item.getText() << "(" << item.getPinyinLength() << ")";
             shown++;
             if (shown < 30) std::cout << " ";
         }

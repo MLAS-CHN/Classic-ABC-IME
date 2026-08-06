@@ -10,32 +10,68 @@
 #include <iostream>
 #include <ctime>
 
+// 轮内范围池：key = 段组合 CSV（如 "a,b"），value = 该段的宽松匹配行号范围。
+using RangePool = std::unordered_map<std::string, std::pair<int, int>>;
+
+/**
+ * 在池中查找当前段组合的最长前缀范围。
+ * key 是 current_csv 的字符串前缀（前面完全一样），取最长的 key。
+ * 找不到返回 {-1, -1}（调用方用首字母索引兜底）。
+ */
+static std::pair<int, int> lookup_pool(const RangePool& pool, const std::string& current_csv) {
+    int best_len = -1;
+    std::pair<int, int> best = {-1, -1};
+    for (const auto& kv : pool) {
+        if ((int)kv.first.size() > best_len &&
+            current_csv.compare(0, kv.first.size(), kv.first) == 0) {
+            best_len = (int)kv.first.size();
+            best = kv.second;
+        }
+    }
+    return best;
+}
+
 /**
  * 获取一套拼音分段对应的候选词数组。
  * 从最短分段（2 段）开始逐步加长：
- * 取前 len 段，先宽松匹配（作为前缀）判断是否继续；再严格匹配收集候选。
- * - 若前 len 段连前缀都不存在 ⇒ 更长段组合必然也不存在，停止；
- * - 若前缀存在但当前 len 无严格匹配，继续尝试更长段
+ * - 第一层用首字母索引兜底锁定初始范围；后续层复用范围池中最长前缀的范围；
+ * - 在检索范围内做宽松+严格一次扫描（scan_in_range）；
+ * - 宽松范围为空 ⇒ 更长段组合必然也不存在，停止；
+ * - 前缀存在但当前 len 无严格匹配，继续尝试更长段
  *   （可能有"无短词但有长词"的情况，如只有 西安八桥 没有 西安）。
- * 每层的宽松匹配行号范围打印到控制台，如 [67788,69691]。
  */
-static std::vector<CandidateItem> getSuitableWordLineIndexes(const std::vector<std::string>& pinyin_parts) {
+static std::vector<CandidateItem> getSuitableWordLineIndexes(
+    const std::vector<std::string>& pinyin_parts, RangePool& range_pool) {
     std::vector<CandidateItem> result;
 
     for (size_t len = 2; len <= pinyin_parts.size(); ++len) {
         std::vector<std::string> current_parts(
             pinyin_parts.begin(), pinyin_parts.begin() + static_cast<std::ptrdiff_t>(len));
+        std::string current_csv = join_csv(current_parts);
 
-        auto range = word_prefix_range(current_parts);  // 宽松匹配行号范围
-        std::cout << "  len=" << len << " 前缀范围 [" << range.first << "," << range.second << "]";
-        if (range.first == -1) {
+        // 检索范围：池中最长前缀；池无命中则首字母索引兜底。
+        auto range = lookup_pool(range_pool, current_csv);
+        bool pool_hit = (range.first != -1);
+        if (!pool_hit) {
+            range = initial_range(current_parts[0]);
+        }
+        std::cout << "  len=" << len << " csv=[" << current_csv << "] pool=" << (pool_hit ? "YES" : "no");
+
+        ScanResult sr = scan_in_range(current_parts, range.first, range.second);
+
+        std::cout << "  len=" << len << " 检索范围 [" << range.first << "," << range.second << "]"
+                  << " 前缀范围 [" << sr.loose_lo << "," << sr.loose_hi << "]"
+                  << " 严格命中 " << sr.strict_lines.size();
+        if (sr.loose_lo == -1) {
             std::cout << "（前缀不存在，停止）" << std::endl;
             break;
         }
+        std::cout << std::endl;
 
-        std::vector<int> match_lines = match_segmented_word_pinyin(current_parts);
-        std::cout << " 严格命中 " << match_lines.size() << std::endl;
-        for (int line_number : match_lines) {
+        // 存池：当前段组合的精确宽松范围。
+        range_pool[current_csv] = {sr.loose_lo, sr.loose_hi};
+
+        for (int line_number : sr.strict_lines) {
             result.push_back(CandidateItem::fromWordDictLineNumber(line_number));
         }
     }
@@ -55,13 +91,16 @@ static std::string candidate_key(const CandidateItem& item) {
 
 /**
  * 收集并去重一组拆分方案产生的候选词。
+ * 范围池在此创建（一次 rebuild 内跨方案共享公共前缀），函数结束自动析构清空。
  */
 static std::vector<CandidateItem> collectAndDedupeWords(
     const std::vector<std::vector<std::string>>& split_options) {
 
+    RangePool range_pool;
+
     std::vector<CandidateItem> all;
     for (const auto& pinyin_parts : split_options) {
-        auto matched = getSuitableWordLineIndexes(pinyin_parts);
+        auto matched = getSuitableWordLineIndexes(pinyin_parts, range_pool);
         all.insert(all.end(), matched.begin(), matched.end());
     }
 

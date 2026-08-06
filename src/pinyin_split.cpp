@@ -494,19 +494,34 @@ SplitResult splitConservativePinyinEx(const std::string& input) {
     
     SplitResult result;
     result.options = std::move(finalResults);
-    // 记录原始激进方案是否幸存及其下标：去重时 aggrRaw 若与其它方案
-    // 完全相同会被合并，此时无需混排。
+    // 记录原始激进方案是否幸存及其下标。
+    // 幸存条件：aggrRaw 与 aggrMerged 不同（散段产生了合并方案没有的独特候选，
+    // 才需要混排）。若两者完全相同，aggrRaw 已被合并吸收，无独特价值，
+    // raw_aggressive_index = -1（不混排，按普通方案处理）。
     result.raw_aggressive_index = -1;
-    for (size_t i = 0; i < result.options.size(); ++i) {
-        if (result.options[i].size() == aggrRaw.size()) {
-            bool same = true;
+    {
+        bool same_as_merged = (aggrRaw.size() == aggrMerged.size());
+        if (same_as_merged) {
             for (size_t j = 0; j < aggrRaw.size(); ++j) {
-                if (normalize_token(result.options[i][j]) != normalize_token(aggrRaw[j])) {
-                    same = false;
+                if (normalize_token(aggrRaw[j]) != normalize_token(aggrMerged[j])) {
+                    same_as_merged = false;
                     break;
                 }
             }
-            if (same) { result.raw_aggressive_index = (int)i; break; }
+        }
+        if (!same_as_merged) {
+            for (size_t i = 0; i < result.options.size(); ++i) {
+                if (result.options[i].size() == aggrRaw.size()) {
+                    bool same = true;
+                    for (size_t j = 0; j < aggrRaw.size(); ++j) {
+                        if (normalize_token(result.options[i][j]) != normalize_token(aggrRaw[j])) {
+                            same = false;
+                            break;
+                        }
+                    }
+                    if (same) { result.raw_aggressive_index = (int)i; break; }
+                }
+            }
         }
     }
     return result;
