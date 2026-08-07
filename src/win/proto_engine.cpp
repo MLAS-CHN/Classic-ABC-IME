@@ -22,6 +22,7 @@ static long long now_ms() {
 }
 
 static const size_t kPageSize = 10;
+static const size_t kNoSel = (size_t)-1;  // 无高亮：只有按过上下键后才激活
 
 struct State {
     bool   active = false;  // engine activation state
@@ -32,6 +33,7 @@ struct State {
     size_t cur = 0;
     std::vector<std::vector<CandidateItem>> pages;
     size_t page = 0;
+    size_t sel = kNoSel;       // highlighted candidate index within current page (kNoSel = 未激活)
     std::vector<CandidateItem> cont;      // continuous input
     bool   contmode = false;
 };
@@ -95,6 +97,7 @@ static void clear_composition_state() {
     g.delmode = false;
     g.pages.clear();
     g.page = 0;
+    g.sel = kNoSel;
     g.cont.clear();
     g.contmode = false;
     g_comp.clear();
@@ -185,6 +188,8 @@ static void rebuild() {
     if (g.pages.empty()) g.page = 0;
     std::string d = buildComposingDisplayText(g.buf, g.cur, g.page, kPageSize, &g.pages);
     if (g.page >= g.pages.size() && !g.pages.empty()) g.page = g.pages.size() - 1;
+    size_t count = (g.page < g.pages.size()) ? g.pages[g.page].size() : 0;
+    if (g.sel != kNoSel && g.sel >= count) g.sel = kNoSel;
     size_t pos = d.find(u8"\u00B9");
     if (pos == std::string::npos) pos = d.find(u8"\u00B2");
     if (pos == std::string::npos) pos = d.find(u8"\u2070");
@@ -233,8 +238,7 @@ static void persist(const CandidateItem& ci) {
 }
 
 // ---- select candidate ----
-static std::string pick(size_t pi, size_t ci) {
-    if (g.pages.empty() || pi >= g.pages.size()) return {};
+static std::string pick(size_t pi, size_t ci) {    if (g.pages.empty() || pi >= g.pages.size()) return {};
     const auto& pg = g.pages[pi];
     if (ci >= pg.size()) return {};
     CandidateItem sel = pg[ci];
@@ -282,7 +286,7 @@ static std::string pick(size_t pi, size_t ci) {
         }
         g_comp.clear();
     } else {
-        g.cur = g.buf.size(); g.page = 0;
+        g.cur = g.buf.size(); g.page = 0; g.sel = kNoSel;
         g.cont.push_back(sel); g.contmode = true;
         rebuild();
     }
@@ -430,6 +434,7 @@ bool ClassicABC::Engine::TestKey(UINT vk) {
     if (has_active_candidates()) {
         if (vk == VK_SPACE) return true;
         if (vk >= '0' && vk <= '9') return true;
+        if (vk == VK_UP || vk == VK_DOWN) return true;
         if (vk == VK_OEM_PLUS || vk == VK_OEM_MINUS) return true;
         if (vk == VK_DELETE) return true;
     }
@@ -517,7 +522,10 @@ static bool handlePunct(UINT vk) {
 
 static bool handleCandidateSelect(UINT vk) {
     if (g.pages.empty()) return false;
-    if (vk == VK_SPACE) { send_u8(pick(g.page, 0)); return true; }
+    if (vk == VK_SPACE) {
+        size_t idx = (g.sel == kNoSel) ? 0 : g.sel;
+        send_u8(pick(g.page, idx)); return true;
+    }
     if (vk >= '0' && vk <= '9') {
         size_t idx = vk == '0' ? 9 : (size_t)(vk - '1');
         send_u8(pick(g.page, idx)); return true;
@@ -525,14 +533,41 @@ static bool handleCandidateSelect(UINT vk) {
     return false;
 }
 
+// ---- selection movement (highlighted candidate) ----
+// 高亮由上下键激活：未按过时 kNoSel，不显示标蓝；按过后才出现。
+static bool handleSelectMove(UINT vk) {
+    if (g.pages.empty()) return false;
+    if (g.page >= g.pages.size()) return false;
+    size_t count = g.pages[g.page].size();
+    if (count == 0) return false;
+    if (vk == VK_UP) {
+        if (g.sel == kNoSel) g.sel = 0;  // 首次按↑：高亮第一个（停在第一项）
+        else if (g.sel > 0) --g.sel;
+        return true;
+    }
+    if (vk == VK_DOWN) {
+        if (g.sel == kNoSel) { g.sel = 0; return true; }  // 首次按↓：高亮第一个
+        if (g.sel + 1 < count) {
+            ++g.sel;
+        } else if (g.page + 1 < g.pages.size()) {
+            // 选中 0（第 10 个）后再按下箭头：翻到下一页第一个。
+            g.page++; g.sel = 0; rebuild();
+        } else {
+            g.sel = count - 1;  // already on last page
+        }
+        return true;
+    }
+    return false;
+}
+
 static bool handlePage(UINT vk) {
     if (g.pages.empty()) return false;
     if (vk == VK_OEM_PLUS) {
-        if (g.page + 1 < g.pages.size()) { g.page++; rebuild(); }
+        if (g.page + 1 < g.pages.size()) { g.page++; g.sel = kNoSel; rebuild(); }
         return true;
     }
     if (vk == VK_OEM_MINUS) {
-        if (g.page > 0) { g.page--; rebuild(); }
+        if (g.page > 0) { g.page--; g.sel = kNoSel; rebuild(); }
         return true;
     }
     return false;
@@ -543,6 +578,7 @@ static bool handleLetter(UINT vk, bool uppercase = false) {
     char c = (char)(uppercase ? vk : (vk - 'A' + 'a'));
     insert_at_virtual_cursor(g.buf, g.cur, c);
     if (g.buf.size() == 1) reset_virtual_cursor_to_end(g.buf, g.cur);
+    g.sel = kNoSel;
     rebuild();
     return true;
 }
@@ -610,6 +646,7 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
     // priority: functional keys > pinyin input
     if (handlePunct(vk))        return true;
     if (handleCandidateSelect(vk)) return true;
+    if (handleSelectMove(vk))     return true;
     if (handlePage(vk))           return true;
     if (handleDeleteMode(vk))     return true;
     if (handleCursorMove(vk))     return true;
@@ -621,7 +658,7 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
 
     // editing keys
     if (vk == VK_BACK && !g.buf.empty()) {
-        if (backspace_at_virtual_cursor(g.buf, g.cur)) rebuild();
+        if (backspace_at_virtual_cursor(g.buf, g.cur)) { g.sel = kNoSel; rebuild(); }
         return true;
     }
     if (vk == VK_ESCAPE && !g.buf.empty()) {
@@ -635,7 +672,7 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
     // word separator '
     if (vk == VK_OEM_7 && !g.buf.empty()) {
         if (can_insert_word_separator_at_virtual_cursor(g.buf, g.cur)) {
-            insert_at_virtual_cursor(g.buf, g.cur, '\''); rebuild();
+            insert_at_virtual_cursor(g.buf, g.cur, '\''); g.sel = kNoSel; rebuild();
         }
         return true;
     }
@@ -693,17 +730,28 @@ bool   ClassicABC::Engine::IsCapsLockActive()  { return g_capslock_was_on; }
 
 void ClassicABC::Engine::GoFirstPage() {
     if (g.pages.empty()) return;
-    g.page = 0; rebuild();
+    g.page = 0; g.sel = kNoSel; rebuild();
 }
 void ClassicABC::Engine::GoLastPage() {
     if (g.pages.empty()) return;
-    g.page = g.pages.size() - 1; rebuild();
+    g.page = g.pages.size() - 1; g.sel = kNoSel; rebuild();
 }
 void ClassicABC::Engine::GoNextPage() {
     if (g.pages.empty()) return;
-    if (g.page + 1 < g.pages.size()) { g.page++; rebuild(); }
+    if (g.page + 1 < g.pages.size()) { g.page++; g.sel = kNoSel; rebuild(); }
 }
 void ClassicABC::Engine::GoPrevPage() {
     if (g.pages.empty()) return;
-    if (g.page > 0) { g.page--; rebuild(); }
+    if (g.page > 0) { g.page--; g.sel = kNoSel; rebuild(); }
+}
+
+size_t ClassicABC::Engine::GetSelectedIndex() {
+    return g.sel;
+}
+
+// 鼠标点击候选：直接输出该候选（不改变高亮选中项）。
+std::string ClassicABC::Engine::PickCandidateByIndex(size_t idx) {
+    if (g.pages.empty() || g.page >= g.pages.size()) return {};
+    if (idx >= g.pages[g.page].size()) return {};
+    return pick(g.page, idx);
 }

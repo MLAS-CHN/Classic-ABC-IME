@@ -32,6 +32,8 @@ size_t GetCandidateCount();
 std::wstring GetCandidateText(size_t i);
 size_t GetCandidatePage();
 size_t GetTotalPages();
+size_t GetSelectedIndex();
+std::string PickCandidateByIndex(size_t idx);  // mouse click: commit that candidate
 bool IsChineseMode();
 bool IsDelMode();
 bool IsCapsLockActive();  // CapsLock toggled English/caps mode is on

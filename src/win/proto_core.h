@@ -43,6 +43,8 @@ size_t GetCandidateCount();
 std::wstring GetCandidateText(size_t i);
 size_t GetCandidatePage();
 size_t GetTotalPages();
+size_t GetSelectedIndex();
+void PickCandidate(size_t idx);  // mouse click: commit that candidate directly
 bool IsDelMode();
 void RefreshCandidates();  // recompute candidate list for current buffer
 

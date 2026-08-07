@@ -107,7 +107,23 @@ size_t      ClassicABC::GetCandidateCount()     { return ClassicABC::Engine::Get
 std::wstring ClassicABC::GetCandidateText(size_t i) { return ClassicABC::Engine::GetCandidateText(i); }
 size_t      ClassicABC::GetCandidatePage()      { return ClassicABC::Engine::GetCandidatePage(); }
 size_t      ClassicABC::GetTotalPages()         { return ClassicABC::Engine::GetTotalPages(); }
+size_t      ClassicABC::GetSelectedIndex()      { return ClassicABC::Engine::GetSelectedIndex(); }
 bool        ClassicABC::IsDelMode()            { return ClassicABC::Engine::IsDelMode(); }
+
+// 鼠标点击候选：提交该候选文本并刷新 UI（不改变高亮选中项）。
+void ClassicABC::PickCandidate(size_t idx) {
+    std::string u8 = ClassicABC::Engine::PickCandidateByIndex(idx);
+    if (!u8.empty()) {
+        int n = MultiByteToWideChar(CP_UTF8, 0, u8.c_str(), (int)u8.size(), nullptr, 0);
+        if (n > 0) {
+            std::wstring w((size_t)n, L'\0');
+            MultiByteToWideChar(CP_UTF8, 0, u8.c_str(), (int)u8.size(), &w[0], n);
+            ClassicABC::CommitText(w.c_str(), w.size());
+        }
+    }
+    ClassicABC::UI::Update();
+    ClassicABC::UI::UpdateCand();
+}
 
 void ClassicABC::GoFirstPage() { ClassicABC::Engine::GoFirstPage(); ClassicABC::UI::UpdateCand(); }
 void ClassicABC::GoLastPage()  { ClassicABC::Engine::GoLastPage();  ClassicABC::UI::UpdateCand(); }

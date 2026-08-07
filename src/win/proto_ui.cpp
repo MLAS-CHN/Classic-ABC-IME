@@ -343,6 +343,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         HFONT old = (HFONT)SelectObject(dc, g_font);
         SetBkMode(dc, TRANSPARENT);
         COLORREF candColor = ClassicABC::IsDelMode() ? RGB(255, 0, 0) : RGB(128, 0, 128);
+        size_t sel = ClassicABC::GetSelectedIndex();
         size_t count = ClassicABC::GetCandidateCount();
         for (size_t i = 0; i < count; ++i) {
             std::wstring text = ClassicABC::GetCandidateText(i);
@@ -350,9 +351,10 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             int n = (int)i + 1;
             if (n == 10) n = 0;
             wchar_t num[4]; wsprintfW(num, L"%d:", n);
-            SetTextColor(dc, candColor);
+            COLORREF rowColor = (i == sel) ? RGB(0, 0, 255) : candColor;
+            SetTextColor(dc, rowColor);
             TextOutW(dc, 4, 6 + (int)i * g_fh, num, (int)wcslen(num));
-            SetTextColor(dc, candColor);
+            SetTextColor(dc, rowColor);
             TextOutW(dc, 4 + g_fw * 2, 6 + (int)i * g_fh, text.c_str(), (int)text.size());
         }
         // Nav bar
@@ -383,6 +385,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
     if (msg == WM_LBUTTONDOWN) {
         POINT pt = { LOWORD(l), HIWORD(l) };
         ComputeNavBtnRects(hwnd);
+        bool handled = false;
         for (int i = 0; i < 4; ++i) {
             if (PtInRect(&g_navBtnRects[i], pt)) {
                 switch (i) {
@@ -391,7 +394,16 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
                     case 2: ClassicABC::GoNextPage(); break;
                     case 3: ClassicABC::GoPrevPage(); break;
                 }
+                handled = true;
                 break;
+            }
+        }
+        if (!handled) {
+            // 点击候选行：直接输出该候选。
+            size_t count = ClassicABC::GetCandidateCount();
+            int row = (pt.y - 6) / g_fh;
+            if (pt.y >= 6 && row >= 0 && (size_t)row < count) {
+                ClassicABC::PickCandidate((size_t)row);
             }
         }
         return 0;
