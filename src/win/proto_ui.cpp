@@ -1,10 +1,13 @@
 // proto_ui.cpp - Candidate window UI implementation.
 #include "proto_ui.h"
 #include "proto_core.h"
+#include "../settings.h"
 #include "../util.h"
 #include <gdiplus.h>
 #include <cstring>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <algorithm>
 #pragma comment(lib, "gdiplus.lib")
 
@@ -114,6 +117,13 @@ static Gdiplus::Bitmap* g_btnIcons[5] = {};  // per-button PNG icons
 static Gdiplus::Bitmap* g_modeIcons[3] = {}; // 0=capital 1=english 2=pinyin (for button 1)
 static Gdiplus::Bitmap* g_lockIcon = nullptr; // button 0 locked state icon (ABC_ICON_GRAY)
 static Gdiplus::Bitmap* g_signEnIcon = nullptr; // button 3 English/CapsLock variant (sign_en.png)
+
+// Settings dialog (right-click on settings bar)
+static const wchar_t kSettingsDlgClass[] = L"ProtoSettingsDlgWnd";
+static HWND g_settingsDlg = nullptr;
+static bool g_settingsDlgClass = false;
+static const int kDlgW = 250, kDlgH = 196;  // 含系统标题栏
+enum { kDlgEditSize = 101, kDlgCheckLog = 102, kDlgBtnSave = 103 };
 
 // Candidate nav bar icons (0=first 1=last 2=next 3=prev)
 static Gdiplus::Bitmap* g_navIcons[4] = {};
@@ -587,6 +597,99 @@ static void DrawPatchAt(HDC dc, int x, int y, int w, int h, const ClassicABC::UI
 
 static bool     g_dragging = false;
 static POINT    g_dragBase = {};   // cursor pos at drag start
+
+// --- settings dialog ---
+// 标准 Win32 对话框：背景/控件全部交给系统主题绘制，不做任何自绘。
+static LRESULT CALLBACK settingsDlgProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
+    if (msg == WM_COMMAND) {
+        int id = LOWORD(w);
+        if (id == kDlgCheckLog && HIWORD(w) == BN_CLICKED) {
+            bool checked = SendMessageW((HWND)l, BM_GETCHECK, 0, 0) == BST_CHECKED;
+            set_log_enabled(checked);  // 立即生效 + 写盘
+            return 0;
+        }
+        if (id == kDlgBtnSave) {
+            HWND edit = GetDlgItem(hwnd, kDlgEditSize);
+            wchar_t buf[16] = {};
+            GetWindowTextW(edit, buf, 16);
+            int v = _wtoi(buf);
+            set_page_size(v);  // 钳制 5~10
+            save_settings();
+            ClassicABC::SetPageSize((size_t)get_page_size());
+            wsprintfW(buf, L"%d", get_page_size());
+            SetWindowTextW(edit, buf);  // 显示钳制后的值，留在窗口
+            return 0;
+        }
+    }
+    if (msg == WM_CLOSE) {
+        DestroyWindow(hwnd);
+        return 0;
+    }
+    if (msg == WM_DESTROY) {
+        if (g_settingsDlg == hwnd) g_settingsDlg = nullptr;
+        return 0;
+    }
+    return DefWindowProc(hwnd, msg, w, l);
+}
+
+static void ShowSettingsDialog() {
+    if (!g_settingsDlgClass) {
+        WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
+        wc.lpfnWndProc = settingsDlgProc; wc.hInstance = g_inst;
+        wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);  // 系统对话框灰底，跟随主题
+        wc.lpszClassName = kSettingsDlgClass; RegisterClassExW(&wc);
+        g_settingsDlgClass = true;
+    }
+    if (!g_settingsDlg) {
+        // 标准 Win32 窗口：系统标题栏 + 系统叉按钮 + 系统拖动。
+        g_settingsDlg = CreateWindowExW(
+            WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
+            kSettingsDlgClass, L"\u8BBE\u7F6E",  // 设置
+            WS_POPUP | WS_CAPTION | WS_SYSMENU,
+            0, 0, kDlgW, kDlgH, nullptr, nullptr, g_inst, nullptr);
+        if (!g_settingsDlg) return;
+
+        HFONT uiFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+
+        CreateWindowExW(0, L"STATIC", L"\u5019\u9009\u8BCD\u6BCF\u9875\u6570\u91CF (5-10):",
+                        WS_CHILD | WS_VISIBLE, 14, 42, 160, 20,
+                        g_settingsDlg, nullptr, g_inst, nullptr);
+        HWND edit = CreateWindowExW(0, L"EDIT", L"",
+                                    WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_AUTOHSCROLL,
+                                    176, 40, 52, 22,
+                                    g_settingsDlg, (HMENU)kDlgEditSize, g_inst, nullptr);
+        wchar_t buf[16];
+        wsprintfW(buf, L"%d", get_page_size());
+        SetWindowTextW(edit, buf);
+        SendMessageW(edit, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
+        HWND chk = CreateWindowExW(0, L"BUTTON", L"\u751F\u6210\u65E5\u5FD7\u6587\u4EF6",
+                                   WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+                                   14, 72, 140, 22,
+                                   g_settingsDlg, (HMENU)kDlgCheckLog, g_inst, nullptr);
+        SendMessageW(chk, BM_SETCHECK, is_log_enabled() ? BST_CHECKED : BST_UNCHECKED, 0);
+        SendMessageW(chk, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
+        HWND save = CreateWindowExW(0, L"BUTTON", L"\u4FDD\u5B58",  // 保存
+                                    WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+                                    50, 112, 70, 28,
+                                    g_settingsDlg, (HMENU)kDlgBtnSave, g_inst, nullptr);
+        SendMessageW(save, WM_SETFONT, (WPARAM)uiFont, TRUE);
+    }
+
+    // 定位：设置栏下方，超出屏幕则放设置栏上方。
+    int x = g_settingsX, y = g_settingsY + kSettingsH + 4;
+    int sw = GetSystemMetrics(SM_CXSCREEN), sh = GetSystemMetrics(SM_CYSCREEN);
+    if (y + kDlgH > sh) y = g_settingsY - kDlgH - 4;
+    if (y < 0) y = 0;
+    if (x + kDlgW > sw) x = sw - kDlgW;
+    if (x < 0) x = 0;
+    SetWindowPos(g_settingsDlg, HWND_TOPMOST, x, y, kDlgW, kDlgH,
+                 SWP_SHOWWINDOW);
+    SetFocus(g_settingsDlg);  // 标准窗口：激活设置窗口（原窗口暂时失焦）
+}
+
 static POINT    g_dragOfs  = {};   // offset from window origin
 
 static int HitTestBtn(POINT pt) {
@@ -692,6 +795,19 @@ static LRESULT CALLBACK settingsWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
         ReleaseCapture();
         RECT rc; GetWindowRect(hwnd, &rc);
         g_settingsX = rc.left; g_settingsY = rc.top;
+        return 0;
+    }
+    if (msg == WM_RBUTTONUP) {
+        // 整条设置栏（含按钮）右键：弹出菜单，目前只有"设置"。
+        HMENU menu = CreatePopupMenu();
+        AppendMenuW(menu, MF_STRING, 1, L"\u8BBE\u7F6E");  // 设置
+        POINT pt; GetCursorPos(&pt);
+        SetForegroundWindow(hwnd);  // 让菜单能自动关闭
+        int cmd = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY,
+                                 pt.x, pt.y, 0, hwnd, nullptr);
+        DestroyMenu(menu);
+        PostMessageW(hwnd, WM_NULL, 0, 0);
+        if (cmd == 1) ShowSettingsDialog();
         return 0;
     }
     return DefWindowProc(hwnd, msg, w, l);

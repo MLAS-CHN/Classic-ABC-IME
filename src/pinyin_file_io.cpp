@@ -176,6 +176,17 @@ static std::atomic<bool> g_user_dict_dirty{false};
 static std::atomic<bool> g_char_freq_dirty{false};
 static std::atomic<bool> g_flush_thread_running{false};
 
+// 后台写盘串行化：多线程同时 persist 会竞争同一 .tmp 文件。
+static std::mutex g_persist_mutex;
+static std::atomic<int> g_pending_persists{0};
+
+// 等待所有后台写盘完成（Shutdown 时调用，防止退出时词库未落盘）。
+void wait_pending_persists() {
+    for (int i = 0; i < 500 && g_pending_persists.load() > 0; ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+}
+
 void mark_dict_dirty(DictTargetFile target_file) {
     if (target_file == DictTargetFile::UserDict) g_user_dict_dirty = true;
     else g_char_freq_dirty = true;
@@ -195,24 +206,29 @@ void mark_dict_dirty(DictTargetFile target_file) {
 }
 
 void flush_dirty_dicts() {
-    if (g_user_dict_dirty.exchange(false)) {
-        // Copy under a lock so a concurrent insert/delete/update on the main
-        // thread cannot race with the background write.
-        std::vector<std::string> snapshot;
-        {
-            std::lock_guard<std::mutex> lock(g_lines_mutex);
-            snapshot = g_user_dict_lines;
-        }
-        persist_lines_to_file(get_user_dict_file_path(), snapshot);
+    bool need_user = g_user_dict_dirty.exchange(false);
+    bool need_char = g_char_freq_dirty.exchange(false);
+    if (!need_user && !need_char) return;
+
+    // 快照拷贝在调用线程（UI/失焦）完成，写盘在后台线程执行，不阻塞 UI。
+    std::vector<std::string> user_snap, char_snap;
+    if (need_user) {
+        std::lock_guard<std::mutex> lock(g_lines_mutex);
+        user_snap = g_user_dict_lines;
     }
-    if (g_char_freq_dirty.exchange(false)) {
-        std::vector<std::string> snapshot;
-        {
-            std::lock_guard<std::mutex> lock(g_lines_mutex);
-            snapshot = g_char_freq_lines;
-        }
-        persist_lines_to_file(get_char_freq_file_path(), snapshot);
+    if (need_char) {
+        std::lock_guard<std::mutex> lock(g_lines_mutex);
+        char_snap = g_char_freq_lines;
     }
+    ++g_pending_persists;
+    std::thread([user_snap = std::move(user_snap), char_snap = std::move(char_snap)]() {
+        {
+            std::lock_guard<std::mutex> lock(g_persist_mutex);
+            if (!user_snap.empty()) persist_lines_to_file(get_user_dict_file_path(), user_snap);
+            if (!char_snap.empty()) persist_lines_to_file(get_char_freq_file_path(), char_snap);
+        }
+        --g_pending_persists;
+    }).detach();
 }
 
 static void build_user_dict_cache() {
@@ -221,6 +237,20 @@ static void build_user_dict_cache() {
     // findSourceLineNumber 用二分。此函数构建 parts 缓存。
     build_parts_cache();
     write_log("FileIO: build_user_dict_cache (" + std::to_string(g_user_dict_lines.size()) + " lines) took " +
+                  std::to_string(now_ms() - t0) + " ms",
+              LOG_INFO);
+}
+
+// 前向声明：async 线程用局部快照版本。
+static void build_parts_cache(const std::vector<std::string>& lines);
+static void build_char_freq_cache(const std::vector<std::string>& lines);
+
+static void build_user_dict_cache(const std::vector<std::string>& lines) {
+    long long t0 = now_ms();
+    // 内存缓存已全部移除：匹配用 mmap 的 parts 硬盘缓存，
+    // findSourceLineNumber 用二分。此函数构建 parts 缓存。
+    build_parts_cache(lines);
+    write_log("FileIO: build_user_dict_cache (" + std::to_string(lines.size()) + " lines) took " +
                   std::to_string(now_ms() - t0) + " ms",
               LOG_INFO);
 }
@@ -241,6 +271,9 @@ static HANDLE g_parts_file = INVALID_HANDLE_VALUE;
 static HANDLE g_parts_mapping = nullptr;
 static const uint8_t* g_parts_base = nullptr;
 static uint32_t g_parts_line_count = 0;
+
+// parts cache（mmap 句柄/映射）专用锁：build/invalidate/release 互斥。
+static std::mutex g_parts_mutex;
 
 std::string get_parts_cache_path() {
     return join_path(join_path(get_pinyin_data_dir(), "cache"), "user_dict_parts.bin");
@@ -273,7 +306,10 @@ static void for_each_segment(const std::string& pinyin_csv, F&& fn) {
 }
 
 // 生成 parts cache 文件（词库变化时重建）。返回文件路径。
-static std::string generate_parts_cache_file() {
+// 基于调用方提供的 lines（局部快照），避免与主线程的释放竞争。
+// 临时文件用唯一名，允许并发生成（内容相同，后完成的原子替换先完成的）。
+static std::atomic<uint64_t> g_parts_tmp_seq{0};
+static std::string generate_parts_cache_file(const std::vector<std::string>& lines) {
     std::string path = get_parts_cache_path();
     std::string cache_dir = join_path(get_pinyin_data_dir(), "cache");
     std::filesystem::create_directories(cache_dir);
@@ -286,18 +322,18 @@ static std::string generate_parts_cache_file() {
         return size;
     };
     uint64_t exact_size = 0;
-    for (const auto& line : g_user_dict_lines) exact_size += row_bytes(line);
+    for (const auto& line : lines) exact_size += row_bytes(line);
 
-    uint64_t header_size = 8 + 8 + 8 + (uint64_t)g_user_dict_lines.size() * 4;
+    uint64_t header_size = 8 + 8 + 8 + (uint64_t)lines.size() * 4;
 
     // 写入临时文件。
-    std::string tmp = path + ".tmp";
+    std::string tmp = path + ".tmp." + std::to_string(++g_parts_tmp_seq);
     {
         std::ofstream f(tmp, std::ios::binary | std::ios::trunc);
         if (!f.is_open()) return path;
 
         uint32_t magic = kPartsMagic;
-        uint32_t count = (uint32_t)g_user_dict_lines.size();
+        uint32_t count = (uint32_t)lines.size();
         uint64_t src_mtime = 0, src_size = 0;
         if (!user_dict_file_fingerprint(src_mtime, src_size)) {
             src_mtime = 0;
@@ -312,12 +348,12 @@ static std::string generate_parts_cache_file() {
         uint32_t cur_offset = (uint32_t)header_size;
         for (uint32_t i = 0; i < count; ++i) {
             f.write((const char*)&cur_offset, 4);
-            cur_offset += (uint32_t)row_bytes(g_user_dict_lines[i]);
+            cur_offset += (uint32_t)row_bytes(lines[i]);
         }
 
         // 写数据区。
         for (uint32_t i = 0; i < count; ++i) {
-            const std::string& line = g_user_dict_lines[i];
+            const std::string& line = lines[i];
             std::string py = get_pinyin_from_line(line);
             uint8_t seg_count = 0;
             for_each_segment(py, [&seg_count](const char*, size_t) { ++seg_count; });
@@ -353,7 +389,8 @@ static void unmap_parts_cache() {
 }
 
 // mmap 映射 parts cache 文件；返回是否成功。
-static bool map_parts_cache() {
+// expect_count 来自调用方快照（async 线程传局部，同步路径传全局行数）。
+static bool map_parts_cache(uint32_t expect_count) {
     std::string path = get_parts_cache_path();
     int n = MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, nullptr, 0);
     if (n <= 0) return false;
@@ -391,7 +428,7 @@ static bool map_parts_cache() {
     if (size.QuadPart >= 24) {
         uint32_t magic = *(const uint32_t*)g_parts_base;
         g_parts_line_count = *(const uint32_t*)(g_parts_base + 4);
-        if (magic != kPartsMagic || g_parts_line_count != g_user_dict_lines.size()) {
+        if (magic != kPartsMagic || g_parts_line_count != expect_count) {
             unmap_parts_cache();
             return false;
         }
@@ -401,11 +438,15 @@ static bool map_parts_cache() {
     return false;
 }
 
-void build_parts_cache() {
+// 基于调用方提供的 lines 构建/校验 parts 缓存（async 线程用局部快照，
+// 避免与主线程 release_dict_memory 的 clear 竞争）。
+// 校验与文件生成（~700ms）在锁外执行，锁内只做毫秒级的 mmap 替换，
+// 这样失焦时主线程的 unmap 不会被长时间阻塞（频繁切换输入法不卡）。
+static void build_parts_cache(const std::vector<std::string>& lines) {
     long long t0 = now_ms();
     std::string path = get_parts_cache_path();
 
-    // 检查现有 cache 是否有效（文件存在 + 行数匹配 + 词库指纹一致）。
+    // 锁外：检查现有 cache 是否有效（文件存在 + 行数匹配 + 词库指纹一致）。
     // 只比行数不够：外部修改词库（行数不变）会复用陈旧 cache，导致
     // 拼音段与文本按行错位，匹配出与输入无关的超长词条。
     bool need_rebuild = true;
@@ -419,7 +460,7 @@ void build_parts_cache() {
             f.read((char*)&cached_mtime, 8);
             f.read((char*)&cached_size, 8);
             bool fp_ok = user_dict_file_fingerprint(cur_mtime, cur_size);
-            if (magic == kPartsMagic && count == (uint32_t)g_user_dict_lines.size() &&
+            if (magic == kPartsMagic && count == (uint32_t)lines.size() &&
                 (!fp_ok ||
                  (cached_mtime == cur_mtime && cached_size == cur_size))) {
                 need_rebuild = false;
@@ -427,16 +468,24 @@ void build_parts_cache() {
         }
     }
     if (need_rebuild) {
-        path = generate_parts_cache_file();
+        path = generate_parts_cache_file(lines);
     }
 
-    bool ok = map_parts_cache();
+    // 锁内：只做 mmap 替换（毫秒级），unmap 旧映射 + map 新文件。
+    std::lock_guard<std::mutex> plock(g_parts_mutex);
+    unmap_parts_cache();
+    bool ok = map_parts_cache((uint32_t)lines.size());
     write_log("FileIO: build_parts_cache (" + std::to_string(g_parts_line_count) + " lines, mmap=" +
                   (ok ? "OK" : "FAIL") + ") took " + std::to_string(now_ms() - t0) + " ms",
               LOG_INFO);
 }
 
+void build_parts_cache() {
+    build_parts_cache(g_user_dict_lines);
+}
+
 void invalidate_parts_cache() {
+    std::lock_guard<std::mutex> lock(g_parts_mutex);
     unmap_parts_cache();
     // cache 失效后，匹配回退按需 split；下次 init_pinyin_data 重建。
 }
@@ -467,11 +516,15 @@ const char* get_parts_cached_seg(const char* p, int seg_index, int& seg_len) {
 }
 
 static void build_char_freq_cache() {
+    build_char_freq_cache(g_char_freq_lines);
+}
+
+static void build_char_freq_cache(const std::vector<std::string>& lines) {
     long long t0 = now_ms();
     g_char_freq_lookup.clear();
-    g_char_freq_lookup.reserve(g_char_freq_lines.size());
-    for (int i = 0; i < (int)g_char_freq_lines.size(); ++i) {
-        const std::string& line = g_char_freq_lines[i];
+    g_char_freq_lookup.reserve(lines.size());
+    for (int i = 0; i < (int)lines.size(); ++i) {
+        const std::string& line = lines[i];
         std::istringstream iss(line);
         std::string py, text, ts_str, count_str;
         if (!(iss >> py >> text)) continue;
@@ -486,7 +539,7 @@ static void build_char_freq_cache() {
         std::string key = py + " " + text;
         g_char_freq_lookup[key] = {i + 1, timestamp, count};
     }
-    write_log("FileIO: build_char_freq_cache (" + std::to_string(g_char_freq_lines.size()) + " lines) took " +
+    write_log("FileIO: build_char_freq_cache (" + std::to_string(lines.size()) + " lines) took " +
                   std::to_string(now_ms() - t0) + " ms",
               LOG_INFO);
 }
@@ -570,7 +623,12 @@ static void insert_line_keep_ascii_sorted(const std::string& file_path,
 }
 
 // ---- async cache build ----
+// 代次机制：每次发起重载或释放内存都 ++g_dict_gen。
+// 后台线程持有自己的代次，写全局前校验，被作废则放弃（不写全局、不回调），
+// 从根上消除"失焦释放 vs 后台重载"的并发竞争（快速切换焦点导致的闪退）。
 static std::atomic<bool> g_cache_ready{false};
+static std::atomic<uint64_t> g_dict_gen{0};
+static std::atomic<uint64_t> g_loading_gen{(uint64_t)-1};  // 哨兵：初始 != g_dict_gen，保证首次必启动加载
 static std::thread g_cache_thread;
 static std::mutex g_cache_mutex;
 static DictReadyCallback g_ready_cb = nullptr;
@@ -591,13 +649,16 @@ void init_pinyin_data() {
 }
 
 void release_dict_memory() {
-    // 窗口失焦：释放词库全部内存（lines/index/parts mmap），文件保留。
-    unmap_parts_cache();
+    // 窗口失焦：作废在途后台线程（它们会在校验点放弃，不再触碰全局）。
+    ++g_dict_gen;
+    {
+        std::lock_guard<std::mutex> lock(g_parts_mutex);
+        unmap_parts_cache();
+    }
+    std::lock_guard<std::mutex> lock(g_lines_mutex);
     g_user_dict_lines.clear();
-    g_user_dict_lines.shrink_to_fit();
     g_user_dict_index.clear();
     g_pinyin_map_lines.clear();
-    g_pinyin_map_lines.shrink_to_fit();
     g_pinyin_map_index.clear();
     g_char_freq_lines.clear();
     g_char_freq_lookup.clear();
@@ -605,23 +666,105 @@ void release_dict_memory() {
     write_log("FileIO: release_dict_memory (dict memory freed)", LOG_INFO);
 }
 
+// 失焦异步释放：flush 快照+写盘+内存清理全部在后台线程，UI 不卡。
+// 若期间重新聚焦（代次被 init_pinyin_data_async 递增），放弃清理，交给加载线程。
+void release_dict_memory_async() {
+    uint64_t my_gen = ++g_dict_gen;  // 失焦代次
+    std::thread([my_gen]() {
+        flush_dirty_dicts();
+        if (g_dict_gen.load() != my_gen) return;  // 已重新聚焦/重载，放弃清理
+        {
+            std::lock_guard<std::mutex> lock(g_parts_mutex);
+            unmap_parts_cache();
+        }
+        std::lock_guard<std::mutex> lock(g_lines_mutex);
+        g_user_dict_lines.clear();
+        g_user_dict_index.clear();
+        g_pinyin_map_lines.clear();
+        g_pinyin_map_index.clear();
+        g_char_freq_lines.clear();
+        g_char_freq_lookup.clear();
+        g_cache_ready = false;
+        write_log("FileIO: release_dict_memory (dict memory freed)", LOG_INFO);
+    }).detach();
+}
+
+// 无锁加载（async 线程用局部快照，不直接写全局）。
+static void load_file_into(const std::string& file_path,
+                           std::vector<std::string>& lines,
+                           std::vector<PinyinIndexItem>& index) {
+    long long t0 = now_ms();
+    lines.clear();
+    index.clear();
+    std::ifstream file(file_path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << file_path << '\n';
+        return;
+    }
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        lines.push_back(line);
+    }
+    build_index_from_lines(lines, index);
+    write_log("FileIO: load " + file_path + " (" + std::to_string(lines.size()) + " lines) took " +
+                  std::to_string(now_ms() - t0) + " ms",
+              LOG_INFO);
+}
+
 void init_pinyin_data_async() {
     std::lock_guard<std::mutex> lock(g_cache_mutex);
-    if (g_cache_thread.joinable()) {
-        // A build is still running. Wait for it to finish so the reload below
-        // replaces the completed (old) cache instead of racing with it.
-        if (g_cache_thread.get_id() != std::this_thread::get_id())
-            g_cache_thread.join();
-    }
+    // 同一代次的加载线程已在跑（期间无 release/新 init）：直接复用，
+    // 避免频繁切换输入法时堆积多个并发加载线程。
+    if (g_loading_gen.load() == g_dict_gen.load()) return;
+    // 新代次：作废在途的失焦释放线程（它们看到代次不匹配后放弃清理）。
+    uint64_t cur_gen = ++g_dict_gen;
     g_cache_ready = false;
+    g_loading_gen.store(cur_gen);
     // 全后台：load 文件 + 构建缓存都在后台线程，聚焦时主线程不卡。
-    g_cache_thread = std::thread([]() {
-        load_file_and_build_index(get_pinyin_map_file_path(), g_pinyin_map_lines, g_pinyin_map_index);
-        load_file_and_build_index(get_user_dict_file_path(), g_user_dict_lines, g_user_dict_index);
-        load_file_and_build_index(get_char_freq_file_path(), g_char_freq_lines, g_char_freq_index);
-        build_user_dict_cache();
-        build_char_freq_cache();
-        g_cache_ready = true;
+    g_cache_thread = std::thread([cur_gen]() {
+        uint64_t my_gen = cur_gen;
+
+        // 1. 局部快照加载（不碰全局，任何时刻被作废都安全退出）。
+        std::vector<std::string> map_lines, user_lines, freq_lines;
+        std::vector<PinyinIndexItem> map_idx, user_idx, freq_idx;
+        load_file_into(get_pinyin_map_file_path(), map_lines, map_idx);
+        load_file_into(get_user_dict_file_path(), user_lines, user_idx);
+        load_file_into(get_char_freq_file_path(), freq_lines, freq_idx);
+        if (g_dict_gen.load() != my_gen) return;  // 已失焦/已重载，放弃
+
+        // 2. parts 缓存（基于局部快照，内部与主线程 unmap 互斥）。
+        build_parts_cache(user_lines);
+        if (g_dict_gen.load() != my_gen) return;
+
+        // 3. char_freq 局部构建后一次性 swap。
+        std::unordered_map<std::string, CharFreqLookupEntry> lookup;
+        lookup.reserve(freq_lines.size());
+        for (int i = 0; i < (int)freq_lines.size(); ++i) {
+            const std::string& line = freq_lines[i];
+            std::istringstream iss(line);
+            std::string py, text, ts_str, count_str;
+            if (!(iss >> py >> text)) continue;
+            long long timestamp = 0;
+            int count = 1;
+            if (iss >> ts_str && is_all_digits(ts_str)) timestamp = std::stoll(ts_str);
+            if (iss >> count_str && is_all_digits(count_str)) count = std::stoi(count_str);
+            lookup[py + " " + text] = {(int)i + 1, timestamp, count};
+        }
+        if (g_dict_gen.load() != my_gen) return;
+
+        // 4. 锁内一次性提交：此后再无全局写入，主线程只在 ready=true 后读取。
+        {
+            std::lock_guard<std::mutex> glock(g_lines_mutex);
+            if (g_dict_gen.load() != my_gen) return;
+            g_pinyin_map_lines.swap(map_lines);
+            g_pinyin_map_index.swap(map_idx);
+            g_user_dict_lines.swap(user_lines);
+            g_user_dict_index.swap(user_idx);
+            g_char_freq_lines.swap(freq_lines);
+            g_char_freq_lookup.swap(lookup);
+            g_cache_ready = true;
+        }
         write_log("FileIO: async cache build finished", LOG_INFO);
         if (g_ready_cb) g_ready_cb();
     });

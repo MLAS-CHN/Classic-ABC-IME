@@ -56,6 +56,7 @@ void update_timestamp_by_line(DictTargetFile target_file, int line_number);
 // full-file rewrites on large dictionaries.
 void mark_dict_dirty(DictTargetFile target_file);
 void flush_dirty_dicts();
+void wait_pending_persists();  // 等待后台写盘全部完成（Shutdown 时调用）
 
 // ---- 词库 parts 硬盘缓存（mmap）----
 // 二进制格式：词库每行的拼音段数组序列化到 cache 文件，mmap 映射按需加载，
@@ -68,5 +69,6 @@ uint8_t get_parts_cached_seg_count(const char* p);  // 读段数
 const char* get_parts_cached_seg(const char* p, int seg_index, int& seg_len);  // 读第 seg 段
 void invalidate_parts_cache();            // 插入/删除后调用：unmap，匹配回退按需 split
 void release_dict_memory();               // 窗口失焦：释放全部词库内存（lines/index/parts cache）
+void release_dict_memory_async();         // 失焦异步释放：flush+清理全后台，UI 不卡
 
 #endif // PINYIN_FILE_IO_H

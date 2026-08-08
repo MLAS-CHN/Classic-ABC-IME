@@ -9,6 +9,7 @@
 #include "../pinyin_file_io.h"
 #include "../pinyin_split.h"
 #include "../pinyin_virtual_cursor.h"
+#include "../settings.h"
 #include "../util.h"
 #include <vector>
 #include <algorithm>
@@ -21,7 +22,6 @@ static long long now_ms() {
         .count();
 }
 
-static const size_t kPageSize = 10;
 static const size_t kNoSel = (size_t)-1;  // 无高亮：只有按过上下键后才激活
 
 struct State {
@@ -186,7 +186,7 @@ static void rebuild() {
     if (g.buf.empty()) { g.pages.clear(); g.page = 0; g_comp.clear(); return; }
     if (g.page >= g.pages.size() && !g.pages.empty()) g.page = g.pages.size() - 1;
     if (g.pages.empty()) g.page = 0;
-    std::string d = buildComposingDisplayText(g.buf, g.cur, g.page, kPageSize, &g.pages);
+    std::string d = buildComposingDisplayText(g.buf, g.cur, g.page, (size_t)get_page_size(), &g.pages);
     if (g.page >= g.pages.size() && !g.pages.empty()) g.page = g.pages.size() - 1;
     size_t count = (g.page < g.pages.size()) ? g.pages[g.page].size() : 0;
     if (g.sel != kNoSel && g.sel >= count) g.sel = kNoSel;
@@ -351,10 +351,10 @@ void ClassicABC::Engine::SetActive(bool a) {
         g_capslock_was_on = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
         g.chinese = !g_capslock_was_on;
     } else {
-        flush_dirty_dicts();
+        // 窗口失焦：flush + 释放词库内存全部在后台线程执行，UI 不卡。
+        // 若期间重新聚焦，释放线程检测到代次变化自动放弃。
+        release_dict_memory_async();
         refresh_user_dict_baseline();
-        // 窗口失焦：释放词库全部内存（lines/index/parts cache），文件保留。
-        release_dict_memory();
         g_capslock_was_on = false;
         bool wasChinese = g.chinese;
         g = State{};
@@ -754,4 +754,10 @@ std::string ClassicABC::Engine::PickCandidateByIndex(size_t idx) {
     if (g.pages.empty() || g.page >= g.pages.size()) return {};
     if (idx >= g.pages[g.page].size()) return {};
     return pick(g.page, idx);
+}
+
+void ClassicABC::Engine::SetPageSize(size_t size) {
+    set_page_size((int)size);
+    g.sel = kNoSel;
+    if (!g.buf.empty()) rebuild();
 }

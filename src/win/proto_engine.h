@@ -34,6 +34,7 @@ size_t GetCandidatePage();
 size_t GetTotalPages();
 size_t GetSelectedIndex();
 std::string PickCandidateByIndex(size_t idx);  // mouse click: commit that candidate
+void SetPageSize(size_t size);  // settings changed: apply + rebuild
 bool IsChineseMode();
 bool IsDelMode();
 bool IsCapsLockActive();  // CapsLock toggled English/caps mode is on

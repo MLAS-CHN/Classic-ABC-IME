@@ -23,6 +23,10 @@ void init_logger();
 void init_logger_with_dir(const std::string& dir);
 void set_log_level(LogLevel level);
 
+// 日志文件总开关：关闭后 write_log 直接返回（立即生效，无需重启）。
+void set_log_file_enabled(bool enabled);
+bool is_log_file_enabled();
+
 /**
  * 计算字符串的显示列宽（粗略估算）。
  * 规则：ASCII 字符按 1 列；非 ASCII 字符按 2 列。

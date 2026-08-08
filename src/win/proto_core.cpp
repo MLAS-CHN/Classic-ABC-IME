@@ -14,6 +14,7 @@ bool ClassicABC::Initialize(HINSTANCE h) {
 }
 void ClassicABC::Shutdown() {
     wait_dict_cache_ready();  // ensure background cache build has finished
+    wait_pending_persists();  // ensure background dict writes have finished
     ClassicABC::UI::Shutdown();
 }
 
@@ -131,6 +132,11 @@ void ClassicABC::GoNextPage()  { ClassicABC::Engine::GoNextPage();  ClassicABC::
 void ClassicABC::GoPrevPage()  { ClassicABC::Engine::GoPrevPage();  ClassicABC::UI::UpdateCand(); }
 void ClassicABC::RefreshCandidates() {
     ClassicABC::Engine::RebuildCandidates();
+    ClassicABC::UI::UpdateCand();
+}
+
+void ClassicABC::SetPageSize(size_t size) {
+    ClassicABC::Engine::SetPageSize(size);
     ClassicABC::UI::UpdateCand();
 }
 

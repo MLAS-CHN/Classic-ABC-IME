@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "IME.h"
 #include "../util.h"
+#include "../settings.h"
 
 HINSTANCE IME::s_hModule = 0;
 HIMCMap IME::s_instances;
@@ -201,6 +202,7 @@ void IME::_InitEngine() {
     if (n > 0) {
       std::string dir((size_t)(n - 1), '\0');
       WideCharToMultiByte(CP_UTF8, 0, dllDir, -1, &dir[0], n, nullptr, nullptr);
+      load_settings(dir);      // 先读配置：日志开关在 init_logger 前生效
       init_logger_with_dir(dir);
     }
   }

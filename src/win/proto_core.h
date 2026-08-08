@@ -45,6 +45,7 @@ size_t GetCandidatePage();
 size_t GetTotalPages();
 size_t GetSelectedIndex();
 void PickCandidate(size_t idx);  // mouse click: commit that candidate directly
+void SetPageSize(size_t size);   // settings changed: apply to engine + refresh UI
 bool IsDelMode();
 void RefreshCandidates();  // recompute candidate list for current buffer
 
