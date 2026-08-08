@@ -147,14 +147,9 @@ void TSF::_InitEngine() {
     if (n > 0) {
       std::string dir((size_t)(n - 1), '\0');
       WideCharToMultiByte(CP_UTF8, 0, dllDir, -1, &dir[0], n, nullptr, nullptr);
-      load_settings(dir);      // 先读配置：日志开关在 init_logger 前生效
+      load_settings(dir);      // 先读配置：日志开关/等级在 init_logger 前生效
       init_logger_with_dir(dir);
     }
-  }
-  {
-    std::wstring flag = _dllDir + L"\\proto_debug_enable.flag";
-    if (GetFileAttributesW(flag.c_str()) != INVALID_FILE_ATTRIBUTES)
-      set_log_level(LOG_DEBUG);
   }
 
   std::wstring dataPath = _dllDir + L"\\data";

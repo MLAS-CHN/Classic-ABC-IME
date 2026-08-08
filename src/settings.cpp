@@ -6,6 +6,7 @@
 static std::string g_config_dir;
 static int g_page_size = 10;
 static bool g_log_enabled = false;  // 默认不生成日志（无配置文件时）
+static int g_log_level = 0;         // 0=INFO 1=DEBUG
 
 static const int kPageSizeMin = 5;
 static const int kPageSizeMax = 10;
@@ -19,6 +20,7 @@ void load_settings(const std::string& dir) {
     g_config_dir = dir;
     g_page_size = 10;
     g_log_enabled = false;  // 缺省：每页 10 个、不生成日志
+    g_log_level = 0;        // 缺省：INFO
 
     std::ifstream f(config_path());
     if (!f.is_open()) return;
@@ -40,11 +42,17 @@ void load_settings(const std::string& dir) {
             } catch (...) {}
         } else if (key == "log_enabled") {
             g_log_enabled = (value == "1" || value == "true");
+        } else if (key == "log_level") {
+            try {
+                int v = std::stoi(value);
+                if (v == 0 || v == 1) g_log_level = v;
+            } catch (...) {}
         }
     }
 
-    // 日志开关立即生效（无需重启）。
+    // 日志开关与等级立即生效（无需重启）。
     set_log_file_enabled(g_log_enabled);
+    set_log_level(g_log_level == 1 ? LOG_DEBUG : LOG_INFO);
 }
 
 bool save_settings() {
@@ -52,6 +60,7 @@ bool save_settings() {
     if (!f.is_open()) return false;
     f << "candidate_page_size=" << g_page_size << "\n";
     f << "log_enabled=" << (g_log_enabled ? "1" : "0") << "\n";
+    f << "log_level=" << g_log_level << "\n";
     return true;
 }
 
@@ -72,5 +81,16 @@ bool is_log_enabled() {
 void set_log_enabled(bool enabled) {
     g_log_enabled = enabled;
     set_log_file_enabled(enabled);
+    save_settings();
+}
+
+int get_log_level() {
+    return g_log_level;
+}
+
+void set_log_level(int level) {
+    if (level != 0 && level != 1) level = 0;
+    g_log_level = level;
+    set_log_level(level == 1 ? LOG_DEBUG : LOG_INFO);
     save_settings();
 }

@@ -10,6 +10,11 @@
 #include <cstdlib>
 #include <algorithm>
 #pragma comment(lib, "gdiplus.lib")
+// 启用 ComCtl32 v6 视觉样式：标准控件（EDIT/BUTTON/CHECKBOX）使用现代主题外观
+// 而非经典样式（凹陷输入框、主题按钮）。
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 namespace {
 
@@ -122,8 +127,9 @@ static Gdiplus::Bitmap* g_signEnIcon = nullptr; // button 3 English/CapsLock var
 static const wchar_t kSettingsDlgClass[] = L"ProtoSettingsDlgWnd";
 static HWND g_settingsDlg = nullptr;
 static bool g_settingsDlgClass = false;
-static const int kDlgW = 250, kDlgH = 196;  // 含系统标题栏
-enum { kDlgEditSize = 101, kDlgCheckLog = 102, kDlgBtnSave = 103 };
+static HFONT g_settingsDlgFont = nullptr;  // 对话框 UI 字体（窗口销毁时释放）
+static const int kDlgW = 250, kDlgH = 236;  // 含系统标题栏
+enum { kDlgEditSize = 101, kDlgCheckLog = 102, kDlgBtnSave = 103, kDlgComboLevel = 104 };
 
 // Candidate nav bar icons (0=first 1=last 2=next 3=prev)
 static Gdiplus::Bitmap* g_navIcons[4] = {};
@@ -620,13 +626,21 @@ static LRESULT CALLBACK settingsDlgProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
             SetWindowTextW(edit, buf);  // 显示钳制后的值，留在窗口
             return 0;
         }
+        if (id == kDlgComboLevel && HIWORD(w) == CBN_SELCHANGE) {
+            int sel = (int)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0);
+            set_log_level(sel);  // 立即生效 + 写盘
+            return 0;
+        }
     }
     if (msg == WM_CLOSE) {
         DestroyWindow(hwnd);
         return 0;
     }
     if (msg == WM_DESTROY) {
-        if (g_settingsDlg == hwnd) g_settingsDlg = nullptr;
+        if (g_settingsDlg == hwnd) {
+            g_settingsDlg = nullptr;
+            if (g_settingsDlgFont) { DeleteObject(g_settingsDlgFont); g_settingsDlgFont = nullptr; }
+        }
         return 0;
     }
     return DefWindowProc(hwnd, msg, w, l);
@@ -650,14 +664,21 @@ static void ShowSettingsDialog() {
             0, 0, kDlgW, kDlgH, nullptr, nullptr, g_inst, nullptr);
         if (!g_settingsDlg) return;
 
-        HFONT uiFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+        // 宋体 12px（用户指定）。
+        g_settingsDlgFont = CreateFontW(-12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                                        CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                                        DEFAULT_PITCH | FF_DONTCARE, L"SimSun");
+        HFONT uiFont = g_settingsDlgFont;
 
-        CreateWindowExW(0, L"STATIC", L"\u5019\u9009\u8BCD\u6BCF\u9875\u6570\u91CF (5-10):",
-                        WS_CHILD | WS_VISIBLE, 14, 42, 160, 20,
-                        g_settingsDlg, nullptr, g_inst, nullptr);
-        HWND edit = CreateWindowExW(0, L"EDIT", L"",
-                                    WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_AUTOHSCROLL,
-                                    176, 40, 52, 22,
+        HWND label = CreateWindowExW(0, L"STATIC", L"\u5019\u9009\u8BCD\u6BCF\u9875\u6570\u91CF (5-10):",
+                                     WS_CHILD | WS_VISIBLE, 14, 44, 160, 18,
+                                     g_settingsDlg, nullptr, g_inst, nullptr);
+        SendMessageW(label, WM_SETFONT, (WPARAM)uiFont, TRUE);
+        // 标准输入框外观：WS_EX_CLIENTEDGE（凹陷边框）+ 主题字体。
+        HWND edit = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"",
+                                    WS_CHILD | WS_VISIBLE | ES_NUMBER | ES_AUTOHSCROLL,
+                                    176, 40, 52, 24,
                                     g_settingsDlg, (HMENU)kDlgEditSize, g_inst, nullptr);
         wchar_t buf[16];
         wsprintfW(buf, L"%d", get_page_size());
@@ -671,9 +692,22 @@ static void ShowSettingsDialog() {
         SendMessageW(chk, BM_SETCHECK, is_log_enabled() ? BST_CHECKED : BST_UNCHECKED, 0);
         SendMessageW(chk, WM_SETFONT, (WPARAM)uiFont, TRUE);
 
+        HWND levelLabel = CreateWindowExW(0, L"STATIC", L"\u65E5\u5FD7\u7B49\u7EA7:",
+                                          WS_CHILD | WS_VISIBLE, 14, 100, 160, 18,
+                                          g_settingsDlg, nullptr, g_inst, nullptr);
+        SendMessageW(levelLabel, WM_SETFONT, (WPARAM)uiFont, TRUE);
+        HWND combo = CreateWindowExW(0, L"COMBOBOX", L"",
+                                     WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL,
+                                     176, 98, 60, 60,
+                                     g_settingsDlg, (HMENU)kDlgComboLevel, g_inst, nullptr);
+        SendMessageW(combo, CB_ADDSTRING, 0, (LPARAM)L"INFO");
+        SendMessageW(combo, CB_ADDSTRING, 0, (LPARAM)L"DEBUG");
+        SendMessageW(combo, CB_SETCURSEL, get_log_level(), 0);
+        SendMessageW(combo, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
         HWND save = CreateWindowExW(0, L"BUTTON", L"\u4FDD\u5B58",  // 保存
                                     WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                                    50, 112, 70, 28,
+                                    50, 140, 70, 28,
                                     g_settingsDlg, (HMENU)kDlgBtnSave, g_inst, nullptr);
         SendMessageW(save, WM_SETFONT, (WPARAM)uiFont, TRUE);
     }
