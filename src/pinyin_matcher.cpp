@@ -209,7 +209,7 @@ ScanResult scan_in_range(const std::vector<std::string>& pinyin_parts,
 }
 
 std::pair<int, int> initial_range(const std::string& first_segment) {
-    if (first_segment.empty()) return {1, (int)g_user_dict_lines.size()};
+    if (first_segment.empty()) return {-1, -1};
 
     // 首字母索引：按行首字符分块，找 first_segment[0] 对应的块。
     char first_char = first_segment[0];
@@ -218,6 +218,7 @@ std::pair<int, int> initial_range(const std::string& first_segment) {
             return {item.start_line, item.end_line};
         }
     }
-    // 找不到（如非字母开头）：全库兜底。
-    return {1, (int)g_user_dict_lines.size()};
+    // 词库没有以该首字母开头的行（如 v/ü 系）：无候选，返回空范围。
+    // 绝不能全库兜底——185 万行逐行扫描会让 rebuild 卡死（如输入 video）。
+    return {-1, -1};
 }

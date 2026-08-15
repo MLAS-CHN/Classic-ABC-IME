@@ -34,12 +34,6 @@ std::vector<int> find_prefix_match_char(const std::string& pinyin);
 // --- 词语匹配 (Word Matching) ---
 
 /**
- * 智能词语拼音匹配。
- * 接收一套拼音分段，返回符合该分段的词语所在行号数组。
- */
-std::vector<int> match_segmented_word_pinyin(const std::vector<std::string>& pinyin_parts);
-
-/**
  * 区间扫描结果：宽松匹配范围 + 严格命中行。
  */
 struct ScanResult {
