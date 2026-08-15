@@ -54,12 +54,12 @@ static void run_one(const std::string& input, bool show_header) {
 
     long long t0 = now_ms();
 
-    // 1. 拆分（含原始激进方案下标）
+    // 1. 拆分
     auto split = splitConservativePinyinEx(input);
 
     // 2. 候选
     std::vector<std::vector<CandidateItem>> pages =
-        getAllCandidateElements(split.options, 10, split.raw_aggressive_index);
+        getAllCandidateElements(split.options, 10, input);
 
     long long total_ms = now_ms() - t0;
 

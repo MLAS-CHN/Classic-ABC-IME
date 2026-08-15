@@ -26,6 +26,13 @@ public:
         return pinyin_parts_.size();
     }
 
+    // 拼音字母总数：Σ 各段长度（如 hou,xuan = 7）。用于"消耗字母数"排序。
+    size_t getPinyinLetterCount() const {
+        size_t total = 0;
+        for (const auto& part : pinyin_parts_) total += part.size();
+        return total;
+    }
+
     const std::string& getText() const {
         return text_;
     }

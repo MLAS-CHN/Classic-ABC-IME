@@ -11,12 +11,11 @@
 #include "candidate_item.h"
 
 // 获取所有候选元素（按页拆分为二维数组）
-// raw_aggressive_index: 原始激进方案在 split_options 中的下标；
-//   -1 表示原始激进已被去重（与其它方案相同），无需混排。
+// pinyin_buffer: 当前拼音输入缓冲（用于计算"消耗字母数"排序键）
 std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     const std::vector<std::vector<std::string>>& split_options,
     size_t candidate_page_size,
-    int raw_aggressive_index = -1);
+    const std::string& pinyin_buffer);
 
 // 根据拼音缓冲区与虚拟光标位置计算状态栏展示文本（内部执行候选元素获取）
 // 若 out_paged_candidates 非空，则同步返回本次获取到的按页拆分的候选元素二维数组

@@ -9,6 +9,15 @@
 static std::string g_log_dir;
 static std::string g_log_file_path = "abcime.log";
 static LogLevel g_min_log_level = LOG_INFO;
+static bool g_log_file_enabled = true;
+
+void set_log_file_enabled(bool enabled) {
+    g_log_file_enabled = enabled;
+}
+
+bool is_log_file_enabled() {
+    return g_log_file_enabled;
+}
 
 /**
  * 辅助函数实现
@@ -28,6 +37,9 @@ void init_logger() {
         oss << g_log_dir << "/";
     oss << "lite-tty-ime_" << std::put_time(&tm_now, "%Y%m%d_%H%M%S") << ".log";
     g_log_file_path = oss.str();
+
+    // 日志关闭时不创建空文件；之后开启时 write_log 的追加模式会自动建文件。
+    if (!g_log_file_enabled) return;
 
     std::ofstream ofs(g_log_file_path, std::ios::trunc);
     (void)ofs;
@@ -51,6 +63,7 @@ void set_log_level(LogLevel level) {
  */
 void write_log(const std::string& message, LogLevel level) {
     if (level < g_min_log_level) return;
+    if (!g_log_file_enabled) return;
     // 打开文件（追加模式）
     // 直接使用字符串字面量，避免 static string 在 atexit 时可能已析构的问题
     std::ofstream ofs(g_log_file_path.c_str(), std::ios::app);

@@ -7,7 +7,6 @@
 #include "util.h"
 #include <algorithm>
 #include <unordered_map>
-#include <iostream>
 #include <ctime>
 
 // 轮内范围池：key = 段组合 CSV（如 "a,b"），value = 该段的宽松匹配行号范围。
@@ -51,22 +50,14 @@ static std::vector<CandidateItem> getSuitableWordLineIndexes(
 
         // 检索范围：池中最长前缀；池无命中则首字母索引兜底。
         auto range = lookup_pool(range_pool, current_csv);
-        bool pool_hit = (range.first != -1);
-        if (!pool_hit) {
+        if (range.first == -1) {
             range = initial_range(current_parts[0]);
         }
-        std::cout << "  len=" << len << " csv=[" << current_csv << "] pool=" << (pool_hit ? "YES" : "no");
 
         ScanResult sr = scan_in_range(current_parts, range.first, range.second);
 
-        std::cout << "  len=" << len << " 检索范围 [" << range.first << "," << range.second << "]"
-                  << " 前缀范围 [" << sr.loose_lo << "," << sr.loose_hi << "]"
-                  << " 严格命中 " << sr.strict_lines.size();
-        if (sr.loose_lo == -1) {
-            std::cout << "（前缀不存在，停止）" << std::endl;
-            break;
-        }
-        std::cout << std::endl;
+        // 宽松范围为空 ⇒ 更长段组合必然也不存在，停止。
+        if (sr.loose_lo == -1) break;
 
         // 存池：当前段组合的精确宽松范围。
         range_pool[current_csv] = {sr.loose_lo, sr.loose_hi};
@@ -125,23 +116,14 @@ static std::vector<CandidateItem> collectAndDedupeWords(
 
 /**
  * 获取所有合适的词语。
- * 流程：收集 → 去重 → 按(拼音长度降序, 权重降序)排序 → 返回。
+ * 流程：收集 → 去重 → 返回。
+ * 排序在 pinyin_composition 统一完成（消耗字母数 → 分数 → 时间戳），
+ * 此处不再排序，避免与单字候选的混排顺序被破坏。
  */
 std::vector<CandidateItem> getAllSuitableWords(
     const std::vector<std::vector<std::string>>& split_options) {
 
     std::vector<CandidateItem> deduped = collectAndDedupeWords(split_options);
-
-    long long now = (long long)time(nullptr);
-    std::sort(deduped.begin(), deduped.end(),
-        [now](const CandidateItem& a, const CandidateItem& b) {
-            if (a.getPinyinLength() != b.getPinyinLength())
-                return a.getPinyinLength() > b.getPinyinLength();
-            long long sa = a.computeScore(now);
-            long long sb = b.computeScore(now);
-            if (sa != sb) return sa > sb;
-            return a.getTimestamp() > b.getTimestamp();
-        });
 
     return deduped;
 }

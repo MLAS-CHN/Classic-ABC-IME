@@ -116,23 +116,14 @@ static std::vector<CandidateItem> collectAndDedupeWords(
 
 /**
  * 获取所有合适的词语。
- * 流程：收集 → 去重 → 按(拼音长度降序, 权重降序)排序 → 返回。
+ * 流程：收集 → 去重 → 返回。
+ * 排序在 pinyin_composition 统一完成（消耗字母数 → 分数 → 时间戳），
+ * 此处不再排序，避免与单字候选的混排顺序被破坏。
  */
 std::vector<CandidateItem> getAllSuitableWords(
     const std::vector<std::vector<std::string>>& split_options) {
 
     std::vector<CandidateItem> deduped = collectAndDedupeWords(split_options);
-
-    long long now = (long long)time(nullptr);
-    std::sort(deduped.begin(), deduped.end(),
-        [now](const CandidateItem& a, const CandidateItem& b) {
-            if (a.getPinyinLength() != b.getPinyinLength())
-                return a.getPinyinLength() > b.getPinyinLength();
-            long long sa = a.computeScore(now);
-            long long sb = b.computeScore(now);
-            if (sa != sb) return sa > sb;
-            return a.getTimestamp() > b.getTimestamp();
-        });
 
     return deduped;
 }

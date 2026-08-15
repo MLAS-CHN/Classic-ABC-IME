@@ -243,101 +243,56 @@ static size_t get_utf8_char_count(const std::string& str) {
 }
 
 /**
+ * 模拟 consume_buf：统计选中候选后输入缓冲被实际消耗的字母数。
+ * 逐字母匹配：候选拼音段与缓冲从头部比对，相同则双方前进一位（消耗 +1）；
+ * 段首字母不匹配则丢弃该段；缓冲中的 ' 分隔符跳过不计。
+ * 与 proto_engine 的 consume_buf 逻辑一致，作为排序的"消耗字母数"键。
+ */
+static size_t count_consumed_letters(const std::string& buf,
+                                     const std::vector<std::string>& parts) {
+    size_t consumed = 0;
+    size_t b = 0;      // 缓冲游标
+    size_t pi = 0;     // 段下标
+    size_t pc = 0;     // 段内游标
+    while (pi < parts.size() && b < buf.size()) {
+        if (buf[b] == '\'') { ++b; continue; }
+        if (pc >= parts[pi].size()) { ++pi; pc = 0; continue; }
+        if (parts[pi][pc] == buf[b]) {
+            ++consumed; ++pc; ++b;
+        } else {
+            ++pi; pc = 0;  // 段首/段中不匹配：丢弃整段
+        }
+    }
+    return consumed;
+}
+
+/**
  * 获取完整的候选项列表并按页拆分为二维数组。
  * 该函数整合了不同维度的候选结果，并根据 candidate_page_size 进行分页。
  *
+ * 排序：所有候选（词 + 单字）统一进入一个池，按
+ *   1. 消耗字母数（候选拼音字母总数与当前缓冲取小，即选中后真正吃掉的
+ *      输入字母数）降序 —— 不按完整拼音长度，拼音再长也不会天然占优；
+ *   2. 权重分数降序；
+ *   3. 时间戳降序。
+ *
  * @param split_options 输入的多种拼音拆分方案。
  * @param candidate_page_size 每页显示的候选词数量。
+ * @param pinyin_buffer 当前拼音输入缓冲（用于计算消耗字母数）。
  * @return 包含所有分页候选词的二维 CandidateItem 数组。
  */
 std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     const std::vector<std::vector<std::string>>& split_options,
     size_t candidate_page_size,
-    int raw_aggressive_index) {
+    const std::string& pinyin_buffer) {
     SplitContext context = build_split_context(split_options);
-
-    // 原始激进拆分方案（不做相邻合并）的候选单独拎出，与单字候选按分数
-    // 混排——缩写词（如 xianz -> 现在）不再被"长度优先"规则压到后面。
-    // raw_aggressive_index == -1：原始激进已被去重（与其它方案相同），
-    // 无独特候选，不参与混排，全部按普通方案处理。
-    std::vector<std::vector<std::string>> non_raw_options;
-    std::vector<std::vector<std::string>> raw_options;
-    for (size_t i = 0; i < context.active_options.size(); ++i) {
-        if ((int)i == raw_aggressive_index)
-            raw_options.push_back(context.active_options[i]);
-        else
-            non_raw_options.push_back(context.active_options[i]);
-    }
 
     std::vector<CandidateItem> smart_phrase_candidates =
         getSmartPhraseCandidateElements(split_options);
     std::vector<CandidateItem> suitable_word_candidates =
-        getAllSuitableWords(non_raw_options);
-    std::vector<CandidateItem> raw_word_candidates =
-        getAllSuitableWords(raw_options);
+        getAllSuitableWords(context.active_options);
     std::vector<CandidateItem> suitable_char_candidates =
         getAllSuitableCharElements(context.active_options);
-
-    // 原始激进方案（不做相邻合并）的词候选去向：
-    // - 若普通方案（激进合并+保守）有候选词：激进原始的词进"词堆"排序，
-    //   但其有效字数按 min(实际字数, 普通词最大字数) 计算——字多不压普通词；
-    //   且权重相同时激进词排后面（特殊散段词少见，靠后放避免误触）；
-    // - 若普通方案只有单字候选：激进原始的词进"字堆"，与单字按分数混排。
-    std::vector<CandidateItem> word_pool;      // 词堆（普通词 + 激进词，按规则排序）
-    std::vector<CandidateItem> char_pool;      // 字堆（单字 + 激进词，按分数混排）
-    {
-        size_t max_ordinary_len = 0;
-        if (!suitable_word_candidates.empty()) {
-            max_ordinary_len = suitable_word_candidates.front().getPinyinLength();
-
-            // 标记激进词（来自原始激进方案）的文本，用于排序时降级。
-            std::unordered_set<std::string> raw_texts;
-            for (const auto& w : raw_word_candidates) {
-                raw_texts.insert(w.getText());
-            }
-
-            word_pool = suitable_word_candidates;
-            for (auto& w : raw_word_candidates) word_pool.push_back(w);
-            long long now = (long long)time(nullptr);
-            std::stable_sort(word_pool.begin(), word_pool.end(),
-                [now, max_ordinary_len, &raw_texts](const CandidateItem& a, const CandidateItem& b) {
-                    size_t la = a.getPinyinLength();
-                    size_t lb = b.getPinyinLength();
-                    // 激进词的有效字数被钳制到普通词最大字数以内。
-                    size_t ea = (la > max_ordinary_len) ? max_ordinary_len : la;
-                    size_t eb = (lb > max_ordinary_len) ? max_ordinary_len : lb;
-                    if (ea != eb) return ea > eb;
-                    long long sa = a.computeScore(now);
-                    long long sb = b.computeScore(now);
-                    if (sa != sb) return sa > sb;
-                    // 同分时普通词优先，激进词（特殊散段词）靠后。
-                    bool ra = raw_texts.count(a.getText()) > 0;
-                    bool rb = raw_texts.count(b.getText()) > 0;
-                    if (ra != rb) return !ra;
-                    return a.getTimestamp() > b.getTimestamp();
-                });
-        } else {
-            // 普通方案无词：激进词与单字按分数混排。
-            if (!context.has_literal_prefix()) {
-                char_pool = concatCandidateElementArrays({raw_word_candidates, suitable_char_candidates});
-                long long now = (long long)time(nullptr);
-                std::stable_sort(char_pool.begin(), char_pool.end(),
-                    [now](const CandidateItem& a, const CandidateItem& b) {
-                        long long sa = a.computeScore(now);
-                        long long sb = b.computeScore(now);
-                        if (sa != sb) return sa > sb;
-                        return a.getTimestamp() > b.getTimestamp();
-                    });
-            } else {
-                char_pool = raw_word_candidates;
-            }
-        }
-    }
-
-    // 普通方案有词时，单字候选仍排在词堆之后（不参与混排）。
-    if (!word_pool.empty() && char_pool.empty() && !context.has_literal_prefix()) {
-        char_pool = suitable_char_candidates;
-    }
 
     std::vector<CandidateItem> supplemental_candidates;
     if (context.has_literal_prefix()) {
@@ -350,8 +305,22 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
     }
 
     std::vector<CandidateItem> flat_candidates = concatCandidateElementArrays(
-        {smart_phrase_candidates, word_pool, char_pool, supplemental_candidates});
+        {smart_phrase_candidates, suitable_word_candidates, suitable_char_candidates, supplemental_candidates});
     flat_candidates = dedupe_candidates(flat_candidates);
+
+    long long now = (long long)time(nullptr);
+    std::stable_sort(flat_candidates.begin(), flat_candidates.end(),
+        [now, &pinyin_buffer](const CandidateItem& a, const CandidateItem& b) {
+            // 消耗字母数：模拟 consume_buf 逐字母匹配，统计选中候选后
+            // 缓冲被实际消耗的字母数（跳过 ' 分隔符；段首字母不匹配则弃段）。
+            size_t ca = count_consumed_letters(pinyin_buffer, a.getPinyinParts());
+            size_t cb = count_consumed_letters(pinyin_buffer, b.getPinyinParts());
+            if (ca != cb) return ca > cb;
+            long long sa = a.computeScore(now);
+            long long sb = b.computeScore(now);
+            if (sa != sb) return sa > sb;
+            return a.getTimestamp() > b.getTimestamp();
+        });
 
     std::vector<std::vector<CandidateItem>> paged_candidates;
     if (flat_candidates.empty() || candidate_page_size == 0) {
@@ -479,7 +448,7 @@ std::string buildComposingDisplayText(const std::string& pinyin_buffer,
 
     // 2. 获取所有候选项并按页拆分
     std::vector<std::vector<CandidateItem>> paged_candidates = getAllCandidateElements(
-        split.options, candidate_page_size, split.raw_aggressive_index);
+        split.options, candidate_page_size, pinyin_buffer);
     
     // 3. 如果需要，返回分页后的候选列表给调用方（用于翻页逻辑控制）
     if (out_paged_candidates) {

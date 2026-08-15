@@ -31,13 +31,10 @@ std::vector<std::string> mergeConservativePinyin(const std::string& input);
 std::vector<std::vector<std::string>> splitConservativePinyin(const std::string& input);
 
 /**
- * 拆分结果：方案列表 + 原始激进方案的下标。
- * raw_aggressive_index == -1 表示原始激进方案与其它方案完全相同、
- * 已被去重合并（此时它没有独特候选，无需混排）。
+ * 拆分结果：方案列表。
  */
 struct SplitResult {
     std::vector<std::vector<std::string>> options;
-    int raw_aggressive_index = -1;  // 原始激进方案在 options 中的下标，-1 = 不存在
 };
 
 SplitResult splitConservativePinyinEx(const std::string& input);
