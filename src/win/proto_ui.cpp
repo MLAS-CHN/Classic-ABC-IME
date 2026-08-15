@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
+#include <vector>
 #pragma comment(lib, "gdiplus.lib")
 // 启用 ComCtl32 v6 视觉样式：标准控件（EDIT/BUTTON/CHECKBOX）使用现代主题外观
 // 而非经典样式（凹陷输入框、主题按钮）。
@@ -102,7 +103,11 @@ static int   g_cw = 163, g_ch = 26;   // fixed window size
 
 // Font
 static HFONT g_font = nullptr;
-static int   g_fh = 18, g_fw = 9;
+static int   g_fh = 18, g_fw = 9;      // 拼音框字体（固定 System 12px）及度量
+static HFONT g_candFont = nullptr;     // 候选词主字体（可配置）
+static int   g_candFh = 18, g_candFw = 9;
+static HFONT g_fallbackFont = nullptr; // 候选词备选字体（可配置，独立字号）
+static int   g_fallbackFh = 18, g_fallbackFw = 9;
 
 // GDI+
 static ULONG_PTR g_gdiToken = 0;
@@ -128,8 +133,8 @@ static const wchar_t kSettingsDlgClass[] = L"ProtoSettingsDlgWnd";
 static HWND g_settingsDlg = nullptr;
 static bool g_settingsDlgClass = false;
 static HFONT g_settingsDlgFont = nullptr;  // 对话框 UI 字体（窗口销毁时释放）
-static const int kDlgW = 250, kDlgH = 236;  // 含系统标题栏
-enum { kDlgEditSize = 101, kDlgCheckLog = 102, kDlgBtnSave = 103, kDlgComboLevel = 104 };
+static const int kDlgW = 250, kDlgH = 316;  // 含系统标题栏
+enum { kDlgEditSize = 101, kDlgCheckLog = 102, kDlgBtnSave = 103, kDlgComboLevel = 104, kDlgComboFont = 105, kDlgComboFontSize = 106, kDlgComboFallbackFont = 107, kDlgComboFallbackSize = 108 };
 
 // Candidate nav bar icons (0=first 1=last 2=next 3=prev)
 static Gdiplus::Bitmap* g_navIcons[4] = {};
@@ -143,7 +148,8 @@ static bool  g_candClassRegistered;
 static int   g_candW = 120, g_candH = 200;
 
 // --- font ---
-static HFONT create_candidate_font() {
+// 拼音框字体：固定 System 12px（不受设置影响）。
+static HFONT create_pinyin_font() {
     return CreateFontW(
         12, 0, 0, 0,
         FW_NORMAL,
@@ -156,13 +162,152 @@ static HFONT create_candidate_font() {
         L"System");
 }
 
-static void init_font() {
-    if (g_font) return;
-    g_font = create_candidate_font();
+// 候选词字体：从设置读取字体名和字号。
+static HFONT create_candidate_font() {
+    std::string font_name = get_candidate_font();
+    std::wstring wname(font_name.begin(), font_name.end());
+    int size_px = get_candidate_font_size();
+    return CreateFontW(
+        size_px, 0, 0, 0,
+        FW_NORMAL,
+        FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        wname.c_str());
+}
+
+static void apply_candidate_font() {
+    if (g_candFont) { DeleteObject(g_candFont); g_candFont = nullptr; }
+    g_candFont = create_candidate_font();
     HDC dc = GetDC(nullptr);
-    if (dc && g_font) { HFONT old = (HFONT)SelectObject(dc, g_font); TEXTMETRICW tm = {}; GetTextMetricsW(dc, &tm);
-                        g_fh = tm.tmHeight + tm.tmExternalLeading; g_fw = tm.tmAveCharWidth; SelectObject(dc, old); }
+    if (dc && g_candFont) { HFONT old = (HFONT)SelectObject(dc, g_candFont); TEXTMETRICW tm = {}; GetTextMetricsW(dc, &tm);
+                            g_candFh = tm.tmHeight + tm.tmExternalLeading; g_candFw = tm.tmAveCharWidth; SelectObject(dc, old); }
     if (dc) ReleaseDC(nullptr, dc);
+}
+
+// 备选字体：从设置读取字体名和字号（独立配置）。
+static HFONT create_fallback_font() {
+    std::string font_name = get_fallback_font();
+    std::wstring wname(font_name.begin(), font_name.end());
+    int size_px = get_fallback_font_size();
+    return CreateFontW(
+        size_px, 0, 0, 0,
+        FW_NORMAL,
+        FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        wname.c_str());
+}
+
+static void apply_fallback_font() {
+    if (g_fallbackFont) { DeleteObject(g_fallbackFont); g_fallbackFont = nullptr; }
+    g_fallbackFont = create_fallback_font();
+    HDC dc = GetDC(nullptr);
+    if (dc && g_fallbackFont) { HFONT old = (HFONT)SelectObject(dc, g_fallbackFont); TEXTMETRICW tm = {}; GetTextMetricsW(dc, &tm);
+                                g_fallbackFh = tm.tmHeight + tm.tmExternalLeading; g_fallbackFw = tm.tmAveCharWidth; SelectObject(dc, old); }
+    if (dc) ReleaseDC(nullptr, dc);
+}
+
+static void init_font() {
+    if (!g_font) {
+        g_font = create_pinyin_font();
+        HDC dc = GetDC(nullptr);
+        if (dc && g_font) { HFONT old = (HFONT)SelectObject(dc, g_font); TEXTMETRICW tm = {}; GetTextMetricsW(dc, &tm);
+                            g_fh = tm.tmHeight + tm.tmExternalLeading; g_fw = tm.tmAveCharWidth; SelectObject(dc, old); }
+        if (dc) ReleaseDC(nullptr, dc);
+    }
+    if (!g_candFont) apply_candidate_font();
+    if (!g_fallbackFont) apply_fallback_font();
+}
+
+// 候选字体配置变更（设置窗口下拉框）：重建主/备字体 + 重绘候选框，立即生效。
+static void refresh_candidate_font() {
+    apply_candidate_font();
+    apply_fallback_font();
+    if (g_candWnd) {
+        ClassicABC::UI::UpdateCand();
+        InvalidateRect(g_candWnd, nullptr, TRUE);
+    }
+}
+
+// ---- 字体回退（fallback）----
+// 主字体 + 单个备选字体（设置里各选一个、各配字号）。
+// 主字体缺字形（如生僻字"靐"）时用备选字体；两者都缺则画方块（缺字形由 GDI 呈现）。
+// 性能：主备各做一次整串 GetGlyphIndicesW 批量探测，GDI 调用数 = O(2 + 段数)。
+static void TextOutWithFallback(HDC dc, int x, int y,
+                                const wchar_t* text, int len,
+                                HFONT primary, HFONT fallback) {
+    if (len <= 0) return;
+    if (!fallback) {  // 无备选字体：直接主字体整串画。
+        HFONT old = (HFONT)SelectObject(dc, primary);
+        TextOutW(dc, x, y, text, len);
+        SelectObject(dc, old);
+        return;
+    }
+
+    // chosen[i]：0=主字体可显示，1=主缺但备选可显示，2=两者都缺。
+    std::vector<int> chosen((size_t)len, 0);
+    std::vector<WORD> glyphs((size_t)len);
+    {
+        HFONT old = (HFONT)SelectObject(dc, primary);
+        bool ok = GetGlyphIndicesW(dc, text, len, glyphs.data(), GGI_MARK_NONEXISTING_GLYPHS) != GDI_ERROR;
+        if (ok) {
+            for (int i = 0; i < len; ++i)
+                if (glyphs[i] == 0xFFFF) chosen[i] = -1;
+        } else {
+            for (int i = 0; i < len; ++i) chosen[i] = -1;
+        }
+        SelectObject(dc, old);
+    }
+
+    // 全显示：直接用主字体（最常见路径，零额外开销）。
+    bool any_missing = false;
+    for (int i = 0; i < len; ++i) if (chosen[i] == -1) { any_missing = true; break; }
+    if (!any_missing) {
+        HFONT old = (HFONT)SelectObject(dc, primary);
+        TextOutW(dc, x, y, text, len);
+        SelectObject(dc, old);
+        return;
+    }
+
+    // 备选字体一次整串探测，补齐缺字；仍缺的标 2（画方块）。
+    {
+        HFONT old = (HFONT)SelectObject(dc, fallback);
+        bool ok = GetGlyphIndicesW(dc, text, len, glyphs.data(), GGI_MARK_NONEXISTING_GLYPHS) != GDI_ERROR;
+        if (ok) {
+            for (int i = 0; i < len; ++i) {
+                if (chosen[i] == -1)
+                    chosen[i] = (glyphs[i] == 0xFFFF) ? 2 : 1;
+            }
+        } else {
+            for (int i = 0; i < len; ++i)
+                if (chosen[i] == -1) chosen[i] = 2;
+        }
+        SelectObject(dc, old);
+    }
+
+    // 分段绘制：连续同字体合成一段。标 1 或 2 都用备选字体画
+    // （标 2 时 GDI 自动呈现缺字形方块）。
+    int cx = x;
+    int i = 0;
+    while (i < len) {
+        HFONT curFont = (chosen[i] == 0) ? primary : fallback;
+        int j = i + 1;
+        while (j < len && (chosen[j] == 0) == (chosen[i] == 0)) ++j;
+        HFONT old = (HFONT)SelectObject(dc, curFont);
+        SIZE sz = {};
+        GetTextExtentPoint32W(dc, text + i, j - i, &sz);
+        TextOutW(dc, cx, y, text + i, j - i);
+        SelectObject(dc, old);
+        cx += sz.cx;
+        i = j;
+    }
 }
 
 // --- caret position ---
@@ -205,7 +350,7 @@ static void Draw9Patch(HDC dc, const RECT& rc) {
 static void ComputeNavBtnRects(HWND hwnd) {
     RECT rc; GetClientRect(hwnd, &rc);
     int count = (int)ClassicABC::GetCandidateCount();
-    int navY = 6 + count * g_fh + 1;
+    int navY = 6 + count * g_candFh + 1;
     int winW = rc.right;
     int margin = 4;
     g_navBtnRects[0] = { margin, navY, margin + kNavBtnSize, navY + kNavBtnSize };
@@ -234,8 +379,8 @@ static LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         SetTextColor(dc, RGB(0, 0, 0));
         int tx = g_skin ? g_skin->marginL + 2 : 6;
         int ty = g_skin ? g_skin->marginT : 2;
-        TextOutW(dc, tx, ty, s.c_str(), (int)s.size());
-
+        SelectObject(dc, old);
+        TextOutWithFallback(dc, tx, ty, s.c_str(), (int)s.size(), g_font, g_fallbackFont);
         if (!g_skin) {
             HPEN pen = CreatePen(PS_SOLID, 1, RGB(180, 180, 180)); HPEN op = (HPEN)SelectObject(dc, pen);
             HBRUSH nb = (HBRUSH)GetStockObject(NULL_BRUSH); SelectObject(dc, nb);
@@ -270,6 +415,8 @@ void ClassicABC::UI::Shutdown() {
     if (g_candWnd) { DestroyWindow(g_candWnd); g_candWnd = nullptr; }
     if (g_settingsWnd) { DestroyWindow(g_settingsWnd); g_settingsWnd = nullptr; }
     if (g_font) { DeleteObject(g_font); g_font = nullptr; }
+    if (g_candFont) { DeleteObject(g_candFont); g_candFont = nullptr; }
+    if (g_fallbackFont) { DeleteObject(g_fallbackFont); g_fallbackFont = nullptr; }
     g_skin = nullptr; g_settingsSkin = nullptr; g_btnSkin = nullptr;
     for (int i = 0; i < 5; ++i) {
         if (g_btnIcons[i]) { delete g_btnIcons[i]; g_btnIcons[i] = nullptr; }
@@ -356,7 +503,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             Rectangle(dc, 0, 0, rc.right, rc.bottom);
             SelectObject(dc, op); DeleteObject(pen);
         }
-        HFONT old = (HFONT)SelectObject(dc, g_font);
+        HFONT old = (HFONT)SelectObject(dc, g_candFont);
         SetBkMode(dc, TRANSPARENT);
         COLORREF candColor = ClassicABC::IsDelMode() ? RGB(255, 0, 0) : RGB(128, 0, 128);
         size_t sel = ClassicABC::GetSelectedIndex();
@@ -368,10 +515,15 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             if (n == 10) n = 0;
             wchar_t num[4]; wsprintfW(num, L"%d:", n);
             COLORREF rowColor = (i == sel) ? RGB(0, 0, 255) : candColor;
+            // 序号固定 System 字体（不随候选字体设置变化）。
             SetTextColor(dc, rowColor);
-            TextOutW(dc, 4, 6 + (int)i * g_fh, num, (int)wcslen(num));
+            SelectObject(dc, g_font);
+            TextOutW(dc, 4, 6 + (int)i * g_candFh, num, (int)wcslen(num));
+            // 候选词本体用可配置字体（带回退）。
             SetTextColor(dc, rowColor);
-            TextOutW(dc, 4 + g_fw * 2, 6 + (int)i * g_fh, text.c_str(), (int)text.size());
+            SelectObject(dc, g_candFont);
+            TextOutWithFallback(dc, 4 + g_candFw * 2, 6 + (int)i * g_candFh,
+                                text.c_str(), (int)text.size(), g_candFont, g_fallbackFont);
         }
         // Nav bar
         ComputeNavBtnRects(hwnd);
@@ -390,6 +542,8 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
             wchar_t pageText[16];
             wsprintfW(pageText, L"%d/%d", (int)(curPage + 1), (int)totalPages);
             SetTextColor(dc, RGB(0, 0, 255));
+            // 页码固定 System 字体。
+            SelectObject(dc, g_font);
             int textW = (int)wcslen(pageText) * g_fw;
             int navY = g_navBtnRects[0].top;
             int centerX = (rc.right - textW) / 2;
@@ -417,7 +571,7 @@ static LRESULT CALLBACK candWndProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l) {
         if (!handled) {
             // 点击候选行：直接输出该候选。
             size_t count = ClassicABC::GetCandidateCount();
-            int row = (pt.y - 6) / g_fh;
+            int row = (pt.y - 6) / g_candFh;
             if (pt.y >= 6 && row >= 0 && (size_t)row < count) {
                 ClassicABC::PickCandidate((size_t)row);
             }
@@ -469,14 +623,14 @@ void ClassicABC::UI::UpdateCand() {
     size_t count = ClassicABC::GetCandidateCount();
     if (count == 0) { ShowCand(false); return; }
     ShowCand(true);
-    int h = 6 + (int)count * g_fh + kNavBtnSize + 6;
+    int h = 6 + (int)count * g_candFh + kNavBtnSize + 6;
     if (h < 30) h = 30;
 
-    // 自适应宽度：至少 120px，随最长候选文本扩展（汉字按 g_fw 宽计）。
+    // 自适应宽度：至少 120px，随最长候选文本扩展（汉字按 g_candFw 宽计）。
     int max_text_w = 0;
     HDC meas_dc = GetDC(g_candWnd ? g_candWnd : nullptr);
     HFONT old_font = nullptr;
-    if (meas_dc) old_font = (HFONT)SelectObject(meas_dc, g_font);
+    if (meas_dc) old_font = (HFONT)SelectObject(meas_dc, g_candFont);
     for (size_t i = 0; i < count; ++i) {
         std::wstring text = ClassicABC::GetCandidateText(i);
         int tw = 0;
@@ -485,9 +639,9 @@ void ClassicABC::UI::UpdateCand() {
             if (GetTextExtentPoint32W(meas_dc, text.c_str(), (int)text.size(), &sz))
                 tw = sz.cx;
             else
-                tw = (int)text.size() * g_fw;
+                tw = (int)text.size() * g_candFw;
         } else {
-            tw = (int)text.size() * g_fw;
+            tw = (int)text.size() * g_candFw;
         }
         if (tw > max_text_w) max_text_w = tw;
     }
@@ -495,10 +649,10 @@ void ClassicABC::UI::UpdateCand() {
         if (old_font) SelectObject(meas_dc, old_font);
         ReleaseDC(g_candWnd ? g_candWnd : nullptr, meas_dc);
     }
-    int wantW = 4 + g_fw * 2 + max_text_w + 4;   // 左边距 + 序号 + 文本 + 右边距
+    int wantW = 4 + g_candFw * 2 + max_text_w + 4;   // 左边距 + 序号 + 文本 + 右边距
     g_candW = (wantW > 120) ? wantW : 120;
     write_log("UI: UpdateCand count=" + std::to_string(count) + " max_text_w=" + std::to_string(max_text_w) +
-                  " wantW=" + std::to_string(wantW) + " g_candW=" + std::to_string(g_candW) + " g_fw=" + std::to_string(g_fw),
+                  " wantW=" + std::to_string(wantW) + " g_candW=" + std::to_string(g_candW) + " g_candFw=" + std::to_string(g_candFw),
               LOG_INFO);
 
     // Position: default to the RIGHT of the input window.
@@ -631,6 +785,40 @@ static LRESULT CALLBACK settingsDlgProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
             set_log_level(sel);  // 立即生效 + 写盘
             return 0;
         }
+        if (id == kDlgComboFont && HIWORD(w) == CBN_SELCHANGE) {
+            wchar_t buf[128] = {};
+            SendMessageW((HWND)l, CB_GETLBTEXT, (WPARAM)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0), (LPARAM)buf);
+            std::wstring wname(buf);
+            std::string name(wname.begin(), wname.end());
+            set_candidate_font(name);  // 立即生效 + 写盘
+            refresh_candidate_font();
+            return 0;
+        }
+        if (id == kDlgComboFontSize && HIWORD(w) == CBN_SELCHANGE) {
+            int sel = (int)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0);
+            wchar_t buf[16] = {};
+            SendMessageW((HWND)l, CB_GETLBTEXT, (WPARAM)sel, (LPARAM)buf);
+            set_candidate_font_size(_wtoi(buf));  // 立即生效 + 写盘
+            refresh_candidate_font();
+            return 0;
+        }
+        if (id == kDlgComboFallbackFont && HIWORD(w) == CBN_SELCHANGE) {
+            wchar_t buf[128] = {};
+            SendMessageW((HWND)l, CB_GETLBTEXT, (WPARAM)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0), (LPARAM)buf);
+            std::wstring wname(buf);
+            std::string name(wname.begin(), wname.end());
+            set_fallback_font(name);  // 立即生效 + 写盘
+            refresh_candidate_font();
+            return 0;
+        }
+        if (id == kDlgComboFallbackSize && HIWORD(w) == CBN_SELCHANGE) {
+            int sel = (int)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0);
+            wchar_t buf[16] = {};
+            SendMessageW((HWND)l, CB_GETLBTEXT, (WPARAM)sel, (LPARAM)buf);
+            set_fallback_font_size(_wtoi(buf));  // 立即生效 + 写盘
+            refresh_candidate_font();
+            return 0;
+        }
     }
     if (msg == WM_CLOSE) {
         DestroyWindow(hwnd);
@@ -705,9 +893,124 @@ static void ShowSettingsDialog() {
         SendMessageW(combo, CB_SETCURSEL, get_log_level(), 0);
         SendMessageW(combo, WM_SETFONT, (WPARAM)uiFont, TRUE);
 
+        HWND fontLabel = CreateWindowExW(0, L"STATIC", L"\u5019\u9009\u5B57\u4F53:",
+                                         WS_CHILD | WS_VISIBLE, 14, 128, 160, 18,
+                                         g_settingsDlg, nullptr, g_inst, nullptr);
+        SendMessageW(fontLabel, WM_SETFONT, (WPARAM)uiFont, TRUE);
+        HWND fontCombo = CreateWindowExW(0, L"COMBOBOX", L"",
+                                         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL,
+                                         176, 126, 60, 140,
+                                         g_settingsDlg, (HMENU)kDlgComboFont, g_inst, nullptr);
+        {
+            // 枚举系统全部已安装字体（去重 + 按名称排序）。
+            std::vector<std::wstring> fontNames;
+            HDC dc = GetDC(nullptr);
+            if (dc) {
+                LOGFONTW lf = {};
+                lf.lfCharSet = DEFAULT_CHARSET;
+                struct EnumCtx { std::vector<std::wstring>* names; };
+                EnumFontFamiliesExW(dc, &lf,
+                    [](const LOGFONTW* plf, const TEXTMETRICW*, DWORD, LPARAM l) -> int CALLBACK {
+                        auto* ctx = reinterpret_cast<EnumCtx*>(l);
+                        bool dup = false;
+                        for (const auto& n : *ctx->names)
+                            if (_wcsicmp(n.c_str(), plf->lfFaceName) == 0) { dup = true; break; }
+                        if (!dup) ctx->names->push_back(plf->lfFaceName);
+                        return TRUE;
+                    },
+                    (LPARAM)&EnumCtx{&fontNames}, 0);
+                ReleaseDC(nullptr, dc);
+            }
+            std::sort(fontNames.begin(), fontNames.end(),
+                      [](const std::wstring& a, const std::wstring& b) {
+                          return _wcsicmp(a.c_str(), b.c_str()) < 0;
+                      });
+            for (const auto& n : fontNames) SendMessageW(fontCombo, CB_ADDSTRING, 0, (LPARAM)n.c_str());
+            std::string cur = get_candidate_font();
+            std::wstring wcur(cur.begin(), cur.end());
+            int idx = SendMessageW(fontCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)wcur.c_str());
+            SendMessageW(fontCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
+        }
+        SendMessageW(fontCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
+        HWND sizeLabel = CreateWindowExW(0, L"STATIC", L"\u4E3B\u5B57\u53F7:",
+                                         WS_CHILD | WS_VISIBLE, 14, 156, 160, 18,
+                                         g_settingsDlg, nullptr, g_inst, nullptr);
+        SendMessageW(sizeLabel, WM_SETFONT, (WPARAM)uiFont, TRUE);
+        HWND sizeCombo = CreateWindowExW(0, L"COMBOBOX", L"",
+                                         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL,
+                                         176, 154, 60, 140,
+                                         g_settingsDlg, (HMENU)kDlgComboFontSize, g_inst, nullptr);
+        {
+            static const wchar_t* kSizes[] = { L"9", L"10", L"11", L"12", L"13", L"14", L"15", L"16", L"18", L"20", L"24" };
+            for (auto s : kSizes) SendMessageW(sizeCombo, CB_ADDSTRING, 0, (LPARAM)s);
+            wchar_t szbuf[16];
+            wsprintfW(szbuf, L"%d", get_candidate_font_size());
+            int idx = SendMessageW(sizeCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)szbuf);
+            SendMessageW(sizeCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
+        }
+        SendMessageW(sizeCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
+        HWND fbLabel = CreateWindowExW(0, L"STATIC", L"\u5907\u9009\u5B57\u4F53:",
+                                       WS_CHILD | WS_VISIBLE, 14, 184, 160, 18,
+                                       g_settingsDlg, nullptr, g_inst, nullptr);
+        SendMessageW(fbLabel, WM_SETFONT, (WPARAM)uiFont, TRUE);
+        HWND fbCombo = CreateWindowExW(0, L"COMBOBOX", L"",
+                                       WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL,
+                                       176, 182, 60, 140,
+                                       g_settingsDlg, (HMENU)kDlgComboFallbackFont, g_inst, nullptr);
+        {
+            std::vector<std::wstring> fontNames;
+            HDC dc = GetDC(nullptr);
+            if (dc) {
+                LOGFONTW lf = {};
+                lf.lfCharSet = DEFAULT_CHARSET;
+                struct EnumCtx { std::vector<std::wstring>* names; };
+                EnumFontFamiliesExW(dc, &lf,
+                    [](const LOGFONTW* plf, const TEXTMETRICW*, DWORD, LPARAM l) -> int CALLBACK {
+                        auto* ctx = reinterpret_cast<EnumCtx*>(l);
+                        bool dup = false;
+                        for (const auto& n : *ctx->names)
+                            if (_wcsicmp(n.c_str(), plf->lfFaceName) == 0) { dup = true; break; }
+                        if (!dup) ctx->names->push_back(plf->lfFaceName);
+                        return TRUE;
+                    },
+                    (LPARAM)&EnumCtx{&fontNames}, 0);
+                ReleaseDC(nullptr, dc);
+            }
+            std::sort(fontNames.begin(), fontNames.end(),
+                      [](const std::wstring& a, const std::wstring& b) {
+                          return _wcsicmp(a.c_str(), b.c_str()) < 0;
+                      });
+            for (const auto& n : fontNames) SendMessageW(fbCombo, CB_ADDSTRING, 0, (LPARAM)n.c_str());
+            std::string cur = get_fallback_font();
+            std::wstring wcur(cur.begin(), cur.end());
+            int idx = SendMessageW(fbCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)wcur.c_str());
+            SendMessageW(fbCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
+        }
+        SendMessageW(fbCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
+        HWND fbsLabel = CreateWindowExW(0, L"STATIC", L"\u5907\u9009\u5B57\u53F7:",
+                                        WS_CHILD | WS_VISIBLE, 14, 212, 160, 18,
+                                        g_settingsDlg, nullptr, g_inst, nullptr);
+        SendMessageW(fbsLabel, WM_SETFONT, (WPARAM)uiFont, TRUE);
+        HWND fbsCombo = CreateWindowExW(0, L"COMBOBOX", L"",
+                                        WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL,
+                                        176, 210, 60, 140,
+                                        g_settingsDlg, (HMENU)kDlgComboFallbackSize, g_inst, nullptr);
+        {
+            static const wchar_t* kSizes[] = { L"9", L"10", L"11", L"12", L"13", L"14", L"15", L"16", L"18", L"20", L"24" };
+            for (auto s : kSizes) SendMessageW(fbsCombo, CB_ADDSTRING, 0, (LPARAM)s);
+            wchar_t szbuf[16];
+            wsprintfW(szbuf, L"%d", get_fallback_font_size());
+            int idx = SendMessageW(fbsCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)szbuf);
+            SendMessageW(fbsCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
+        }
+        SendMessageW(fbsCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
+
         HWND save = CreateWindowExW(0, L"BUTTON", L"\u4FDD\u5B58",  // 保存
                                     WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                                    50, 140, 70, 28,
+                                    50, 244, 70, 28,
                                     g_settingsDlg, (HMENU)kDlgBtnSave, g_inst, nullptr);
         SendMessageW(save, WM_SETFONT, (WPARAM)uiFont, TRUE);
     }

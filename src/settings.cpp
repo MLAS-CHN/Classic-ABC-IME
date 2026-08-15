@@ -7,6 +7,10 @@ static std::string g_config_dir;
 static int g_page_size = 10;
 static bool g_log_enabled = false;  // 默认不生成日志（无配置文件时）
 static int g_log_level = 0;         // 0=INFO 1=DEBUG
+static std::string g_candidate_font = "Segoe UI";  // 默认候选词主字体
+static int g_candidate_font_size = 12;             // 默认候选词主字号 (px)
+static std::string g_fallback_font = "Microsoft YaHei";  // 默认备选字体
+static int g_fallback_font_size = 12;                    // 默认备选字号 (px)
 
 static const int kPageSizeMin = 5;
 static const int kPageSizeMax = 10;
@@ -21,6 +25,10 @@ void load_settings(const std::string& dir) {
     g_page_size = 10;
     g_log_enabled = false;  // 缺省：每页 10 个、不生成日志
     g_log_level = 0;        // 缺省：INFO
+    g_candidate_font = "Segoe UI";
+    g_candidate_font_size = 12;
+    g_fallback_font = "Microsoft YaHei";
+    g_fallback_font_size = 12;
 
     std::ifstream f(config_path());
     if (!f.is_open()) return;
@@ -47,6 +55,20 @@ void load_settings(const std::string& dir) {
                 int v = std::stoi(value);
                 if (v == 0 || v == 1) g_log_level = v;
             } catch (...) {}
+        } else if (key == "candidate_font") {
+            if (!value.empty()) g_candidate_font = value;
+        } else if (key == "candidate_font_size") {
+            try {
+                int v = std::stoi(value);
+                if (v >= 8 && v <= 32) g_candidate_font_size = v;
+            } catch (...) {}
+        } else if (key == "fallback_font") {
+            if (!value.empty()) g_fallback_font = value;
+        } else if (key == "fallback_font_size") {
+            try {
+                int v = std::stoi(value);
+                if (v >= 8 && v <= 32) g_fallback_font_size = v;
+            } catch (...) {}
         }
     }
 
@@ -61,6 +83,10 @@ bool save_settings() {
     f << "candidate_page_size=" << g_page_size << "\n";
     f << "log_enabled=" << (g_log_enabled ? "1" : "0") << "\n";
     f << "log_level=" << g_log_level << "\n";
+    f << "candidate_font=" << g_candidate_font << "\n";
+    f << "candidate_font_size=" << g_candidate_font_size << "\n";
+    f << "fallback_font=" << g_fallback_font << "\n";
+    f << "fallback_font_size=" << g_fallback_font_size << "\n";
     return true;
 }
 
@@ -92,5 +118,47 @@ void set_log_level(int level) {
     if (level != 0 && level != 1) level = 0;
     g_log_level = level;
     set_log_level(level == 1 ? LOG_DEBUG : LOG_INFO);
+    save_settings();
+}
+
+std::string get_candidate_font() {
+    return g_candidate_font;
+}
+
+void set_candidate_font(const std::string& name) {
+    if (name.empty()) return;
+    g_candidate_font = name;
+    save_settings();
+}
+
+int get_candidate_font_size() {
+    return g_candidate_font_size;
+}
+
+void set_candidate_font_size(int px) {
+    if (px < 8) px = 8;
+    if (px > 32) px = 32;
+    g_candidate_font_size = px;
+    save_settings();
+}
+
+std::string get_fallback_font() {
+    return g_fallback_font;
+}
+
+void set_fallback_font(const std::string& name) {
+    if (name.empty()) return;
+    g_fallback_font = name;
+    save_settings();
+}
+
+int get_fallback_font_size() {
+    return g_fallback_font_size;
+}
+
+void set_fallback_font_size(int px) {
+    if (px < 8) px = 8;
+    if (px > 32) px = 32;
+    g_fallback_font_size = px;
     save_settings();
 }
