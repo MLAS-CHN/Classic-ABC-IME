@@ -252,11 +252,17 @@ STDAPI TSF::DoEditSession(TfEditCookie ec) {
   com_ptr<ITfRange> pRange = sel.range;
   hr = pRange->SetText(ec, 0, _commit_text.c_str(), (LONG)_commit_text.size());
   if (SUCCEEDED(hr)) {
-    TF_SELECTION newSel;
-    newSel.range = pRange;
-    newSel.style.ase = TF_AE_END;
-    newSel.style.fInterimChar = FALSE;
-    hr = _pActiveContext->SetSelection(ec, 1, &newSel);
+    // SetText 后 range 会自动扩展覆盖刚插入的文本；若不收缩，把该 range
+    // 设为 selection 会让整段上屏文字处于选中（框选）状态——Word 2007、
+    // 系统设置、旧版 QQ 等应用会保留这个选择，导致连续输入每打完一个词
+    // 都要按右箭头。正确做法：collapse 到文本末尾，设置空选择（光标）。
+    if (SUCCEEDED(pRange->Collapse(ec, TF_ANCHOR_END))) {
+      TF_SELECTION newSel;
+      newSel.range = pRange;
+      newSel.style.ase = TF_AE_NONE;
+      newSel.style.fInterimChar = FALSE;
+      hr = _pActiveContext->SetSelection(ec, 1, &newSel);
+    }
   }
   sel.range->Release();
 
