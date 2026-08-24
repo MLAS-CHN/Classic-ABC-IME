@@ -318,6 +318,18 @@ static POINT caret_pos() {
     GetCursorPos(&pt); return pt;
 }
 
+// 取 pt 所在显示器的工作区（多屏支持：候选框/拼音框/设置栏都按光标所在
+// 屏幕的边界定位，而不是主屏幕，否则第二屏上窗口会被钳到主屏内消失）。
+static RECT monitor_work_area(POINT pt) {
+    RECT wa = { 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
+    HMONITOR hm = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+    if (hm) {
+        MONITORINFO mi = { sizeof(MONITORINFO) };
+        if (GetMonitorInfoW(hm, &mi)) wa = mi.rcWork;
+    }
+    return wa;
+}
+
 // --- 9-patch ---
 static void Draw9Patch(HDC dc, const RECT& rc) {
     if (!g_skin || !g_skin->hBmp) return;
@@ -465,9 +477,10 @@ void ClassicABC::UI::Update() {
     }
 
     POINT cp = caret_pos(); int x = cp.x, y = cp.y + g_fh + 4;
-    int sw = GetSystemMetrics(SM_CXSCREEN), sh = GetSystemMetrics(SM_CYSCREEN);
-    if (x + g_cw > sw) x = sw - g_cw; if (y + g_ch > sh) y = cp.y - g_ch - 4;
-    if (x < 0) x = 0; if (y < 0) y = 0;
+    RECT wa = monitor_work_area(cp);
+    int sw = wa.right - wa.left, sh = wa.bottom - wa.top;
+    if (x + g_cw > wa.right) x = wa.right - g_cw; if (y + g_ch > wa.bottom) y = cp.y - g_ch - 4;
+    if (x < wa.left) x = wa.left; if (y < wa.top) y = wa.top;
     SetWindowPos(g_wnd, HWND_TOPMOST, x, y, g_cw, g_ch, SWP_NOACTIVATE | SWP_SHOWWINDOW);
     InvalidateRect(g_wnd, nullptr, TRUE);
 }
@@ -658,30 +671,31 @@ void ClassicABC::UI::UpdateCand() {
     // Position: default to the RIGHT of the input window.
     // If no room on right, go LEFT. Then, try below the caret; if no room, go above.
     POINT cp = caret_pos();
-    int sw = GetSystemMetrics(SM_CXSCREEN), sh = GetSystemMetrics(SM_CYSCREEN);
+    RECT wa = monitor_work_area(cp);
+    int sw = wa.right - wa.left, sh = wa.bottom - wa.top;
 
     // Horizontal: right of input window, fallback to left (use actual pinyin bar rect)
     RECT pr; GetWindowRect(g_wnd, &pr);
     int inputL = pr.left;
     int inputR = pr.right;
     int x = inputR + 4;                     // right of input
-    if (x + g_candW > sw) x = inputL - g_candW - 4; // fallback: left of input
+    if (x + g_candW > wa.right) x = inputL - g_candW - 4; // fallback: left of input
 
     // Vertical: try below caret; if candidate doesn't fit, go above (and move pinyin bar up too)
     int belowY = cp.y + g_fh + 4;
     int y = belowY;
-    if (y + h > sh) {
+    if (y + h > wa.bottom) {
         y = cp.y - h - 4;
         int pinyinY = cp.y - g_ch - 4;
-        if (pinyinY < 0) pinyinY = 0;
+        if (pinyinY < wa.top) pinyinY = wa.top;
         RECT pr; GetWindowRect(g_wnd, &pr);
         SetWindowPos(g_wnd, HWND_TOPMOST, pr.left, pinyinY, 0, 0,
                      SWP_NOACTIVATE | SWP_NOSIZE | SWP_SHOWWINDOW);
     }
 
-    if (x < 0) x = 0; if (y < 0) y = 0;
-    if (x + g_candW > sw) x = sw - g_candW;
-    if (y + h > sh) y = sh - h;
+    if (x < wa.left) x = wa.left; if (y < wa.top) y = wa.top;
+    if (x + g_candW > wa.right) x = wa.right - g_candW;
+    if (y + h > wa.bottom) y = wa.bottom - h;
     SetWindowPos(g_candWnd, HWND_TOPMOST, x, y, g_candW, h,
                  SWP_NOACTIVATE | SWP_SHOWWINDOW);
     InvalidateRect(g_candWnd, nullptr, TRUE);
@@ -1015,13 +1029,14 @@ static void ShowSettingsDialog() {
         SendMessageW(save, WM_SETFONT, (WPARAM)uiFont, TRUE);
     }
 
-    // 定位：设置栏下方，超出屏幕则放设置栏上方。
+    // 定位：设置栏下方，超出屏幕则放设置栏上方（按设置栏所在显示器边界）。
     int x = g_settingsX, y = g_settingsY + kSettingsH + 4;
-    int sw = GetSystemMetrics(SM_CXSCREEN), sh = GetSystemMetrics(SM_CYSCREEN);
-    if (y + kDlgH > sh) y = g_settingsY - kDlgH - 4;
-    if (y < 0) y = 0;
-    if (x + kDlgW > sw) x = sw - kDlgW;
-    if (x < 0) x = 0;
+    POINT sp = { g_settingsX, g_settingsY };
+    RECT wa = monitor_work_area(sp);
+    if (y + kDlgH > wa.bottom) y = g_settingsY - kDlgH - 4;
+    if (y < wa.top) y = wa.top;
+    if (x + kDlgW > wa.right) x = wa.right - kDlgW;
+    if (x < wa.left) x = wa.left;
     SetWindowPos(g_settingsDlg, HWND_TOPMOST, x, y, kDlgW, kDlgH,
                  SWP_SHOWWINDOW);
     SetFocus(g_settingsDlg);  // 标准窗口：激活设置窗口（原窗口暂时失焦）
