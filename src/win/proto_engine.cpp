@@ -579,6 +579,7 @@ static bool handleLetter(UINT vk, bool uppercase = false) {
     insert_at_virtual_cursor(g.buf, g.cur, c);
     if (g.buf.size() == 1) reset_virtual_cursor_to_end(g.buf, g.cur);
     g.sel = kNoSel;
+    g.page = 0;  // 拼音框更新：候选框回到第一页
     rebuild();
     return true;
 }
@@ -658,7 +659,7 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
 
     // editing keys
     if (vk == VK_BACK && !g.buf.empty()) {
-        if (backspace_at_virtual_cursor(g.buf, g.cur)) { g.sel = kNoSel; rebuild(); }
+        if (backspace_at_virtual_cursor(g.buf, g.cur)) { g.sel = kNoSel; g.page = 0; rebuild(); }
         return true;
     }
     if (vk == VK_ESCAPE && !g.buf.empty()) {
@@ -672,7 +673,7 @@ bool ClassicABC::Engine::ProcessKey(UINT vk) {
     // word separator '
     if (vk == VK_OEM_7 && !g.buf.empty()) {
         if (can_insert_word_separator_at_virtual_cursor(g.buf, g.cur)) {
-            insert_at_virtual_cursor(g.buf, g.cur, '\''); g.sel = kNoSel; rebuild();
+            insert_at_virtual_cursor(g.buf, g.cur, '\''); g.sel = kNoSel; g.page = 0; rebuild();
         }
         return true;
     }
