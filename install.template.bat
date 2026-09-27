@@ -50,6 +50,15 @@ if exist "%SRCDIR%abcime.dll" (
   echo   Registered abcime.dll ^(32-bit TSF^)
 )
 
+REM --- 1b. Grant AppContainer (UWP) read access ---
+REM Windows 搜索框 (SearchApp.exe)、设置等 UWP 应用运行在 AppContainer 沙箱中，
+REM 未授权时无法加载本输入法 DLL 与词库，表现为这些应用里切到经典ABC没反应、
+REM 打不出中文（DLL 根本没加载进宿主进程）。
+echo   Granting AppContainer (UWP) read access...
+icacls "%SRCDIR%abcimex64.dll" /grant *S-1-15-2-1:(RX) >nul 2>&1
+icacls "%SRCDIR%abcime.dll" /grant *S-1-15-2-1:(RX) >nul 2>&1
+icacls "%RUNTIMEDIR%" /grant *S-1-15-2-1:(OI)(CI)(RX) /T /C /Q >nul 2>&1
+
 echo.
 
 REM --- 2. Install IMM32 IME files to system directories ---
