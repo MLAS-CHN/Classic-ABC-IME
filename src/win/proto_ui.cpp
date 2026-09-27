@@ -99,6 +99,7 @@ static HINSTANCE g_inst = nullptr;
 static const wchar_t kWndClass[] = L"ProtoCandWnd";
 static HWND  g_wnd    = nullptr;
 static bool  g_wclass = false;
+static ATOM  g_wndAtom = 0;
 static int   g_cw = 163, g_ch = 26;   // fixed window size
 
 // Font
@@ -119,6 +120,7 @@ static const ClassicABC::UI::NinePatchSkin* g_skin = nullptr;
 static const wchar_t kSettingsClass[] = L"ProtoSettingsWnd";
 static HWND  g_settingsWnd = nullptr;
 static bool  g_settingsClass = false;
+static ATOM  g_settingsAtom = 0;
 static int   g_settingsX = -1, g_settingsY = -1;
 static const int kSettingsW = 127, kSettingsH = 26;
 static const ClassicABC::UI::NinePatchSkin* g_settingsSkin = nullptr;
@@ -145,6 +147,7 @@ static const int kNavBtnSize = 13;
 static const wchar_t kCandClass[] = L"ProtoCandListWnd";
 static HWND  g_candWnd;
 static bool  g_candClassRegistered;
+static ATOM  g_candAtom = 0;
 static int   g_candW = 120, g_candH = 200;
 
 // --- font ---
@@ -311,7 +314,21 @@ static void TextOutWithFallback(HDC dc, int x, int y,
 }
 
 // --- caret position ---
+// 外部（TSF GetTextExt）提供的光标屏幕坐标；优先于系统 caret。
+static POINT g_extCaretPos = { 0, 0 };
+static bool  g_extCaretValid = false;
+
+void ClassicABC::UI::SetCaretScreenPos(int x, int y, bool valid) {
+    g_extCaretPos.x = x;
+    g_extCaretPos.y = y;
+    g_extCaretValid = valid;
+}
+
 static POINT caret_pos() {
+    // 优先用 TSF 提供的真实光标位置（GetTextExt）：系统 caret 在部分程序
+    // （Word 等自绘光标的应用）会滞后或不存在，导致拼音框/候选框停留在旧位置。
+    if (g_extCaretValid) return g_extCaretPos;
+
     POINT pt = {}; HWND fg = GetForegroundWindow();
     if (fg) { DWORD tid = GetWindowThreadProcessId(fg, nullptr); GUITHREADINFO gui = { sizeof(GUITHREADINFO) };
               if (GetGUIThreadInfo(tid, &gui) && gui.hwndCaret) { pt.x = gui.rcCaret.left; pt.y = gui.rcCaret.top; ClientToScreen(gui.hwndCaret, &pt); return pt; } }
@@ -328,6 +345,79 @@ static RECT monitor_work_area(POINT pt) {
         if (GetMonitorInfoW(hm, &mi)) wa = mi.rcWork;
     }
     return wa;
+}
+
+// ---- 窗口 Band（AppContainer/沉浸式宿主的窗口显示问题）----
+// 搜索框（SearchApp）、开始菜单等沉浸式 UI 打开时，其进程/系统宿主运行在高
+// z-order Band；AppContainer 进程里用普通 CreateWindowEx 创建的窗口（即使
+// WS_EX_TOPMOST）不会被合成显示（表现为 IsWindowVisible=1、位置正确但用户
+// 完全看不见，设置栏在屏幕右下的空白区也看不到——说明不是简单遮挡）。
+// 解决：动态调用 user32 未公开 API CreateWindowInBand，在宿主窗口所在 Band
+// 创建窗口（开源输入法 WindInput / Weasel 均用此法支持搜索/开始菜单）。
+using PfnCreateWindowInBand = HWND(WINAPI*)(DWORD, ATOM, LPCWSTR, DWORD, int, int, int, int, HWND, HMENU, HINSTANCE, LPVOID, DWORD);
+using PfnGetWindowBand = BOOL(WINAPI*)(HWND, PDWORD);
+
+extern "C" HRESULT WINAPI DwmGetWindowAttribute(HWND hwnd, DWORD attr, PVOID pvAttribute, DWORD cbAttribute);
+#pragma comment(lib, "dwmapi.lib")
+
+static PfnCreateWindowInBand resolve_create_window_in_band() {
+    static PfnCreateWindowInBand fn =
+        (PfnCreateWindowInBand)GetProcAddress(GetModuleHandleW(L"user32.dll"), "CreateWindowInBand");
+    return fn;
+}
+static PfnGetWindowBand resolve_get_window_band() {
+    static PfnGetWindowBand fn =
+        (PfnGetWindowBand)GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetWindowBand");
+    return fn;
+}
+
+static int window_cloaked(HWND h) {
+    int cloaked = 0;
+    DwmGetWindowAttribute(h, 14 /*DWMWA_CLOAKED*/, &cloaked, sizeof(cloaked));
+    return cloaked;
+}
+
+// 创建弹出窗口：优先在宿主窗口同 Band 创建；失败回退普通 CreateWindowEx。
+static HWND create_popup_band_aware(DWORD exStyle, ATOM atom, LPCWSTR clsName,
+                                    int x, int y, int w, int h, const char* tag) {
+    PfnCreateWindowInBand pCreate = resolve_create_window_in_band();
+    PfnGetWindowBand pGetBand = resolve_get_window_band();
+
+    HWND fg = GetForegroundWindow();
+    DWORD band = 0, fgPid = 0;
+    if (fg) {
+        GetWindowThreadProcessId(fg, &fgPid);
+        if (pGetBand) pGetBand(fg, &band);
+    }
+    // owner：仅同进程前台窗口（owned 窗口强制显示在 owner 之上；
+    // 跨进程 owner 在 AppContainer 宿主下不可靠，不设）。
+    HWND owner = (fg && fgPid == GetCurrentProcessId()) ? fg : nullptr;
+
+    if (pCreate && atom != 0 && band > 1) {
+        SetLastError(0);
+        HWND hwnd = pCreate(exStyle, atom, L"", WS_POPUP, x, y, w, h,
+                            owner, nullptr, g_inst, nullptr, band);
+        if (hwnd) {
+            DWORD actual = 0;
+            if (pGetBand) pGetBand(hwnd, &actual);
+            write_log(std::string("UI: create ") + tag + " in band=" + std::to_string(band) +
+                          " OK actual=" + std::to_string(actual) +
+                          " cloaked=" + std::to_string(window_cloaked(hwnd)) +
+                          " owner=" + std::to_string((uintptr_t)owner),
+                      LOG_INFO);
+            return hwnd;
+        }
+        write_log(std::string("UI: create ") + tag + " in band=" + std::to_string(band) +
+                      " failed err=" + std::to_string(GetLastError()) + ", fallback desktop band",
+                  LOG_INFO);
+    }
+    HWND hwnd = CreateWindowExW(exStyle, clsName, L"", WS_POPUP, x, y, w, h,
+                                owner, nullptr, g_inst, nullptr);
+    write_log(std::string("UI: create ") + tag + " fallback(no band) hwnd=" +
+                  std::to_string((uintptr_t)hwnd) + " fgband=" + std::to_string(band) +
+                  " cloaked=" + std::to_string(hwnd ? window_cloaked(hwnd) : -1),
+              LOG_INFO);
+    return hwnd;
 }
 
 // --- 9-patch ---
@@ -418,6 +508,30 @@ bool ClassicABC::UI::Init(HINSTANCE hInst, int width, int height) {
         Gdiplus::GdiplusStartupInput si;
         Gdiplus::GdiplusStartup(&g_gdiToken, &si, nullptr);
     }
+
+    // 诊断：记录本进程/线程所在的窗口站与桌面（AppContainer/UWP 环境排查用）。
+    {
+        auto to_u8 = [](const WCHAR* w) -> std::string {
+            int n = WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+            if (n <= 1) return "";
+            std::string s((size_t)(n - 1), '\0');
+            WideCharToMultiByte(CP_UTF8, 0, w, -1, &s[0], n, nullptr, nullptr);
+            return s;
+        };
+        auto obj_name = [&to_u8](HANDLE h) -> std::string {
+            WCHAR buf[128] = {}; DWORD need = 0;
+            if (h && GetUserObjectInformationW(h, UOI_NAME, buf, sizeof(buf) - 2, &need)) return to_u8(buf);
+            return "?";
+        };
+        WCHAR exe[MAX_PATH] = {};
+        GetModuleFileNameW(nullptr, exe, MAX_PATH);
+        std::string ws = obj_name(GetProcessWindowStation());
+        std::string dk = obj_name(GetThreadDesktop(GetCurrentThreadId()));
+        write_log("UI: Init() pid=" + std::to_string(GetCurrentProcessId()) +
+                      " exe=[" + to_u8(exe) + "] winsta=[" + ws + "] desktop=[" + dk + "]",
+                  LOG_INFO);
+    }
+
     write_log("UI: Init() hInst=" + std::to_string((uintptr_t)hInst) + " size=" + std::to_string(width) + "x" + std::to_string(height), LOG_DEBUG);
     return true;
 }
@@ -470,10 +584,11 @@ void ClassicABC::UI::Update() {
         init_font();
         if (!g_wclass) {
             WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) }; wc.lpfnWndProc = wndproc; wc.hInstance = g_inst;
-            wc.hCursor = LoadCursor(nullptr, IDC_ARROW); wc.lpszClassName = kWndClass; RegisterClassExW(&wc); g_wclass = true;
+            wc.hCursor = LoadCursor(nullptr, IDC_ARROW); wc.lpszClassName = kWndClass;
+            g_wndAtom = RegisterClassExW(&wc); g_wclass = true;
         }
-        g_wnd = CreateWindowExW(WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW, kWndClass, L"",
-                                 WS_POPUP, 0, 0, g_cw, g_ch, nullptr, nullptr, g_inst, nullptr);
+        g_wnd = create_popup_band_aware(WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
+                                        g_wndAtom, kWndClass, 0, 0, g_cw, g_ch, "pinyin");
     }
 
     POINT cp = caret_pos(); int x = cp.x, y = cp.y + g_fh + 4;
@@ -481,7 +596,14 @@ void ClassicABC::UI::Update() {
     int sw = wa.right - wa.left, sh = wa.bottom - wa.top;
     if (x + g_cw > wa.right) x = wa.right - g_cw; if (y + g_ch > wa.bottom) y = cp.y - g_ch - 4;
     if (x < wa.left) x = wa.left; if (y < wa.top) y = wa.top;
-    SetWindowPos(g_wnd, HWND_TOPMOST, x, y, g_cw, g_ch, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    SetLastError(0);
+    BOOL ok = SetWindowPos(g_wnd, HWND_TOPMOST, x, y, g_cw, g_ch, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    DWORD err = GetLastError();
+    char stylebuf[16]; sprintf_s(stylebuf, "%08X", (unsigned)GetWindowLongW(g_wnd, GWL_STYLE));
+    write_log("UI: Update pinyin pos=(" + std::to_string(x) + "," + std::to_string(y) + ") swp=" +
+                  std::to_string(ok) + " err=" + std::to_string(err) + " vis=" +
+                  std::to_string(IsWindowVisible(g_wnd)) + " style=0x" + std::string(stylebuf),
+              LOG_INFO);
     InvalidateRect(g_wnd, nullptr, TRUE);
 }
 
@@ -617,14 +739,14 @@ void ClassicABC::UI::ShowCand(bool visible) {
                 WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
                 wc.lpfnWndProc = candWndProc; wc.hInstance = g_inst;
                 wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-                wc.lpszClassName = kCandClass; RegisterClassExW(&wc);
+                wc.lpszClassName = kCandClass;
+                g_candAtom = RegisterClassExW(&wc);
                 g_candClassRegistered = true;
             }
-            g_candWnd = CreateWindowExW(
+            g_candWnd = create_popup_band_aware(
                 WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
-                kCandClass, L"", WS_POPUP,
-                0, 0, g_candW, g_candH,
-                nullptr, nullptr, g_inst, nullptr);
+                g_candAtom, kCandClass,
+                0, 0, g_candW, g_candH, "cand");
         }
         ShowWindow(g_candWnd, SW_SHOWNOACTIVATE);
     } else {
@@ -696,8 +818,16 @@ void ClassicABC::UI::UpdateCand() {
     if (x < wa.left) x = wa.left; if (y < wa.top) y = wa.top;
     if (x + g_candW > wa.right) x = wa.right - g_candW;
     if (y + h > wa.bottom) y = wa.bottom - h;
-    SetWindowPos(g_candWnd, HWND_TOPMOST, x, y, g_candW, h,
-                 SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    SetLastError(0);
+    BOOL okc = SetWindowPos(g_candWnd, HWND_TOPMOST, x, y, g_candW, h,
+                            SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    DWORD errc = GetLastError();
+    char stylebuf[16]; sprintf_s(stylebuf, "%08X", (unsigned)GetWindowLongW(g_candWnd, GWL_STYLE));
+    write_log("UI: UpdateCand pos=(" + std::to_string(x) + "," + std::to_string(y) + ") size=" +
+                  std::to_string(g_candW) + "x" + std::to_string(h) + " swp=" + std::to_string(okc) +
+                  " err=" + std::to_string(errc) + " vis=" + std::to_string(IsWindowVisible(g_candWnd)) +
+                  " style=0x" + std::string(stylebuf),
+              LOG_INFO);
     InvalidateRect(g_candWnd, nullptr, TRUE);
 }
 
@@ -1173,7 +1303,8 @@ void ClassicABC::UI::ShowSettings(bool visible) {
             WNDCLASSEXW wc = { sizeof(WNDCLASSEXW) };
                 wc.lpfnWndProc = settingsWndProc; wc.hInstance = g_inst;
                 wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-                wc.lpszClassName = kSettingsClass; RegisterClassExW(&wc);
+                wc.lpszClassName = kSettingsClass;
+                g_settingsAtom = RegisterClassExW(&wc);
                 g_settingsClass = true;
             }
             // Default position: bottom-right of work area (above taskbar)
@@ -1182,16 +1313,25 @@ void ClassicABC::UI::ShowSettings(bool visible) {
                 g_settingsX = wa.right - kSettingsW - 10;
                 g_settingsY = wa.bottom - kSettingsH - 10;
             }
-            g_settingsWnd = CreateWindowExW(
+            g_settingsWnd = create_popup_band_aware(
                 WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
-                kSettingsClass, L"", WS_POPUP,
-                g_settingsX, g_settingsY, kSettingsW, kSettingsH,
-                nullptr, nullptr, g_inst, nullptr);
+                g_settingsAtom, kSettingsClass,
+                g_settingsX, g_settingsY, kSettingsW, kSettingsH, "settings");
             write_log("UI: ShowSettings created hwnd=" + std::to_string((uintptr_t)g_settingsWnd) + " at " + std::to_string(g_settingsX) + "," + std::to_string(g_settingsY), LOG_DEBUG);
             InitBtnRects();
         }
-        write_log("UI: ShowSettings showing hwnd=" + std::to_string((uintptr_t)g_settingsWnd) + " IsVisible=" + std::to_string(IsWindowVisible(g_settingsWnd)), LOG_DEBUG);
-        ShowWindow(g_settingsWnd, SW_SHOWNOACTIVATE);
+        SetLastError(0);
+        BOOL okw = ShowWindow(g_settingsWnd, SW_SHOWNOACTIVATE);
+        DWORD errw = GetLastError();
+        RECT rectw; GetWindowRect(g_settingsWnd, &rectw);
+        char stylebuf[16]; sprintf_s(stylebuf, "%08X", (unsigned)GetWindowLongW(g_settingsWnd, GWL_STYLE));
+        write_log("UI: ShowSettings shown hwnd=" + std::to_string((uintptr_t)g_settingsWnd) +
+                      " ret=" + std::to_string(okw) + " err=" + std::to_string(errw) +
+                      " IsVisible=" + std::to_string(IsWindowVisible(g_settingsWnd)) +
+                      " style=0x" + std::string(stylebuf) +
+                      " rect=(" + std::to_string(rectw.left) + "," + std::to_string(rectw.top) + "," +
+                      std::to_string(rectw.right) + "," + std::to_string(rectw.bottom) + ")",
+                  LOG_INFO);
     } else {
         if (g_settingsWnd) { write_log("UI: ShowSettings hiding hwnd=" + std::to_string((uintptr_t)g_settingsWnd), LOG_DEBUG); ShowWindow(g_settingsWnd, SW_HIDE); }
     }
