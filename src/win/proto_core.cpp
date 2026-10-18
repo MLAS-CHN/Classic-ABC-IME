@@ -140,6 +140,10 @@ void ClassicABC::SetPageSize(size_t size) {
     ClassicABC::UI::UpdateCand();
 }
 
+void ClassicABC::SetCaretScreenPos(int x, int y, bool valid) {
+    ClassicABC::UI::SetCaretScreenPos(x, y, valid);
+}
+
 void ClassicABC::SetDataDir(const wchar_t* dir) {
     int n = WideCharToMultiByte(CP_UTF8, 0, dir, -1, nullptr, 0, nullptr, nullptr);
     if (n <= 0) return;

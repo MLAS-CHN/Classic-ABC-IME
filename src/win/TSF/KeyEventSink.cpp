@@ -74,6 +74,7 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
     _fTestKeyDownPending = FALSE;
     *pfEaten = TRUE;
     if (_engineReady) {
+      _UpdateCaretPos();  // 每次按键刷新真实光标位置，UI 定位不滞后
       UINT vKey = static_cast<UINT>(wParam);
       bool eaten = ClassicABC::OnKeyDown(vKey);
       *pfEaten = eaten ? TRUE : FALSE;
@@ -82,6 +83,7 @@ STDAPI TSF::OnKeyDown(ITfContext* pContext,
   } else {
     _ProcessKeyEvent(wParam, lParam, pfEaten);
     if (*pfEaten && _engineReady) {
+      _UpdateCaretPos();  // 每次按键刷新真实光标位置，UI 定位不滞后
       UINT vKey = static_cast<UINT>(wParam);
       bool eaten = ClassicABC::OnKeyDown(vKey);
       *pfEaten = eaten ? TRUE : FALSE;

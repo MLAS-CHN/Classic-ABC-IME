@@ -49,6 +49,9 @@ void SetPageSize(size_t size);   // settings changed: apply to engine + refresh 
 bool IsDelMode();
 void RefreshCandidates();  // recompute candidate list for current buffer
 
+// 外部（TSF）提供的光标屏幕坐标，UI 定位时优先使用；valid=false 回退系统 caret。
+void SetCaretScreenPos(int x, int y, bool valid);
+
 void GoFirstPage();
 void GoLastPage();
 void GoNextPage();

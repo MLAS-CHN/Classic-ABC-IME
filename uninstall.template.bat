@@ -23,8 +23,8 @@ echo [1/5] Removing from user input methods...
 powershell -NoProfile -Command ^
   "$signature = '[DllImport(\"input.dll\", CharSet = CharSet.Unicode)] public static extern bool InstallLayoutOrTip(string psz, uint dwFlags);';" ^
   "$type = Add-Type -MemberDefinition $signature -Name 'InputHelper' -Namespace 'Win32' -PassThru;" ^
-  "$type::InstallLayoutOrTip('0804:{3D02CAB6-2B8E-4781-BA20-1C9267529467}', 0x2);" ^
-  "$type::InstallLayoutOrTip('E05E0804', 0x2);"
+  "$type::InstallLayoutOrTip('0804:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-1C9267529467}', 0x1);" ^
+  "$type::InstallLayoutOrTip('E05E0804', 0x1);"
 
 echo   Done
 echo.

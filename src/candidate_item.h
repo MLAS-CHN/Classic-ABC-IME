@@ -1,6 +1,7 @@
 #ifndef CANDIDATE_ITEM_H
 #define CANDIDATE_ITEM_H
 
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -57,13 +58,14 @@ public:
         timestamp_ = timestamp;
     }
 
-    long long computeScore(long long now) const {
+    double computeScore(long long now) const {
         long long gap = now - timestamp_;
         if (gap < 0) gap = 0;
-        long long gap_minutes = gap / 60;
-        const long long DECAY = 100000;
-        long long multiplier = 1 + DECAY / (1 + gap_minutes);
-        return (long long)count_ * multiplier;
+        const double kBoost = 3.0;
+        const double kTauDays = 14.0;
+        double gap_days = static_cast<double>(gap) / 86400.0;
+        double multiplier = 1.0 + kBoost * std::exp(-gap_days / kTauDays);
+        return static_cast<double>(count_) * multiplier;
     }
 
     std::string toString() const;

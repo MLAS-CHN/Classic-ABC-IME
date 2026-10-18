@@ -35,6 +35,9 @@ void ShowCand(bool visible);
 void UpdateCand();  // reposition below input window + repaint
 HWND GetCandidateWindow();  // for cross-thread refresh notifications
 
+// 外部（TSF GetTextExt）提供的光标屏幕坐标；valid=false 时回退系统 caret。
+void SetCaretScreenPos(int x, int y, bool valid);
+
 // Settings bar button icons (PNG with alpha, drawn over button 9-patch)
 bool SetBtnIcon(int idx, const wchar_t* path);  // idx 0~4
 bool SetModeIcon(int idx, const wchar_t* path); // idx 0(capital) 1(english) 2(pinyin)

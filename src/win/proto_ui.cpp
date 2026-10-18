@@ -92,6 +92,36 @@ static bool fill_skin_from_spec(ClassicABC::UI::NinePatchSkin& skin, const Built
     return true;
 }
 
+static std::string wide_to_utf8(const std::wstring& w) {
+    if (w.empty()) return "";
+    int n = WideCharToMultiByte(CP_UTF8, 0, w.c_str(), (int)w.size(), nullptr, 0, nullptr, nullptr);
+    if (n <= 0) return "";
+    std::string s((size_t)n, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, w.c_str(), (int)w.size(), &s[0], n, nullptr, nullptr);
+    return s;
+}
+
+static std::wstring utf8_to_wide(const std::string& s) {
+    if (s.empty()) return L"";
+    int n = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), (int)s.size(), nullptr, 0);
+    if (n <= 0) return L"";
+    std::wstring w((size_t)n, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, s.c_str(), (int)s.size(), &w[0], n);
+    return w;
+}
+
+struct FontEnumCtx { std::vector<std::wstring>* names; };
+
+static int CALLBACK enum_font_family_proc(const LOGFONTW* plf, const TEXTMETRICW*,
+                                          DWORD, LPARAM l) {
+    auto* ctx = reinterpret_cast<FontEnumCtx*>(l);
+    bool dup = false;
+    for (const auto& n : *ctx->names)
+        if (_wcsicmp(n.c_str(), plf->lfFaceName) == 0) { dup = true; break; }
+    if (!dup) ctx->names->push_back(plf->lfFaceName);
+    return TRUE;
+}
+
 }  // namespace
 
 // --- state ---
@@ -168,7 +198,7 @@ static HFONT create_pinyin_font() {
 // 候选词字体：从设置读取字体名和字号。
 static HFONT create_candidate_font() {
     std::string font_name = get_candidate_font();
-    std::wstring wname(font_name.begin(), font_name.end());
+    std::wstring wname = utf8_to_wide(font_name);
     int size_px = get_candidate_font_size();
     return CreateFontW(
         size_px, 0, 0, 0,
@@ -194,7 +224,7 @@ static void apply_candidate_font() {
 // 备选字体：从设置读取字体名和字号（独立配置）。
 static HFONT create_fallback_font() {
     std::string font_name = get_fallback_font();
-    std::wstring wname(font_name.begin(), font_name.end());
+    std::wstring wname = utf8_to_wide(font_name);
     int size_px = get_fallback_font_size();
     return CreateFontW(
         size_px, 0, 0, 0,
@@ -933,7 +963,7 @@ static LRESULT CALLBACK settingsDlgProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
             wchar_t buf[128] = {};
             SendMessageW((HWND)l, CB_GETLBTEXT, (WPARAM)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0), (LPARAM)buf);
             std::wstring wname(buf);
-            std::string name(wname.begin(), wname.end());
+            std::string name = wide_to_utf8(wname);
             set_candidate_font(name);  // 立即生效 + 写盘
             refresh_candidate_font();
             return 0;
@@ -950,7 +980,7 @@ static LRESULT CALLBACK settingsDlgProc(HWND hwnd, UINT msg, WPARAM w, LPARAM l)
             wchar_t buf[128] = {};
             SendMessageW((HWND)l, CB_GETLBTEXT, (WPARAM)SendMessageW((HWND)l, CB_GETCURSEL, 0, 0), (LPARAM)buf);
             std::wstring wname(buf);
-            std::string name(wname.begin(), wname.end());
+            std::string name = wide_to_utf8(wname);
             set_fallback_font(name);  // 立即生效 + 写盘
             refresh_candidate_font();
             return 0;
@@ -1052,17 +1082,8 @@ static void ShowSettingsDialog() {
             if (dc) {
                 LOGFONTW lf = {};
                 lf.lfCharSet = DEFAULT_CHARSET;
-                struct EnumCtx { std::vector<std::wstring>* names; };
-                EnumFontFamiliesExW(dc, &lf,
-                    [](const LOGFONTW* plf, const TEXTMETRICW*, DWORD, LPARAM l) -> int CALLBACK {
-                        auto* ctx = reinterpret_cast<EnumCtx*>(l);
-                        bool dup = false;
-                        for (const auto& n : *ctx->names)
-                            if (_wcsicmp(n.c_str(), plf->lfFaceName) == 0) { dup = true; break; }
-                        if (!dup) ctx->names->push_back(plf->lfFaceName);
-                        return TRUE;
-                    },
-                    (LPARAM)&EnumCtx{&fontNames}, 0);
+                EnumFontFamiliesExW(dc, &lf, enum_font_family_proc,
+                                    (LPARAM)&FontEnumCtx{&fontNames}, 0);
                 ReleaseDC(nullptr, dc);
             }
             std::sort(fontNames.begin(), fontNames.end(),
@@ -1071,8 +1092,8 @@ static void ShowSettingsDialog() {
                       });
             for (const auto& n : fontNames) SendMessageW(fontCombo, CB_ADDSTRING, 0, (LPARAM)n.c_str());
             std::string cur = get_candidate_font();
-            std::wstring wcur(cur.begin(), cur.end());
-            int idx = SendMessageW(fontCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)wcur.c_str());
+            std::wstring wcur = utf8_to_wide(cur);
+            LRESULT idx = SendMessageW(fontCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)wcur.c_str());
             SendMessageW(fontCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
         }
         SendMessageW(fontCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
@@ -1090,7 +1111,7 @@ static void ShowSettingsDialog() {
             for (auto s : kSizes) SendMessageW(sizeCombo, CB_ADDSTRING, 0, (LPARAM)s);
             wchar_t szbuf[16];
             wsprintfW(szbuf, L"%d", get_candidate_font_size());
-            int idx = SendMessageW(sizeCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)szbuf);
+            LRESULT idx = SendMessageW(sizeCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)szbuf);
             SendMessageW(sizeCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
         }
         SendMessageW(sizeCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
@@ -1109,17 +1130,8 @@ static void ShowSettingsDialog() {
             if (dc) {
                 LOGFONTW lf = {};
                 lf.lfCharSet = DEFAULT_CHARSET;
-                struct EnumCtx { std::vector<std::wstring>* names; };
-                EnumFontFamiliesExW(dc, &lf,
-                    [](const LOGFONTW* plf, const TEXTMETRICW*, DWORD, LPARAM l) -> int CALLBACK {
-                        auto* ctx = reinterpret_cast<EnumCtx*>(l);
-                        bool dup = false;
-                        for (const auto& n : *ctx->names)
-                            if (_wcsicmp(n.c_str(), plf->lfFaceName) == 0) { dup = true; break; }
-                        if (!dup) ctx->names->push_back(plf->lfFaceName);
-                        return TRUE;
-                    },
-                    (LPARAM)&EnumCtx{&fontNames}, 0);
+                EnumFontFamiliesExW(dc, &lf, enum_font_family_proc,
+                                    (LPARAM)&FontEnumCtx{&fontNames}, 0);
                 ReleaseDC(nullptr, dc);
             }
             std::sort(fontNames.begin(), fontNames.end(),
@@ -1128,8 +1140,8 @@ static void ShowSettingsDialog() {
                       });
             for (const auto& n : fontNames) SendMessageW(fbCombo, CB_ADDSTRING, 0, (LPARAM)n.c_str());
             std::string cur = get_fallback_font();
-            std::wstring wcur(cur.begin(), cur.end());
-            int idx = SendMessageW(fbCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)wcur.c_str());
+            std::wstring wcur = utf8_to_wide(cur);
+            LRESULT idx = SendMessageW(fbCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)wcur.c_str());
             SendMessageW(fbCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
         }
         SendMessageW(fbCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);
@@ -1147,7 +1159,7 @@ static void ShowSettingsDialog() {
             for (auto s : kSizes) SendMessageW(fbsCombo, CB_ADDSTRING, 0, (LPARAM)s);
             wchar_t szbuf[16];
             wsprintfW(szbuf, L"%d", get_fallback_font_size());
-            int idx = SendMessageW(fbsCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)szbuf);
+            LRESULT idx = SendMessageW(fbsCombo, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)szbuf);
             SendMessageW(fbsCombo, CB_SETCURSEL, (idx == CB_ERR) ? 0 : (WPARAM)idx, 0);
         }
         SendMessageW(fbsCombo, WM_SETFONT, (WPARAM)uiFont, TRUE);

@@ -67,6 +67,9 @@ class TSF : public ITfTextInputProcessorEx,
   static void _CommitTextCallback(const wchar_t* text, size_t len, void* userdata);
   void _SetActiveContext(ITfContext* pContext);
 
+  // 查询当前光标屏幕坐标（GetTextExt），推送给 UI 用于候选框/拼音框定位。
+  void _UpdateCaretPos();
+
  private:
   BOOL _InitThreadMgrEventSink();
   void _UninitThreadMgrEventSink();
@@ -97,6 +100,7 @@ class TSF : public ITfTextInputProcessorEx,
   com_ptr<ITfContext> _pActiveContext;
   std::wstring _commit_text;
   bool _commit_pending = false;
+  bool _caret_query_pending = false;  // DoEditSession 本次执行是查询光标位置
 
   LONG _cRef;
 

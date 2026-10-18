@@ -19,6 +19,8 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 static long long now_ms() {
@@ -161,7 +163,17 @@ static void persist_lines_to_file(const std::string& file_path, const std::vecto
         file << line << "\n";
     }
     file.close();
-    std::filesystem::rename(tmp_path, file_path);
+    std::error_code ec;
+    std::filesystem::rename(tmp_path, file_path, ec);
+    if (ec) {
+        // 不要抛出（后台 detached 线程里的异常会终止宿主进程），清理 tmp 防止泄漏。
+        std::error_code rm_ec;
+        std::filesystem::remove(tmp_path, rm_ec);
+        write_log("FileIO: persist rename " + tmp_path + " -> " + file_path + " failed: " + ec.message() +
+                      (rm_ec ? ", tmp cleanup failed: " + rm_ec.message() : ", tmp removed"),
+                  LOG_WARN);
+        return;
+    }
     write_log("FileIO: persist " + file_path + " (" + std::to_string(lines.size()) + " lines) took " +
                   std::to_string(now_ms() - t0) + " ms",
               LOG_INFO);
@@ -305,6 +317,34 @@ static void for_each_segment(const std::string& pinyin_csv, F&& fn) {
     }
 }
 
+// 删除历史遗留的 parts 临时文件。重建/重命名失败或进程崩溃都会留下
+// ~40MB 的 tmp；只清理 1 小时前的，避免误删其他进程正在写的新文件。
+static void cleanup_stale_parts_tmp_files(const std::string& cache_dir) {
+    std::error_code ec;
+    std::filesystem::directory_iterator it(cache_dir, ec);
+    std::filesystem::directory_iterator end;
+    auto now = std::filesystem::file_time_type::clock::now();
+    int removed = 0;
+    while (!ec && it != end) {
+        const auto& entry = *it;
+        std::error_code fec;
+        if (entry.is_regular_file(fec)) {
+            std::string name = entry.path().filename().string();
+            if (name.rfind("user_dict_parts.bin.tmp", 0) == 0) {
+                auto mt = entry.last_write_time(fec);
+                if (!fec && now - mt >= std::chrono::hours(1)) {
+                    std::error_code rec;
+                    if (std::filesystem::remove(entry.path(), rec)) ++removed;
+                }
+            }
+        }
+        it.increment(ec);
+    }
+    if (removed > 0) {
+        write_log("FileIO: removed " + std::to_string(removed) + " stale parts cache tmp files", LOG_INFO);
+    }
+}
+
 // 生成 parts cache 文件（词库变化时重建）。返回文件路径。
 // 基于调用方提供的 lines（局部快照），避免与主线程的释放竞争。
 // 临时文件用唯一名，允许并发生成（内容相同，后完成的原子替换先完成的）。
@@ -313,6 +353,7 @@ static std::string generate_parts_cache_file(const std::vector<std::string>& lin
     std::string path = get_parts_cache_path();
     std::string cache_dir = join_path(get_pinyin_data_dir(), "cache");
     std::filesystem::create_directories(cache_dir);
+    cleanup_stale_parts_tmp_files(cache_dir);
 
     // 每行数据字节数 = 段数(1) + Σ(长度(1) + 内容)。
     auto row_bytes = [](const std::string& line) {
@@ -326,8 +367,14 @@ static std::string generate_parts_cache_file(const std::vector<std::string>& lin
 
     uint64_t header_size = 8 + 8 + 8 + (uint64_t)lines.size() * 4;
 
-    // 写入临时文件。
-    std::string tmp = path + ".tmp." + std::to_string(++g_parts_tmp_seq);
+    // 写入临时文件。文件名带 PID：多个宿主进程各自加载本 DLL，
+    // 仅用进程内序号会跨进程撞名、互相覆盖。
+#ifdef _WIN32
+    unsigned long pid = (unsigned long)GetCurrentProcessId();
+#else
+    unsigned long pid = (unsigned long)getpid();
+#endif
+    std::string tmp = path + ".tmp." + std::to_string(pid) + "." + std::to_string(++g_parts_tmp_seq);
     {
         std::ofstream f(tmp, std::ios::binary | std::ios::trunc);
         if (!f.is_open()) return path;
@@ -368,6 +415,16 @@ static std::string generate_parts_cache_file(const std::vector<std::string>& lin
     }
     std::error_code ec;
     std::filesystem::rename(tmp, path, ec);
+    if (ec) {
+        // 目标文件可能仍被旧版 DLL 映射（打开时未加 FILE_SHARE_DELETE）。
+        // 失败时删除 tmp：以前忽略错误会为每次重建留下一个 40MB 文件。
+        std::error_code rm_ec;
+        std::filesystem::remove(tmp, rm_ec);
+        write_log("FileIO: parts cache rename " + tmp + " -> " + path + " failed: " + ec.message() +
+                      (rm_ec ? ", tmp cleanup failed: " + rm_ec.message() : ", tmp removed") +
+                      "; keeping existing cache",
+                  LOG_WARN);
+    }
     return path;
 }
 
@@ -397,7 +454,9 @@ static bool map_parts_cache(uint32_t expect_count) {
     std::wstring wpath((size_t)(n - 1), L'\0');
     MultiByteToWideChar(CP_UTF8, 0, path.c_str(), -1, &wpath[0], n);
 
-    g_parts_file = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ,
+    // FILE_SHARE_DELETE：允许其他进程在重建 cache 时 rename 替换本文件。
+    // 缺了它，只要任一宿主进程仍映射着旧 cache，替换就会失败并残留 tmp。
+    g_parts_file = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_DELETE,
                                nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (g_parts_file == INVALID_HANDLE_VALUE) return false;
 

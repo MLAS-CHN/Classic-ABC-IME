@@ -91,7 +91,7 @@ echo [4/5] Adding to user input methods...
 powershell -NoProfile -Command ^
   "$signature = '[DllImport(\"input.dll\", CharSet = CharSet.Unicode)] public static extern bool InstallLayoutOrTip(string psz, uint dwFlags);';" ^
   "$type = Add-Type -MemberDefinition $signature -Name 'InputHelper' -Namespace 'Win32' -PassThru;" ^
-  "$tsf = '0804:{3D02CAB6-2B8E-4781-BA20-1C9267529467}';" ^
+  "$tsf = '0804:{A3F4CDED-B1E9-41EE-9CA6-7B4D0DE6CB0A}{3D02CAB6-2B8E-4781-BA20-1C9267529467}';" ^
   "$imm32 = 'E05E0804';" ^
   "$r1 = $type::InstallLayoutOrTip($tsf, 0);" ^
   "$r2 = $type::InstallLayoutOrTip($imm32, 0);" ^

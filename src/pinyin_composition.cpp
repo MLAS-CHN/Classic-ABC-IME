@@ -202,8 +202,8 @@ static std::vector<CandidateItem> getAllSuitableCharElements(
     long long now = (long long)time(nullptr);
     std::stable_sort(candidates.begin(), candidates.end(),
                      [now](const CandidateItem& a, const CandidateItem& b) {
-                         long long sa = a.computeScore(now);
-                         long long sb = b.computeScore(now);
+                         double sa = a.computeScore(now);
+                         double sb = b.computeScore(now);
                          if (sa != sb) return sa > sb;
                          return a.getTimestamp() > b.getTimestamp();
                      });
@@ -316,8 +316,8 @@ std::vector<std::vector<CandidateItem>> getAllCandidateElements(
             size_t ca = count_consumed_letters(pinyin_buffer, a.getPinyinParts());
             size_t cb = count_consumed_letters(pinyin_buffer, b.getPinyinParts());
             if (ca != cb) return ca > cb;
-            long long sa = a.computeScore(now);
-            long long sb = b.computeScore(now);
+            double sa = a.computeScore(now);
+            double sb = b.computeScore(now);
             if (sa != sb) return sa > sb;
             return a.getTimestamp() > b.getTimestamp();
         });

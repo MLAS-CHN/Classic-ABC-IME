@@ -99,6 +99,21 @@ void TSF::_SetActiveContext(ITfContext* pContext) {
   _pActiveContext = pContext;
 }
 
+// 通过 TSF GetTextExt 查询真实光标屏幕坐标并推送给 UI。
+// 系统 caret（GetGUIThreadInfo）在 Word 等自绘光标的应用里会滞后/不存在，
+// 导致拼音框与候选框停留在旧位置；TSF 坐标始终与文档光标同步。
+void TSF::_UpdateCaretPos() {
+  if (_pActiveContext == nullptr) return;
+  _caret_query_pending = true;
+  HRESULT hr = E_FAIL;
+  _pActiveContext->RequestEditSession(_tfClientId, (ITfEditSession*)this,
+                                      TF_ES_SYNC | TF_ES_READ, &hr);
+  if (FAILED(hr)) {
+    _caret_query_pending = false;
+    ClassicABC::SetCaretScreenPos(0, 0, false);  // 查询失败：回退系统 caret
+  }
+}
+
 void TSF::_CommitTextCallback(const wchar_t* text, size_t len, void* userdata) {
   if (text == nullptr || userdata == nullptr) return;
   TSF* self = static_cast<TSF*>(userdata);
@@ -215,6 +230,7 @@ STDMETHODIMP TSF::OnSetThreadFocus() {
 }
 STDMETHODIMP TSF::OnKillThreadFocus() {
   _AbortComposition();
+  ClassicABC::SetCaretScreenPos(0, 0, false);  // 失焦：外部光标失效，回退系统 caret
   if (_engineReady) ClassicABC::SetFocused(false);
   return S_OK;
 }
@@ -237,6 +253,31 @@ STDMETHODIMP TSF::OnActivated(REFCLSID clsid, REFGUID guidProfile, BOOL isActiva
 }
 
 STDAPI TSF::DoEditSession(TfEditCookie ec) {
+  // 光标位置查询会话（只读）：GetTextExt 得到光标屏幕坐标，推送给 UI。
+  if (_caret_query_pending) {
+    _caret_query_pending = false;
+    if (_pActiveContext == nullptr) return E_FAIL;
+    TF_SELECTION sel;
+    ULONG cFetched = 0;
+    HRESULT hr = _pActiveContext->GetSelection(ec, TF_DEFAULT_SELECTION, 1, &sel, &cFetched);
+    if (SUCCEEDED(hr) && cFetched > 0) {
+      com_ptr<ITfContextView> pView;
+      RECT rc = {};
+      BOOL clipped = FALSE;
+      if (SUCCEEDED(_pActiveContext->GetActiveView(&pView)) &&
+          SUCCEEDED(pView->GetTextExt(ec, sel.range, &rc, &clipped))) {
+        // 用光标框的左上角作为定位基准（与系统 caret 的 rcCaret 语义一致）。
+        ClassicABC::SetCaretScreenPos(rc.left, rc.top, true);
+      } else {
+        ClassicABC::SetCaretScreenPos(0, 0, false);
+      }
+      sel.range->Release();
+    } else {
+      ClassicABC::SetCaretScreenPos(0, 0, false);
+    }
+    return S_OK;
+  }
+
   if (!_commit_pending || _pActiveContext == nullptr) return E_FAIL;
   _commit_pending = false;
   if (_commit_text.empty()) return S_OK;
